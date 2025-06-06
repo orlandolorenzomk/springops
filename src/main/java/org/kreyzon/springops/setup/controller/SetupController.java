@@ -52,25 +52,4 @@ public class SetupController {
     public ResponseEntity<Boolean> initializeFiles(@RequestParam String filePath) {
         return ResponseEntity.ok(setupService.initializeFiles(filePath));
     }
-
-    /**
-     * Endpoint to initialize the secret key.
-     *
-     * @return a {@link ResponseEntity} indicating the result of the operation.
-     */
-    @PatchMapping("/initialize-secret-key")
-    public ResponseEntity<Boolean> initializeSecretKey() {
-        return ResponseEntity.ok(setupService.initializeSecretKey());
-    }
-
-    /**
-     * Endpoint to initialize the SSH key for Git operations.
-     *
-     * @param sshKey the SSH key to be initialized.
-     * @return a {@link ResponseEntity} indicating the result of the operation.
-     */
-    @PatchMapping("/initialize-git-ssh-key")
-    public ResponseEntity<Boolean> initializeGitSshKey(@RequestParam String sshKey) {
-        return ResponseEntity.ok(setupService.initializeGitSshKey(sshKey));
-    }
 }

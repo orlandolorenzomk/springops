@@ -42,8 +42,6 @@ public class StartupInitializer {
                     Instant.now(),
                     null,
                     false,
-                    false,
-                    false,
                     false
             );
             setupRepository.save(setup);

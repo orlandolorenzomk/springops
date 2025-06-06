@@ -16,6 +16,4 @@ public class SetupStatusDto {
     Boolean isSetupComplete;
     Boolean isFirstAdminInitialized;
     Boolean isFilesRootInitialized;
-    Boolean isSecretKeyInitialized;
-    Boolean isGitSshKeyInitialized;
 }

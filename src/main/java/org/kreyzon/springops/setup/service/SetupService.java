@@ -7,6 +7,7 @@ import org.kreyzon.springops.common.dto.auth.AdminUserResponseDto;
 import org.kreyzon.springops.common.dto.auth.UserDto;
 import org.kreyzon.springops.common.dto.setup.SetupStatusDto;
 import org.kreyzon.springops.common.utils.*;
+import org.kreyzon.springops.config.ApplicationConfig;
 import org.kreyzon.springops.setup.domain.Setup;
 import org.kreyzon.springops.setup.repository.SetupRepository;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,8 @@ public class SetupService {
 
     private final UserService userService;
 
+    private final ApplicationConfig applicationConfig;
+
     /**
      * Checks the setup process status and returns a DTO indicating
      * whether the setup is complete and which initializations are pending.
@@ -53,8 +56,6 @@ public class SetupService {
                 .isSetupComplete(setupComplete)
                 .isFirstAdminInitialized(setup.getIsFirstAdminInitialized())
                 .isFilesRootInitialized(setup.getIsFilesRootInitialized())
-                .isSecretKeyInitialized(setup.getIsSecretKeyInitialized())
-                .isGitSshKeyInitialized(setup.getIsGitSshKeyInitialized())
                 .build();
     }
 
@@ -68,10 +69,8 @@ public class SetupService {
     private Boolean checkSetupCompleteStatus(Setup setup) {
         boolean isFirstAdminInitialized = setup.getIsFirstAdminInitialized() != null && setup.getIsFirstAdminInitialized();
         boolean isFilesRootInitialized = setup.getIsFilesRootInitialized() != null && setup.getIsFilesRootInitialized();
-        boolean isSecretKeyInitialized = setup.getIsSecretKeyInitialized() != null && setup.getIsSecretKeyInitialized();
-        boolean isGitSshKeyInitialized = setup.getIsGitSshKeyInitialized() != null && setup.getIsGitSshKeyInitialized();
 
-        return isFirstAdminInitialized && isFilesRootInitialized && isSecretKeyInitialized && isGitSshKeyInitialized;
+        return isFirstAdminInitialized && isFilesRootInitialized;
     }
 
     /**
@@ -89,16 +88,16 @@ public class SetupService {
         }
 
         if (userService.findAll().stream()
-                .anyMatch(user -> user.getUsername().equals(Constants.STANDARD_ADMIN_USERNAME))) {
+                .anyMatch(user -> user.getUsername().equals(applicationConfig.getStandardAdminUsername()))) {
             log.warn("First admin user already exists. Skipping initialization.");
             throw new IllegalStateException("First admin user already exists. Cannot initialize again.");
         }
 
-        String password = PasswordGenerator.generateRandomPassword(Constants.STANDARD_ADMIN_PASSWORD_LENGTH);
+        String password = PasswordGenerator.generateRandomPassword(applicationConfig.getStandardAdminPasswordLength());
         UserDto firstAdminUser = UserDto
                 .builder()
-                .username(Constants.STANDARD_ADMIN_USERNAME)
-                .email(Constants.STANDARD_ADMIN_EMAIL)
+                .username(applicationConfig.getStandardAdminUsername())
+                .email(applicationConfig.getStandardAdminEmail())
                 .password(password)
                 .build();
         firstAdminUser = userService.create(firstAdminUser);
@@ -132,10 +131,20 @@ public class SetupService {
 
         Setup setup = getSetup();
 
-        boolean isDirectoryCreated = FileUtils.createDirectory(filePath.concat(Constants.ROOT_DIRECTORY_NAME));
-        if (!isDirectoryCreated) {
-            log.error("Failed to create root directory: {}", filePath);
+        String rootDirectoryPath = filePath.concat(Constants.ROOT_DIRECTORY_NAME);
+        boolean isRootDirectoryCreated = FileUtils.createDirectory(rootDirectoryPath);
+        if (!isRootDirectoryCreated) {
+            log.error("Failed to create root directory: {}", rootDirectoryPath);
             throw new IllegalStateException("Failed to create root directory.");
+        }
+
+        Path applicationsSubdirectoryPath = Path.of(rootDirectoryPath, Constants.DIRECTORY_APPLICATIONS);
+        try {
+            Files.createDirectories(applicationsSubdirectoryPath);
+            log.info("Applications subdirectory created successfully: {}", applicationsSubdirectoryPath);
+        } catch (IOException e) {
+            log.error("Failed to create applications subdirectory: {}", applicationsSubdirectoryPath, e);
+            throw new IllegalStateException("Failed to create applications subdirectory.", e);
         }
 
         setup.setFilesRoot(filePath);
@@ -143,93 +152,8 @@ public class SetupService {
         setupRepository.save(setup);
         log.info("File path saved to setup entity: {}", filePath);
 
-        log.info("Root directory created successfully: {}", filePath);
+        log.info("Root directory and applications subdirectory created successfully.");
         return true;
-    }
-
-    /**
-     * Initializes the secret key and stores it in a file within the setup's files root directory.
-     * Ensures that the files root is initialized and the secret key is not already initialized.
-     * Generates a random secret key, writes it to a file, and updates the setup entity.
-     *
-     * @return {@code true} if the secret key is successfully initialized.
-     * @throws IllegalStateException if the files root is not initialized, the secret key is already initialized,
-     *                               or if writing the secret key to the file fails.
-     */
-    public Boolean initializeSecretKey() {
-        Setup setup = getSetup();
-        String filesRoot = setup.getFilesRoot();
-        if (filesRoot == null || filesRoot.isBlank()) {
-            log.error("Files root is not initialized. Cannot create secret key file.");
-            throw new IllegalStateException("Files root is not initialized.");
-        }
-
-        String filePath = filesRoot + "/" + Constants.SECRET_KEY_FILE_PATH;
-        log.info("Initializing secret key and storing it in file: {}", filePath);
-
-        if (isSetupComplete().getIsSecretKeyInitialized()) {
-            log.warn("Secret key is already initialized. Skipping initialization.");
-            throw new IllegalStateException("Secret key is already initialized. Cannot initialize again.");
-        }
-
-        String secretKey = SecretKeyGenerator.generateAesSecretKey();
-        log.info("[TRUNCATED] Generated secret key: {}", secretKey.substring(4, 7));
-
-        try {
-            Path path = Path.of(filePath);
-            Files.createDirectories(path.getParent());
-            Files.writeString(path, secretKey, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-            log.info("Secret key successfully written to file: {}", filePath);
-        } catch (IOException e) {
-            log.error("Failed to write secret key to file: {}", filePath, e);
-            throw new IllegalStateException("Failed to write secret key to file.", e);
-        }
-
-        setup.setIsSecretKeyInitialized(true);
-        setupRepository.save(setup);
-        log.info("Secret key initialization status updated in the database.");
-
-        return true;
-    }
-
-    /**
-     * Initializes the SSH key by encrypting it with the secret key.
-     * Updates the setup entity with the encrypted SSH key.
-     *
-     * @param sshKey the SSH key to encrypt and store.
-     * @return {@code true} if the SSH key is successfully initialized.
-     * @throws IllegalStateException if the secret key file is missing or encryption fails.
-     */
-    public Boolean initializeGitSshKey(String sshKey) {
-        Setup setup = getSetup();
-
-        String filesRoot = setup.getFilesRoot();
-        if (filesRoot == null || filesRoot.isBlank()) {
-            log.error("Files root is not initialized. Cannot initialize SSH key.");
-            throw new IllegalStateException("Files root is not initialized.");
-        }
-
-        String secretKeyFilePath = Path.of(filesRoot, Constants.SECRET_KEY_FILE_PATH).toString();
-        String sshKeyFilePath = Path.of(filesRoot, Constants.SSH_KEY_FILE_PATH).toString();
-        try {
-            String secretKey = EncryptionUtils.readSecretKey(secretKeyFilePath);
-
-            String encryptedSshKey = EncryptionUtils.encrypt(sshKey, secretKey);
-
-            Path path = Path.of(sshKeyFilePath);
-            Files.createDirectories(path.getParent());
-            Files.writeString(path, encryptedSshKey, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-            log.info("Encrypted SSH key successfully written to file: {}", sshKeyFilePath);
-
-            setup.setIsGitSshKeyInitialized(true);
-            setupRepository.save(setup);
-
-            log.info("SSH key initialization status updated in the database.");
-            return true;
-        } catch (Exception e) {
-            log.error("Failed to initialize SSH key: {}", e.getMessage(), e);
-            throw new IllegalStateException("Failed to initialize SSH key.", e);
-        }
     }
 
     /**

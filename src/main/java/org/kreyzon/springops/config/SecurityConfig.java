@@ -1,10 +1,14 @@
 package org.kreyzon.springops.config;
 
+import org.kreyzon.springops.auth.config.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * Spring Security configuration class for bypassing specific endpoints.
@@ -22,10 +26,18 @@ public class SecurityConfig {
         "/setup/initialize-files",
         "/setup/initialize-secret-key",
         "/setup/initialize-git-ssh-key",
+        "/auth/login",
+        "/auth/register"
     };
 
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
+
     /**
-     * Configures the security filter chain to bypass specific endpoints.
+     * Configures the security filter chain to bypass specific endpoints and add JWT authentication.
      *
      * @param http the {@link HttpSecurity} object to configure.
      * @return the configured {@link SecurityFilterChain}.
@@ -39,7 +51,19 @@ public class SecurityConfig {
                 .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                 .anyRequest().authenticated()
             )
-            .httpBasic(httpBasic -> {});
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
+    }
+
+    /**
+     * Configures the authentication manager bean.
+     *
+     * @param http the {@link HttpSecurity} object to configure.
+     * @return the {@link AuthenticationManager} instance.
+     * @throws Exception if an error occurs during configuration.
+     */
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        return http.getSharedObject(AuthenticationManagerBuilder.class).build();
     }
 }

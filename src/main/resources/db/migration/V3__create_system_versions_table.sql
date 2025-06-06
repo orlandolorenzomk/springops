@@ -1,0 +1,7 @@
+CREATE TABLE system_versions (
+    id SERIAL PRIMARY KEY,
+    type VARCHAR(20) NOT NULL,
+    version VARCHAR(50) NOT NULL,
+    path TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

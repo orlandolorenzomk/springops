@@ -46,10 +46,4 @@ public class Setup {
 
     @Column(name = "is_first_admin_initialized", nullable = false)
     private Boolean isFirstAdminInitialized;
-
-    @Column(name = "is_secret_key_initialized", nullable = false)
-    private Boolean isSecretKeyInitialized = false;
-
-    @Column(name = "is_git_ssh_key_initialized", nullable = false)
-    private Boolean isGitSshKeyInitialized = false;
 }

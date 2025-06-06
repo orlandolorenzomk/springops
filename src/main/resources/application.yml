@@ -29,3 +29,16 @@ spring:
 logging:
   level:
     root: INFO
+
+jwt:
+  secret: ${JWT_SECRET} # Secret key for JWT signing
+  expiration: ${JWT_EXPIRATION} # JWT expiration time in seconds
+  header: Authorization
+  prefix: Bearer
+
+application:
+  secret: ${APP_SECRET} # Secret key for data encryption
+  git-token: ${APP_GIT_TOKEN} # Git personal access token for repository access
+  standard-admin-username: ${APP_STANDARD_ADMIN_USERNAME:admin}
+  standard-admin-email: ${APP_STANDARD_ADMIN_EMAIL:springops@kreyzon.com}
+  standard-admin-password-length: ${APP_STANDARD_ADMIN_PASSWORD_LENGTH:8}
