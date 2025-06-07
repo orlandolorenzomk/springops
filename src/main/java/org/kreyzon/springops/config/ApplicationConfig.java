@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
  * Configuration class for application-specific properties.
  * Maps the properties defined under the "application" section in the application.yml file.
  * Provides access to the secret, git token, and standard admin details.
- *
+ * <p>
  * This class uses Lombok annotations to reduce boilerplate code.
  *
  * @author Lorenzo Orlando
@@ -25,6 +25,11 @@ public class ApplicationConfig {
      * Secret key for the application.
      */
     private String secret;
+
+    /**
+     * Algorithm used for encryption or hashing.
+     */
+    private String algorithm;
 
     /**
      * Git token for the application.
@@ -45,4 +50,29 @@ public class ApplicationConfig {
      * Standard admin password length for the application.
      */
     private int standardAdminPasswordLength;
+
+    /**
+     * Name of the root directory where application files are stored.
+     */
+    private String rootDirectoryName;
+
+    /**
+     * Subdirectory within the root directory where application data is stored.
+     */
+    private String directoryApplications;
+
+    /**
+     * Subdirectory within the root directory where source files are stored.
+     */
+    private String directorySource;
+
+    /**
+     * Subdirectory within the root directory where backup files are stored.
+     */
+    private String directoryBackups;
+
+    /**
+     * Maximum number of environment files allowed per application.
+     */
+    private Integer maximumEnvFilesPerApplication;
 }

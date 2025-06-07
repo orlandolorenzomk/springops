@@ -163,7 +163,7 @@ public class SetupService {
      * @return the {@link Setup} entity.
      * @throws IllegalStateException if the setup entity is not found in the database.
      */
-    private Setup getSetup() {
+    public Setup getSetup() {
         Setup setup = setupRepository.findSetup();
         if (setup == null) {
             log.error("Setup entity not found. Cannot proceed with the operation.");

@@ -38,7 +38,13 @@ jwt:
 
 application:
   secret: ${APP_SECRET} # Secret key for data encryption
+  algorithm: ${APP_ALGORITHM:AES} # Encryption algorithm
   git-token: ${APP_GIT_TOKEN} # Git personal access token for repository access
   standard-admin-username: ${APP_STANDARD_ADMIN_USERNAME:admin}
   standard-admin-email: ${APP_STANDARD_ADMIN_EMAIL:springops@kreyzon.com}
   standard-admin-password-length: ${APP_STANDARD_ADMIN_PASSWORD_LENGTH:8}
+  root-directory-name: ${APP_ROOT_DIRECTORY_NAME:springops}
+  directory-applications: ${APP_DIRECTORY_APPLICATIONS:applications}
+  directory-source: ${APP_DIRECTORY_SOURCE:source}
+  directory-backups: ${APP_DIRECTORY_BACKUPS:backups}
+  maximum-env-files-per-application: ${APP_MAXIMUM_ENV_FILES_PER_APPLICATION:1}

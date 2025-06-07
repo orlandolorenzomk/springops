@@ -3,12 +3,7 @@ package org.kreyzon.springops.common.utils;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.Key;
 import java.util.Base64;
 
 /**
@@ -20,20 +15,23 @@ import java.util.Base64;
 @Slf4j
 public class EncryptionUtils {
 
-    private static final String ALGORITHM = "AES";
-
     /**
      * Encrypts the given plain text using the provided secret key.
      *
      * @param plainText the text to encrypt.
-     * @param secretKey the secret key for encryption.
+     * @param hexSecret the secret key in hexadecimal format.
+     * @param algorithm the encryption algorithm (e.g., "AES").
      * @return the encrypted text in Base64 format.
      * @throws Exception if encryption fails.
      */
-    public static String encrypt(String plainText, String secretKey) throws Exception {
-        Cipher cipher = Cipher.getInstance(ALGORITHM);
-        Key key = new SecretKeySpec(secretKey.getBytes(), ALGORITHM);
-        cipher.init(Cipher.ENCRYPT_MODE, key);
+    public static String encrypt(String plainText, String hexSecret, String algorithm) throws Exception {
+        byte[] secretBytes = hexStringToByteArray(hexSecret);
+        if (secretBytes.length != 32) { // Validate 256-bit key length
+            throw new IllegalArgumentException("Invalid AES key length: " + secretBytes.length);
+        }
+        Cipher cipher = Cipher.getInstance(algorithm);
+        SecretKeySpec keySpec = new SecretKeySpec(secretBytes, algorithm);
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec);
         byte[] encryptedBytes = cipher.doFinal(plainText.getBytes());
         return Base64.getEncoder().encodeToString(encryptedBytes);
     }
@@ -42,41 +40,37 @@ public class EncryptionUtils {
      * Decrypts the given encrypted text using the provided secret key.
      *
      * @param encryptedText the text to decrypt (Base64 format).
-     * @param secretKey the secret key for decryption.
+     * @param hexSecret the secret key in hexadecimal format.
+     * @param algorithm the encryption algorithm (e.g., "AES").
      * @return the decrypted plain text.
      * @throws Exception if decryption fails.
      */
-    public static String decrypt(String encryptedText, String secretKey) throws Exception {
-        Cipher cipher = Cipher.getInstance(ALGORITHM);
-        Key key = new SecretKeySpec(secretKey.getBytes(), ALGORITHM);
-        cipher.init(Cipher.DECRYPT_MODE, key);
+    public static String decrypt(String encryptedText, String hexSecret, String algorithm) throws Exception {
+        byte[] secretBytes = hexStringToByteArray(hexSecret);
+        if (secretBytes.length != 32) { // Validate 256-bit key length
+            throw new IllegalArgumentException("Invalid AES key length: " + secretBytes.length);
+        }
+        Cipher cipher = Cipher.getInstance(algorithm);
+        SecretKeySpec keySpec = new SecretKeySpec(secretBytes, algorithm);
+        cipher.init(Cipher.DECRYPT_MODE, keySpec);
         byte[] decodedBytes = Base64.getDecoder().decode(encryptedText);
         byte[] decryptedBytes = cipher.doFinal(decodedBytes);
         return new String(decryptedBytes);
     }
 
     /**
-     * Reads the secret key from the specified file path.
+     * Converts a hexadecimal string into a byte array.
      *
-     * @param filePath the path to the secret key file.
-     * @return the secret key as a string.
-     * @throws Exception if reading the file fails.
+     * @param hex the hexadecimal string.
+     * @return the byte array.
      */
-    public static String readSecretKey(String filePath) throws Exception {
-        Path path = Path.of(filePath);
-        return Files.readString(path).trim();
-    }
-
-    /**
-     * Generates a new random AES secret key.
-     *
-     * @return the generated secret key as a string.
-     * @throws Exception if key generation fails.
-     */
-    public static String generateSecretKey() throws Exception {
-        KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM);
-        keyGenerator.init(128); // AES key size
-        SecretKey secretKey = keyGenerator.generateKey();
-        return Base64.getEncoder().encodeToString(secretKey.getEncoded());
+    private static byte[] hexStringToByteArray(String hex) {
+        int len = hex.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
+                    + Character.digit(hex.charAt(i + 1), 16));
+        }
+        return data;
     }
 }

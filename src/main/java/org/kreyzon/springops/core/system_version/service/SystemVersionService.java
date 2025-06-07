@@ -58,6 +58,12 @@ public class SystemVersionService {
      */
     public SystemVersionDto save(SystemVersionDto systemVersionDto) {
         log.info("Saving system version: {}", systemVersionDto);
+
+        if (systemVersionRepository.existsByName(systemVersionDto.getName())) {
+            log.warn("System version with name '{}' already exists", systemVersionDto.getName());
+            throw new IllegalArgumentException("A system version with name '" + systemVersionDto.getName() + "' already exists.");
+        }
+
         SystemVersion entity = SystemVersionDto.toEntity(systemVersionDto);
         entity.setCreatedAt(Instant.now());
         SystemVersion savedEntity = systemVersionRepository.save(entity);
@@ -72,11 +78,18 @@ public class SystemVersionService {
      * @param systemVersionDto the updated {@link SystemVersionDto}
      * @return the updated {@link SystemVersionDto}
      * @throws IllegalArgumentException if no system version is found with the given ID
+     * @throws IllegalArgumentException if another system version with the same name exists
      */
     public SystemVersionDto update(Integer id, SystemVersionDto systemVersionDto) {
         log.info("Updating system version with ID: {}", id);
         SystemVersion existingEntity = systemVersionRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("System version not found with ID: " + id));
+
+        if (systemVersionRepository.existsByName(systemVersionDto.getName()) &&
+                !existingEntity.getName().equals(systemVersionDto.getName())) {
+            log.warn("System version with name '{}' already exists", systemVersionDto.getName());
+            throw new IllegalArgumentException("Another system version with name '" + systemVersionDto.getName() + "' already exists.");
+        }
 
         existingEntity.setType(systemVersionDto.getType());
         existingEntity.setVersion(systemVersionDto.getVersion());
@@ -102,5 +115,11 @@ public class SystemVersionService {
         }
         systemVersionRepository.deleteById(id);
         log.info("System version with ID: {} deleted successfully", id);
+    }
+
+    public SystemVersion findByType(String type) {
+        log.info("Finding system version by type: {}", type);
+        return systemVersionRepository.findByType(type)
+                .orElseThrow(() -> new IllegalArgumentException("System version not found with type: " + type));
     }
 }

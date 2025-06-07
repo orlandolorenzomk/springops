@@ -50,6 +50,12 @@ public class SystemVersionDto implements Serializable {
     Instant createdAt;
 
     /**
+     * The name of the system version (e.g., "Maven" or "Java").
+     * This field is not persisted in the database but is used for display purposes.
+     */
+    String name;
+
+    /**
      * Converts a {@link SystemVersion} entity to a {@link SystemVersionDto}.
      *
      * @param entity the {@link SystemVersion} entity to convert
@@ -61,7 +67,8 @@ public class SystemVersionDto implements Serializable {
             entity.getType(),
             entity.getVersion(),
             entity.getPath(),
-            entity.getCreatedAt()
+            entity.getCreatedAt(),
+            entity.getName()
         );
     }
 
@@ -77,6 +84,7 @@ public class SystemVersionDto implements Serializable {
             .version(dto.getVersion())
             .path(dto.getPath())
             .createdAt(dto.getCreatedAt())
+            .name(dto.getName())
             .build();
     }
 }

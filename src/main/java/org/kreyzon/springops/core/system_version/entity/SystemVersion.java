@@ -58,4 +58,10 @@ public class SystemVersion {
      */
     @Column(name = "created_at")
     private Instant createdAt;
+
+    /**
+     * The name of the system version (optional).
+     */
+    @Column(name = "name", length = 100)
+    private String name;
 }

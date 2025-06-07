@@ -34,10 +34,4 @@ public class Constants {
      * This is used to manage configuration files for the applications.
      */
     public final String DIRECTORY_BACKUPS = "/backups";
-
-    /**
-     * Path to the file where the secret key is stored.
-     * This file is used for encryption and decryption operations.
-     */
-    public final String SECRET_KEY_FILE_PATH = "secret_key.txt";
 }

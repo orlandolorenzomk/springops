@@ -1,0 +1,7 @@
+CREATE TABLE application_env (
+  id SERIAL PRIMARY KEY,
+  application_id INT NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+  name VARCHAR(255) NOT NULL,
+  value TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

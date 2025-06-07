@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.auth.model.User;
 import org.kreyzon.springops.auth.repository.UserRepository;
 import org.kreyzon.springops.common.dto.auth.UserDto;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -116,21 +117,31 @@ public class UserService implements UserDetailsService {
     }
 
     /**
-     * Loads a user by their email address.
-     * This method is used by Spring Security during the authentication process.
+     * Finds a user by their email address.
      *
      * @param email the email address of the user to load.
      * @return a {@link UserDetails} object containing user information for authentication.
      * @throws UsernameNotFoundException if no user is found with the given email address.
      */
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    public User findByEmail(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+        log.info("User found with email: {}", email);
+        return user;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String email) {
+        log.info("Loading user by email: {}", email);
+        User user = findByEmail(email);
+        log.info("User loaded with email: {}", email);
         return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getUsername())
+                .username(user.getEmail())
                 .password(user.getPassword())
-                .roles()
+                .accountExpired(false)
+                .accountLocked(false)
+                .credentialsExpired(false)
+                .disabled(false)
                 .build();
     }
 }

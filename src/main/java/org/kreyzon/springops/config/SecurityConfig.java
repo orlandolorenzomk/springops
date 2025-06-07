@@ -26,8 +26,7 @@ public class SecurityConfig {
         "/setup/initialize-files",
         "/setup/initialize-secret-key",
         "/setup/initialize-git-ssh-key",
-        "/auth/login",
-        "/auth/register"
+        "/authentication"
     };
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;

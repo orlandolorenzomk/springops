@@ -40,7 +40,7 @@ public class JwtUtil {
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtConfig.getExpiration() * 1000L))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtConfig.getExpiration() * 60 * 1000L))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -76,5 +76,14 @@ public class JwtUtil {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
+    }
+
+    /**
+     * Returns the expiration time of the JWT token in seconds.
+     *
+     * @return the expiration time in seconds.
+     */
+    public String getExpiration() {
+        return String.valueOf(jwtConfig.getExpiration() * 60);
     }
 }
