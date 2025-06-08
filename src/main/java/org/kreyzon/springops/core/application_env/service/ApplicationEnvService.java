@@ -39,16 +39,21 @@ public class ApplicationEnvService {
      * @param applicationId the ID of the Application
      * @return the ApplicationEnvDto if found, null otherwise
      */
-    public ApplicationEnvDto findByApplicationId(Integer applicationId) {
+    public List<ApplicationEnvDto> findByApplicationId(Integer applicationId) {
         log.info("Finding ApplicationEnv by application ID: {}", applicationId);
 
         ApplicationDto application = applicationService.findById(applicationId);
 
         List<ApplicationEnv> applicationEnvs = applicationEnvRepository.findByApplication(ApplicationDto.toEntity(application));
+        if (applicationEnvs.isEmpty()) {
+            log.warn("No ApplicationEnv found for application ID: {}", applicationId);
+            return List.of();
+        }
+
+        log.info("Found {} ApplicationEnv(s) for application ID: {}", applicationEnvs.size(), applicationId);
         return applicationEnvs.stream()
                 .map(ApplicationEnvDto::fromEntity)
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("ApplicationEnv not found for application ID: " + applicationId));
+                .toList();
     }
 
     /**

@@ -47,4 +47,4 @@ application:
   directory-applications: ${APP_DIRECTORY_APPLICATIONS:applications}
   directory-source: ${APP_DIRECTORY_SOURCE:source}
   directory-backups: ${APP_DIRECTORY_BACKUPS:backups}
-  maximum-env-files-per-application: ${APP_MAXIMUM_ENV_FILES_PER_APPLICATION:1}
+  maximum-env-files-per-application: ${APP_MAXIMUM_ENV_FILES_PER_APPLICATION:599}

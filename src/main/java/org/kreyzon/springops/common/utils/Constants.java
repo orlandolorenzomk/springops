@@ -24,14 +24,14 @@ public class Constants {
     public final String DIRECTORY_APPLICATIONS = "/applications";
 
     /**
-     * Subdirectory within the root directory where source files are stored.
-     * This is used to manage source code files for the applications.
+     * Subdirectory within the root directory where deployment data is stored.
+     * This is used to organize deployment-specific files.
      */
-    public final String DIRECTORY_SOURCE = "/source";
+    public static final String STATUS_RUNNING = "RUNNING";
 
     /**
-     * Subdirectory within the root directory where configuration files are stored.
-     * This is used to manage configuration files for the applications.
+     * Subdirectory within the root directory where deployment data is stored.
+     * This is used to organize deployment-specific files.
      */
-    public final String DIRECTORY_BACKUPS = "/backups";
+    public static final String TYPE_LATEST = "LATEST";
 }

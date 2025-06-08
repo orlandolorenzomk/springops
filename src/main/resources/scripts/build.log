@@ -1,0 +1,39 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------< org.kreyzon:spring-boot-test-application >--------------
+[INFO] Building spring-boot-test-application 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.4.1:clean (default-clean) @ spring-boot-test-application ---
+[INFO] Deleting /Users/test/tmp/springops/applications/spring-boot-test-application/source/target
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ spring-boot-test-application ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 0 resource from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ spring-boot-test-application ---
+[INFO] Changes detected - recompiling the module! :source
+[INFO] Compiling 3 source files with javac [debug release 21] to target/classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ spring-boot-test-application ---
+[INFO] skip non existing resourceDirectory /Users/test/tmp/springops/applications/spring-boot-test-application/source/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ spring-boot-test-application ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- surefire:3.5.3:test (default-test) @ spring-boot-test-application ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- jar:3.4.2:jar (default-jar) @ spring-boot-test-application ---
+[INFO] Building jar: /Users/test/tmp/springops/applications/spring-boot-test-application/source/target/spring-boot-test-application-1.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- install:3.1.4:install (default-install) @ spring-boot-test-application ---
+[INFO] Installing /Users/test/tmp/springops/applications/spring-boot-test-application/source/pom.xml to /Users/test/.m2/repository/org/kreyzon/spring-boot-test-application/1.0-SNAPSHOT/spring-boot-test-application-1.0-SNAPSHOT.pom
+[INFO] Installing /Users/test/tmp/springops/applications/spring-boot-test-application/source/target/spring-boot-test-application-1.0-SNAPSHOT.jar to /Users/test/.m2/repository/org/kreyzon/spring-boot-test-application/1.0-SNAPSHOT/spring-boot-test-application-1.0-SNAPSHOT.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.487 s
+[INFO] Finished at: 2025-06-07T18:43:27+03:00
+[INFO] ------------------------------------------------------------------------

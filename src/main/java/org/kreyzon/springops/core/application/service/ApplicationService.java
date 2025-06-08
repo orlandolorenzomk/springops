@@ -54,6 +54,17 @@ public class ApplicationService {
     }
 
     /**
+     * Finds an Application entity by its ID.
+     *
+     * @param id the ID of the Application to find
+     * @return the Application entity if found, or throws an exception if not found
+     */
+    public Application findEntityById(Integer id) {
+        return applicationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Application with ID '" + id + "' does not exist"));
+    }
+
+    /**
      * Finds all Applications.
      *
      * @return a list of ApplicationDto representing all Applications
@@ -185,110 +196,15 @@ public class ApplicationService {
     }
 
     /**
-     * Pulls the application repository from GitLab, builds it using Maven, and runs the project using Java.
+     * Retrieves an Application entity by its ID.
      *
-     * @param applicationId the ID of the application to pull and build
-     * @param branchName the branch name to pull from GitLab
-     * @return ApplicationRunDto containing details of the process
+     * @param applicationId the ID of the Application to retrieve
+     * @return the Application entity if found
+     * @throws IllegalArgumentException if the Application with the given ID does not exist
      */
-    public ApplicationRunDto pullBuildAndRunProject(Integer applicationId, String branchName) {
-        Application application = applicationRepository.findById(applicationId)
+    public Application getEntityById(Integer applicationId) {
+        return applicationRepository
+                .findById(applicationId)
                 .orElseThrow(() -> new IllegalArgumentException("Application with ID '" + applicationId + "' does not exist"));
-
-        SystemVersionDto mavenVersion = systemVersionService.findById(application.getMvnSystemVersion().getId());
-        SystemVersionDto javaVersion = systemVersionService.findById(application.getJavaSystemVersion().getId());
-
-        if (mavenVersion == null || javaVersion == null) {
-            throw new IllegalArgumentException("Both Maven and Java system versions must be configured");
-        }
-
-        String mavenPath = mavenVersion.getPath();
-        String javaPath = javaVersion.getPath();
-
-        String gitUrl = application.getGitProjectHttpsUrl();
-        if (gitUrl == null || gitUrl.isEmpty()) {
-            throw new IllegalArgumentException("Git URL is not configured for the application");
-        }
-
-        String gitToken = applicationConfig.getGitToken();
-        if (gitToken == null || gitToken.isEmpty()) {
-            throw new IllegalArgumentException("Git token is not configured");
-        }
-        gitUrl = gitUrl.replace("https://", "https://" + gitToken + "@");
-
-        String cloneDirectory = setupService.getSetup().getFilesRoot() + "/" +
-                applicationConfig.getDirectoryApplications() + "/" +
-                application.getName().toLowerCase(Locale.ROOT).replaceAll("\\s+", "-") + "/" +
-                applicationConfig.getDirectorySource();
-
-        ApplicationRunDto runDto = ApplicationRunDto.builder()
-                .applicationName(application.getName())
-                .branchName(branchName)
-                .mavenPath(mavenPath)
-                .javaPath(javaPath)
-                .build();
-
-        try {
-            log.info("Cloning repository for application '{}' from branch '{}'", application.getName(), branchName);
-            File cloneDir = new File(cloneDirectory);
-            if (cloneDir.exists()) {
-                FileUtils.cleanDirectory(cloneDir);
-            } else {
-                if (!cloneDir.mkdirs()) {
-                    throw new RuntimeException("Failed to create clone directory: " + cloneDirectory);
-                }
-            }
-
-            List<String> cloneCommand = Arrays.asList(
-                    "git", "clone", "--verbose", "-b", branchName,
-                    "--single-branch",
-                    gitUrl, "."
-            );
-            log.info("Running git command: {}", String.join(" ", cloneCommand));
-            ProcessBuilder cloneProcessBuilder = new ProcessBuilder(cloneCommand);
-            cloneProcessBuilder.directory(cloneDir);
-            cloneProcessBuilder.redirectErrorStream(true);
-
-            Process cloneProcess = cloneProcessBuilder.start();
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(cloneProcess.getInputStream()))) {
-                reader.lines().forEach(line -> log.info("[git] {}", line));
-            }
-
-            int cloneExitCode = cloneProcess.waitFor();
-            if (cloneExitCode != 0) {
-                runDto.setCloneSuccess(false);
-                runDto.setCloneMessage("Failed to clone repository from GitHub");
-                throw new RuntimeException(runDto.getCloneMessage());
-            }
-            runDto.setCloneSuccess(true);
-            runDto.setCloneMessage("Repository cloned successfully to: " + cloneDirectory);
-
-            log.info("Building the project using Maven...");
-            ProcessBuilder buildProcessBuilder = new ProcessBuilder(mavenPath + "/mvn", "clean", "install");
-            buildProcessBuilder.directory(cloneDir);
-            buildProcessBuilder.inheritIO();
-            Process buildProcess = buildProcessBuilder.start();
-            int buildExitCode = buildProcess.waitFor();
-            if (buildExitCode != 0) {
-                runDto.setBuildSuccess(false);
-                runDto.setBuildMessage("Failed to build the project using Maven");
-                throw new RuntimeException(runDto.getBuildMessage());
-            }
-            runDto.setBuildSuccess(true);
-            runDto.setBuildMessage("Project built successfully");
-
-            log.info("Running the project...");
-            ProcessBuilder runProcessBuilder = new ProcessBuilder(javaPath + "/java", "-jar", cloneDirectory + "/target/" + application.getName() + ".jar");
-            runProcessBuilder.inheritIO();
-            Process runProcess = runProcessBuilder.start();
-            runDto.setRunSuccess(true);
-            runDto.setRunMessage("Project is running...");
-        } catch (Exception e) {
-            log.error("Error occurred while pulling, building, or running the project: {}", e.getMessage());
-            runDto.setRunSuccess(false);
-            runDto.setRunMessage("Error: " + e.getMessage());
-        }
-
-        return runDto;
     }
 }

@@ -82,19 +82,4 @@ public class ApplicationController {
         applicationService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
-
-    /**
-     * Endpoint to pull, build, and run a project.
-     *
-     * @param applicationId the ID of the application
-     * @param branchName the branch name to pull from GitLab
-     * @return a response indicating success or failure
-     */
-    @PostMapping("/{applicationId}/run")
-    public ResponseEntity<ApplicationRunDto> pullBuildAndRunProject(
-            @PathVariable Integer applicationId,
-            @RequestParam String branchName) {
-        ApplicationRunDto applicationRunDto = applicationService.pullBuildAndRunProject(applicationId, branchName);
-        return ResponseEntity.ok(applicationRunDto);
-    }
 }

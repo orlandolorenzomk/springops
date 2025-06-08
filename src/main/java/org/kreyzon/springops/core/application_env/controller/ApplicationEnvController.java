@@ -33,8 +33,8 @@ public class ApplicationEnvController {
     @GetMapping("/{applicationId}")
     public ResponseEntity<List<ApplicationEnvDto>> getApplicationEnvs(@PathVariable Integer applicationId) {
         log.info("Fetching environment variables for application ID: {}", applicationId);
-        ApplicationEnvDto applicationEnvDto = applicationEnvService.findByApplicationId(applicationId);
-        return ResponseEntity.ok(List.of(applicationEnvDto));
+        List<ApplicationEnvDto> applicationEnvDtos = applicationEnvService.findByApplicationId(applicationId);
+        return ResponseEntity.ok(applicationEnvDtos);
     }
 
     /**

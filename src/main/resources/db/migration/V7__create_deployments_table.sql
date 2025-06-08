@@ -4,7 +4,7 @@ CREATE TABLE deployments (
  version VARCHAR(50) NOT NULL,
  status VARCHAR(50) NOT NULL,
  pid INT,
- type VARCHAR(20) CHECK (type IN ('CURRENT', 'BACKUP')),
+ type VARCHAR(20),
  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
  FOREIGN KEY (application_id) REFERENCES applications (id) ON DELETE CASCADE
 );

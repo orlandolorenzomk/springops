@@ -22,6 +22,7 @@ public class SpringOps {
      */
     public static void main(String[] args) {
         log.info("Starting SpringOps application...");
+        log.info("Application is running as OS user: '{}'. Ensure this user has read/write permissions to all necessary directories (e.g., source folders, Git clone targets).", System.getProperty("user.name"));
         SpringApplication.run(SpringOps.class, args);
     }
 }

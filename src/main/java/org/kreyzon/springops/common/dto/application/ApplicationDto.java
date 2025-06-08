@@ -47,6 +47,7 @@ public class ApplicationDto implements Serializable {
                 .description(applicationDto.getDescription())
                 .createdAt(applicationDto.getCreatedAt())
                 .gitProjectHttpsUrl(applicationDto.getGitProjectHttpsUrl())
+
                 .build();
     }
 }

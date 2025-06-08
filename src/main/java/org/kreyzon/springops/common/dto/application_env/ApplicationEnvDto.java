@@ -38,4 +38,20 @@ public class ApplicationEnvDto implements Serializable {
                 applicationEnv.getApplication() != null ? applicationEnv.getApplication().getId() : null
         );
     }
+
+    /**
+     * Converts an {@link ApplicationEnvDto} to its corresponding entity.
+     *
+     * @param byApplicationId the DTO to convert
+     * @return the converted entity
+     */
+    public static ApplicationEnv toEntity(ApplicationEnvDto byApplicationId) {
+        return ApplicationEnv.builder()
+                .id(byApplicationId.getId())
+                .name(byApplicationId.getName())
+                .value(byApplicationId.getValue())
+                .createdAt(byApplicationId.getCreatedAt())
+                .application(null)
+                .build();
+    }
 }

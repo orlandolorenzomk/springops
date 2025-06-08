@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
 import org.kreyzon.springops.core.system_version.entity.SystemVersion;
 
 import java.time.Instant;
@@ -42,11 +43,12 @@ public class Application {
     @Column(name = "created_at")
     private Instant createdAt;
 
-    @ManyToOne
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "mvn_system_version_id", referencedColumnName = "id")
     private SystemVersion mvnSystemVersion;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "java_system_version_id", referencedColumnName = "id")
     private SystemVersion javaSystemVersion;
 
