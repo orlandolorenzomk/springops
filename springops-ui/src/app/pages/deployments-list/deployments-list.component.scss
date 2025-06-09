@@ -1,0 +1,154 @@
+@use '@angular/material' as mat;
+
+.container {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    width: 100%;
+    max-width: 1400px;
+    margin-bottom: 16px;
+    gap: 16px;
+
+    h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .filter-form {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+
+      .filter-field {
+        width: 200px;
+      }
+
+      button {
+        padding: 4px 12px;
+        font-size: 13px;
+      }
+    }
+  }
+
+  .table-container {
+    overflow-x: auto;
+    width: 100%;
+    max-width: 1400px;
+
+    table {
+      width: 100%;
+      font-size: 13px;
+
+      th, td {
+        padding: 6px 10px !important;
+      }
+
+      .mat-column-actions {
+        width: 100px;
+        text-align: center;
+      }
+    }
+  }
+
+  .status-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    font-size: 12px;
+
+    .status-main {
+      display: flex;
+      align-items: center;
+
+      .status-icon {
+        margin-right: 4px;
+        font-size: 18px;
+      }
+    }
+
+    &.running {
+      color: #2e7d32;
+      .status-icon { color: #2e7d32; }
+    }
+
+    &.stopped {
+      color: #c62828;
+      .status-icon { color: #c62828; }
+    }
+
+    &.loading {
+      color: #616161;
+      .status-icon { color: #616161; }
+    }
+
+    .status-meta {
+      font-size: 10px;
+      color: #777;
+      margin-left: 20px;
+      margin-top: 2px;
+    }
+  }
+
+  ::ng-deep .mat-paginator-container {
+    justify-content: center;
+    padding: 8px 0;
+    font-size: 13px;
+
+    .mat-paginator-range-label {
+      margin: 0 16px;
+    }
+  }
+
+  .icon-cell {
+    vertical-align: middle;
+    margin-right: 4px;
+    font-size: 18px;
+  }
+
+  .latest-badge {
+    color: #1e88e5;
+
+    .status-icon {
+      color: #1e88e5;
+    }
+  }
+
+  .chip-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+    font-size: 12px;
+    color: white;
+    padding: 0 8px;
+  }
+
+  .chip-icon {
+    margin-top: 2px;
+    font-size: 20px;
+  }
+
+
+  .status-chip-running {
+    background-color: #2e7d32;
+    color: white;
+  }
+
+  .status-chip-stopped {
+    background-color: #c62828;
+    color: white;
+  }
+
+  .status-chip-default {
+    background-color: #616161;
+    color: white;
+  }
+}

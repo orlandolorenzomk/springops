@@ -1,0 +1,82 @@
+<h2 mat-dialog-title class="dialog-title">
+  {{mode === 'create' ? 'Create New Application' : 'Edit Application'}}
+</h2>
+
+<mat-dialog-content class="dialog-content">
+  <br><br>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-container">
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Application Name</mat-label>
+        <input matInput formControlName="name" required>
+        <mat-icon matSuffix>code</mat-icon>
+        <mat-error *ngIf="form.get('name')?.hasError('required')">
+          Application name is required
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Description</mat-label>
+        <textarea matInput formControlName="description" rows="2"></textarea>
+        <mat-icon matSuffix>description</mat-icon>
+      </mat-form-field>
+    </div>
+
+    <!-- Java Version Selection -->
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Java Version</mat-label>
+        <mat-select formControlName="javaSystemVersionId" required>
+          <mat-option *ngFor="let version of javaVersions" [value]="version.id">
+            {{version.name}} ({{version.version}})
+          </mat-option>
+        </mat-select>
+        <mat-icon matSuffix>data_object</mat-icon>
+        <mat-error *ngIf="form.get('javaSystemVersionId')?.hasError('required')">
+          Java version is required
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Maven Version Selection -->
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Maven Version</mat-label>
+        <mat-select formControlName="mvnSystemVersionId" required>
+          <mat-option *ngFor="let version of mavenVersions" [value]="version.id">
+            {{version.name}} ({{version.version}})
+          </mat-option>
+        </mat-select>
+        <mat-icon matSuffix>build</mat-icon>
+        <mat-error *ngIf="form.get('mvnSystemVersionId')?.hasError('required')">
+          Maven version is required
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Git Repository URL</mat-label>
+        <input matInput formControlName="gitProjectHttpsUrl"
+               placeholder="https://github.com/your-org/your-repo">
+        <mat-icon matSuffix>link</mat-icon>
+        <mat-hint>Must be a valid GitHub HTTPS URL</mat-hint>
+        <mat-error *ngIf="form.get('gitProjectHttpsUrl')?.hasError('pattern')">
+          Please enter a valid GitHub HTTPS URL (e.g., https://github.com/your-repo)
+        </mat-error>
+      </mat-form-field>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-stroked-button color="basic" (click)="onCancel()">
+    <mat-icon>cancel</mat-icon> Cancel
+  </button>
+  <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="form.invalid">
+    <mat-icon>{{mode === 'create' ? 'add' : 'save'}}</mat-icon>
+    {{mode === 'create' ? 'Create' : 'Update'}}
+  </button>
+</mat-dialog-actions>

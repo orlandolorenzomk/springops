@@ -1,0 +1,39 @@
+.dialog-title {
+  font-size: 22px;
+  font-weight: 600;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+.dialog-content {
+  padding-top: 16px;
+
+  .form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 24px;
+    }
+
+    mat-form-field {
+      width: 100%;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+.dialog-actions {
+  padding-top: 16px;
+
+  button {
+    min-width: 120px;
+    margin-left: 8px;
+  }
+}

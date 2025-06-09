@@ -1,0 +1,123 @@
+<div class="container">
+  <div class="header">
+    <h2>
+      <mat-icon color="primary">cloud</mat-icon>
+      &nbsp;Deployments
+    </h2>
+
+<!--    <form [formGroup]="filterForm" (ngSubmit)="onFilter()" class="filter-form" style="display: flex; gap: 12px; align-items: end;">-->
+<!--      <mat-form-field appearance="outline" class="filter-field">-->
+<!--        <mat-label>Application ID</mat-label>-->
+<!--        <input matInput type="number" formControlName="applicationId" placeholder="Enter ID">-->
+<!--        <mat-icon matSuffix>apps</mat-icon>-->
+<!--      </mat-form-field>-->
+
+<!--      <mat-form-field appearance="outline" class="filter-field">-->
+<!--        <mat-label>Created Date</mat-label>-->
+<!--        <input matInput [matDatepicker]="picker" formControlName="createdDate" placeholder="Pick a date">-->
+<!--        <mat-datepicker-toggle matSuffix [for]="picker">-->
+<!--          <mat-icon matDatepickerToggleIcon>calendar_today</mat-icon>-->
+<!--        </mat-datepicker-toggle>-->
+<!--        <mat-datepicker #picker></mat-datepicker>-->
+<!--      </mat-form-field>-->
+
+<!--      <button mat-flat-button color="primary" type="submit">-->
+<!--        <mat-icon>search</mat-icon>-->
+<!--        Search-->
+<!--      </button>-->
+<!--    </form>-->
+  </div>
+
+  <div class="table-container">
+    <table mat-table [dataSource]="deployments" class="mat-elevation-z8">
+
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef>#ID</th>
+        <td mat-cell *matCellDef="let d">
+          <mat-icon class="icon-cell">fingerprint</mat-icon> {{ d.id }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="version">
+        <th mat-header-cell *matHeaderCellDef>Version</th>
+        <td mat-cell *matCellDef="let d">
+          <mat-icon class="icon-cell">tag</mat-icon> {{ d.version }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let d">
+          <mat-chip
+                        [ngClass]="{
+                'status-chip-running': d.status === 'RUNNING',
+                'status-chip-stopped': d.status === 'STOPPED',
+                'status-chip-default': d.status !== 'RUNNING' && d.status !== 'STOPPED'
+              }"
+                        selected
+                      >
+              <span class="chip-content">
+                <mat-icon class="chip-icon">
+                  {{ d.status === 'RUNNING' ? 'check_circle' : d.status === 'STOPPED' ? 'cancel' : 'help' }}
+                </mat-icon>
+                {{ d.status }}
+              </span>
+          </mat-chip>
+        </td>
+      </ng-container>
+
+
+      <ng-container matColumnDef="branch">
+        <th mat-header-cell *matHeaderCellDef>Branch</th>
+        <td mat-cell *matCellDef="let d">
+          <mat-icon class="icon-cell">call_split</mat-icon> {{ d.branch }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="createdAt">
+        <th mat-header-cell *matHeaderCellDef>Created At</th>
+        <td mat-cell *matCellDef="let d">
+          <mat-icon class="icon-cell">calendar_today</mat-icon> {{ d.createdAt | date:'medium' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="typeInfo">
+        <th mat-header-cell *matHeaderCellDef>Type</th>
+        <td mat-cell *matCellDef="let d">
+          <ng-container *ngIf="d.type === 'CURRENT' && deploymentStatuses[d.id]?.isRunning; else typeContent">
+      <span class="status-badge running">
+        <span class="status-main">
+          <mat-icon class="status-icon">check_circle</mat-icon>
+          Running
+        </span>
+        <small class="status-meta">
+          PID: {{ deploymentStatuses[d.id]?.pid }} |
+          Port: {{ deploymentStatuses[d.id]?.port }}
+        </small>
+      </span>
+          </ng-container>
+          <ng-template #typeContent>
+      <span class="status-badge" [ngClass]="{ 'latest-badge': d.type === 'LATEST' }">
+        <mat-icon class="status-icon">
+          {{ d.type === 'LATEST' ? 'new_releases' : 'info' }}
+        </mat-icon>
+        {{ d.type || 'N/A' }}
+      </span>
+          </ng-template>
+        </td>
+      </ng-container>
+
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <mat-paginator
+      [length]="totalElements"
+      [pageSize]="pageSize"
+      [pageIndex]="pageIndex"
+      [pageSizeOptions]="[5, 10, 25, 50]"
+      (page)="onPageChange($event)">
+    </mat-paginator>
+  </div>
+</div>

@@ -1,0 +1,59 @@
+@use '@angular/material' as mat;
+
+.container {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1300px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+
+    h2 {
+      margin: 0;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button {
+      padding: 4px 12px;
+      font-size: 13px;
+    }
+  }
+
+  .table-container {
+    overflow-x: auto;
+    width: 100%;
+    max-width: 1300px;
+
+    table {
+      width: 100%;
+      font-size: 13px;
+
+      th, td {
+        padding: 6px 10px !important;
+        vertical-align: middle;
+      }
+
+      .mat-column-actions {
+        width: 120px;
+        text-align: center;
+      }
+    }
+  }
+
+  .icon-cell {
+    vertical-align: middle;
+    margin-right: 4px;
+    font-size: 18px;
+    color: #616161;
+  }
+}

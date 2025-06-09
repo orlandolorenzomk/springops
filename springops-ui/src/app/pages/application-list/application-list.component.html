@@ -1,0 +1,113 @@
+<div class="container">
+  <div class="header">
+    <h2>
+      <mat-icon color="primary">apps</mat-icon>
+      &nbsp;Applications
+    </h2>
+    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon> Create Application
+    </button>
+  </div>
+
+  <div class="table-container">
+    <table mat-table [dataSource]="applications" class="mat-elevation-z8">
+
+      <!-- ID Column -->
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef>#ID</th>
+        <td mat-cell *matCellDef="let element">
+          <mat-icon class="icon-cell">fingerprint</mat-icon> {{ element.id }}
+        </td>
+      </ng-container>
+
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let element">
+          <mat-icon class="icon-cell">tag</mat-icon> {{ element.name }}
+        </td>
+      </ng-container>
+
+      <!-- Description Column -->
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef>Description</th>
+        <td mat-cell *matCellDef="let element">
+          <mat-icon class="icon-cell">short_text</mat-icon> {{ element.description }}
+        </td>
+      </ng-container>
+
+      <!-- Created At Column -->
+      <ng-container matColumnDef="createdAt">
+        <th mat-header-cell *matHeaderCellDef>Created At</th>
+        <td mat-cell *matCellDef="let element">
+          <mat-icon class="icon-cell">calendar_today</mat-icon> {{ element.createdAt | date:'medium' }}
+        </td>
+      </ng-container>
+
+      <!-- Status Column -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let element">
+          <ng-container [ngSwitch]="applicationStatuses[element.id]?.isRunning">
+            <span *ngSwitchCase="true" class="status-badge running">
+              <span class="status-main">
+                <mat-icon class="status-icon">check_circle</mat-icon> Running
+              </span>
+              <small class="status-meta">
+                PID: {{ applicationStatuses[element.id]?.pid }} |
+                Port: {{ applicationStatuses[element.id]?.port }}
+              </small>
+            </span>
+
+            <span *ngSwitchCase="false" class="status-badge stopped">
+              <span class="status-main">
+                <mat-icon class="status-icon">highlight_off</mat-icon> Stopped
+              </span>
+            </span>
+
+            <span *ngSwitchDefault class="status-badge loading">
+              <span class="status-main">
+                <mat-icon class="status-icon">hourglass_empty</mat-icon> Loading...
+              </span>
+            </span>
+          </ng-container>
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let element">
+          <button mat-icon-button color="primary" (click)="openEditDialog(element)" [disabled]="loadingActions[element.id]?.edit">
+            <mat-progress-spinner *ngIf="loadingActions[element.id]?.edit" diameter="20" mode="indeterminate"></mat-progress-spinner>
+            <mat-icon *ngIf="!loadingActions[element.id]?.edit">edit</mat-icon>
+          </button>
+
+          <button mat-icon-button color="warn" (click)="deleteApplication(element.id)" [disabled]="loadingActions[element.id]?.delete">
+            <mat-progress-spinner *ngIf="loadingActions[element.id]?.delete" diameter="20" mode="indeterminate"></mat-progress-spinner>
+            <mat-icon *ngIf="!loadingActions[element.id]?.delete">delete</mat-icon>
+          </button>
+
+          <button
+            mat-icon-button
+            color="warn"
+            *ngIf="applicationStatuses[element.id]?.isRunning"
+            (click)="killApplicationProcess(element.id)"
+            [disabled]="loadingActions[element.id]?.kill"
+          >
+            <mat-progress-spinner *ngIf="loadingActions[element.id]?.kill" diameter="20" mode="indeterminate"></mat-progress-spinner>
+            <mat-icon *ngIf="!loadingActions[element.id]?.kill">cancel</mat-icon>
+          </button>
+
+          <button mat-icon-button color="accent" (click)="openDeployDialog(element.id)" [disabled]="loadingActions[element.id]?.deploy">
+            <mat-progress-spinner *ngIf="loadingActions[element.id]?.deploy" diameter="20" mode="indeterminate"></mat-progress-spinner>
+            <mat-icon *ngIf="!loadingActions[element.id]?.deploy">cloud_upload</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+</div>
