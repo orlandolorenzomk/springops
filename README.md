@@ -1,5 +1,16 @@
-
+![Java](https://img.shields.io/badge/Java-21-blue)
+![SpringBoot](https://img.shields.io/badge/SpringBoot-3.4.5-brightgreen)
+![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-informational)
+![License](https://img.shields.io/badge/license-MIT-green)
 # SpringOps – Deployment Management Platform
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Modules](#modules)
+- [Shell Scripts](#shell-scripts)
+- [Deployment Workflow](#deployment-workflow)
 
 ## Overview
 
@@ -12,6 +23,8 @@ SpringOps is a backend platform for managing and deploying Java applications. It
 - Tracking deployment metadata and system configurations
 
 The project is built with **Spring Boot 3.4.5**, uses **PostgreSQL**, and handles database versioning through **Flyway**.
+
+SpringOps was built to help backend teams manage and deploy internal tools without using complex CI/CD platforms like Jenkins or GitLab CI. It’s focused, simple, and 100% shell+Spring Boot.
 
 ## Features
 
