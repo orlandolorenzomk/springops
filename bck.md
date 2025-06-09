@@ -1,9 +1,7 @@
-
 ![Java](https://img.shields.io/badge/Java-21-blue)
 ![SpringBoot](https://img.shields.io/badge/SpringBoot-3.4.5-brightgreen)
 ![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-informational)
 ![License](https://img.shields.io/badge/license-MIT-green)
-
 # SpringOps – Deployment Management Platform
 
 ## Table of Contents
@@ -193,13 +191,3 @@ Spring Boot 3.4.5 with dependencies for:
 3. Build project using `build_project.sh`.
 4. Run `.jar` with injected env variables via `run_project.sh`.
 5. Track PID and deployment info in `deployments` table.
-
-## Screenshots
-
-| Dashboard | Applications |
-|----------|--------------|
-| ![Dashboard](screenshots/dashboard.png) | ![Applications](screenshots/applications.png) |
-
-| Deployments | System Versions |
-|-------------|------------------|
-| ![Deployments](screenshots/deployments.png) | ![System Versions](screenshots/system_versions.png) |
