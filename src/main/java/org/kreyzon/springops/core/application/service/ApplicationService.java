@@ -145,6 +145,13 @@ public class ApplicationService {
             log.warn("Application with ID '{}' does not exist", id);
             throw new IllegalArgumentException("Application with ID '" + id + "' does not exist");
         }
+
+        DeploymentStatusDto deploymentStatus = deploymentManagerService.getDeploymentStatus(id);
+        if (Boolean.TRUE.equals(deploymentStatus.getIsRunning())) {
+            log.warn("Application with ID '{}' is currently running and cannot be updated", id);
+            throw new IllegalArgumentException("Application with ID '" + id + "' is currently running and cannot be updated");
+        }
+
         applicationRepository.deleteById(id);
         log.info("Application with ID '{}' deleted successfully", id);
     }

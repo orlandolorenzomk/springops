@@ -1,51 +1,100 @@
+@use '@angular/material' as mat;
+
 .navbar {
   display: flex;
   align-items: center;
-  padding: 0 24px;
-  height: 64px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  justify-content: space-between;
+  padding: 0 2rem;
+  height: 70px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, mat.get-color-from-palette(mat.$indigo-palette, 500) 0%, mat.get-color-from-palette(mat.$blue-palette, 500) 100%);
 
-  .title {
-    font-size: 20px;
-    font-weight: 500;
-    margin-right: 24px; // Add some spacing after the title
-  }
-
-  .spacer {
-    flex: 1 1 auto;
-  }
-
-  .dashboard-link {
+  .brand-section {
     display: flex;
     align-items: center;
-    color: white;
-    text-decoration: none;
-    padding: 8px 12px;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
-    margin-right: 16px; // Space before powered by
+    gap: 0.75rem;
 
-    &:hover {
-      background-color: rgba(255,255,255,0.1);
+    .brand-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+      color: white;
     }
 
-    .link-text {
-      margin-left: 8px;
-    }
-
-    mat-icon {
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
+    .title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      background: linear-gradient(to right, white, #e0e0e0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
   }
 
-  .powered {
-    font-size: 12px;
-    opacity: 0.8;
-
-    strong {
+  .environment-info {
+    .env-chip {
+      background-color: rgba(255, 255, 255, 0.15);
+      color: white;
+      border-radius: 16px;
+      padding: 0.25rem 0.75rem;
+      margin: 0 0.25rem;
+      font-size: 0.8rem;
       font-weight: 500;
+      transition: all 0.3s ease;
+
+      mat-icon {
+        margin-right: 0.5rem;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.25);
+        transform: translateY(-1px);
+      }
+    }
+  }
+
+  .nav-section {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+
+      mat-icon {
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+      }
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.15);
+      }
+    }
+
+    .powered-by {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.8);
+
+      .kreyzon-logo {
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        color: white;
+      }
     }
   }
 }

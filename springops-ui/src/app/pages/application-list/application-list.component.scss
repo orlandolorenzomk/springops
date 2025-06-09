@@ -94,4 +94,18 @@
       margin-top: 2px;
     }
   }
+
+  .mat-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    mat-icon {
+      margin-right: 8px;
+    }
+
+    mat-progress-spinner {
+      margin-left: auto;
+    }
+  }
 }

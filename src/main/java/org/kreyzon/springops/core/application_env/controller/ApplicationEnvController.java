@@ -44,15 +44,10 @@ public class ApplicationEnvController {
      * @return the saved ApplicationEnvDto
      */
     @PostMapping
-    public ResponseEntity<List<ApplicationEnvDto>> saveApplicationEnv(@RequestBody List<ApplicationEnvDto> applicationEnvDtoList) {
-        try {
-            log.info("Saving new environment variable: {}", applicationEnvDtoList);
-            List<ApplicationEnvDto> savedEnv = applicationEnvService.save(applicationEnvDtoList);
-            return ResponseEntity.ok(savedEnv);
-        } catch (Exception e) {
-            log.error("Error saving environment variable: {}", e.getMessage());
-            return ResponseEntity.status(500).body(null);
-        }
+    public ResponseEntity<List<ApplicationEnvDto>> saveApplicationEnv(@RequestParam Integer applicationId, @RequestBody List<ApplicationEnvDto> applicationEnvDtoList) {
+        log.info("Saving new environment variable: {}", applicationEnvDtoList);
+        List<ApplicationEnvDto> savedEnv = applicationEnvService.save(applicationId, applicationEnvDtoList);
+        return ResponseEntity.ok(savedEnv);
     }
 
     /**

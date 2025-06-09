@@ -1,16 +1,37 @@
 <mat-toolbar color="primary" class="navbar">
-  <!-- Title (Left Side) -->
-  <span class="title">SpringOps</span>
+  <!-- Left Section - Branding -->
+  <div class="brand-section">
+    <mat-icon class="brand-icon">rocket_launch</mat-icon>
+    <span class="title">SpringOps</span>
+  </div>
 
-  <!-- Spacer to push right-aligned content -->
-  <span class="spacer"></span>
+  <!-- Center Section - Environment Info -->
+  <div class="environment-info">
+    <mat-chip-listbox aria-label="Environment information">
+      <mat-chip *ngIf="ipAddress" class="env-chip">
+        <mat-icon>dns</mat-icon>
+        <span>{{ ipAddress }}</span>
+      </mat-chip>
+      <mat-chip *ngIf="serverName" class="env-chip">
+        <mat-icon>computer</mat-icon>
+        <span>{{ serverName }}</span>
+      </mat-chip>
+      <mat-chip *ngIf="environment" class="env-chip" [color]="getEnvironmentColor()">
+        <mat-icon>code</mat-icon>
+        <span>{{ environment }}</span>
+      </mat-chip>
+    </mat-chip-listbox>
+  </div>
 
-  <!-- Dashboard Link (Right Side) -->
-  <a routerLink="/dashboard" class="dashboard-link">
-    <mat-icon>dashboard</mat-icon>
-    <span class="link-text">Dashboard</span>
-  </a>
-
-  <!-- Powered By (Right Side) -->
-  <span class="powered">powered by <strong>Kreyzon</strong></span>
+  <!-- Right Section - Navigation -->
+  <div class="nav-section">
+    <a mat-button routerLink="/dashboard" class="nav-link">
+      <mat-icon>dashboard</mat-icon>
+      <span>Dashboard</span>
+    </a>
+    <div class="powered-by">
+      <span>Powered by</span>
+      <span class="kreyzon-logo">Kreyzon</span>
+    </div>
+  </div>
 </mat-toolbar>

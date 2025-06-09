@@ -1,0 +1,48 @@
+<h2 mat-dialog-title>
+  <mat-icon>tune</mat-icon>&nbsp;Manage Environment Variables
+</h2>
+
+<form [formGroup]="envForm" (ngSubmit)="save()">
+  <mat-dialog-content>
+    <div formArrayName="envs" class="env-list">
+      <div *ngFor="let env of envs.controls; let i = index" [formGroupName]="i" class="env-entry">
+        <mat-form-field appearance="outline">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Value</mat-label>
+          <input
+            matInput
+            [type]="env.get('encrypted')?.value ? 'password' : 'text'"
+            formControlName="value"
+            [readonly]="env.get('encrypted')?.value"
+          />
+          <button
+            *ngIf="env.get('encrypted')?.value"
+            mat-icon-button
+            matSuffix
+            (click)="markEditable(env)"
+            type="button"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <button mat-icon-button color="warn" (click)="removeEnv(i)" type="button">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+
+      <button mat-button color="accent" type="button" (click)="addEnv()">
+        <mat-icon>add</mat-icon> Add Variable
+      </button>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="cancel()">Cancel</button>
+    <button mat-flat-button color="primary" type="submit">Save</button>
+  </mat-dialog-actions>
+</form>

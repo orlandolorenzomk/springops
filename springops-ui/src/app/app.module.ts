@@ -12,7 +12,7 @@ import {HTTP_INTERCEPTORS, HttpClientModule} from "@angular/common/http";
 import { NavbarComponent } from './components/navbar/navbar.component';
 import {MatToolbar} from "@angular/material/toolbar";
 import {MatIcon, MatIconModule} from "@angular/material/icon";
-import {MatButton, MatIconButton} from "@angular/material/button";
+import {MatAnchor, MatButton, MatIconButton} from "@angular/material/button";
 import { LoginComponent } from './pages/auth/login/login.component';
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {MatError, MatFormField, MatHint, MatLabel} from "@angular/material/form-field";
@@ -49,7 +49,9 @@ import {
 } from "@angular/material/datepicker";
 import {MatNativeDateModule} from "@angular/material/core";
 import { MAT_DATE_LOCALE } from '@angular/material/core';
-import {MatChip} from "@angular/material/chips";
+import {MatChip, MatChipListbox} from "@angular/material/chips";
+import { ManageEnvDialogComponent } from './dialogs/manage-env-dialog/manage-env-dialog.component';
+import {MatMenu, MatMenuItem, MatMenuTrigger} from "@angular/material/menu";
 
 @NgModule({
   declarations: [
@@ -66,7 +68,8 @@ import {MatChip} from "@angular/material/chips";
     SystemVersionListComponent,
     SystemVersionFormComponent,
     DeployDialogComponent,
-    DeploymentsListComponent
+    DeploymentsListComponent,
+    ManageEnvDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -112,7 +115,12 @@ import {MatChip} from "@angular/material/chips";
     MatNativeDateModule,
     MatDatepickerModule,
     MatIconModule,
-    MatChip
+    MatChip,
+    MatMenu,
+    MatMenuTrigger,
+    MatMenuItem,
+    MatChipListbox,
+    MatAnchor
   ],
   providers: [
     provideClientHydration(),

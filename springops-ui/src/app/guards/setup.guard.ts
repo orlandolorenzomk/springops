@@ -1,4 +1,3 @@
-// src/app/guards/setup.guard.ts
 import { Injectable } from '@angular/core';
 import { CanActivate, Router, UrlTree } from '@angular/router';
 import { Observable, of } from 'rxjs';
@@ -15,6 +14,9 @@ export class SetupGuard implements CanActivate {
     return this.setupService.checkSetupStatus().pipe(
       map(status => {
         if (status.isSetupComplete) {
+          localStorage.setItem('ipAddress', status.ipAddress);
+          localStorage.setItem('serverName', status.serverName);
+          localStorage.setItem('environment', status.environment);
           return true;
         }
         if (!status.isFirstAdminInitialized) {
@@ -23,9 +25,14 @@ export class SetupGuard implements CanActivate {
         if (!status.isFilesRootInitialized) {
           return this.router.createUrlTree(['/setup/initialize-files-root']);
         }
-        return true; // fallback
+
+        localStorage.setItem("ipAddress", status.ipAddress);
+        localStorage.setItem("serverName", status.serverName);
+        localStorage.setItem("environment", status.environment);
+
+        return true;
       }),
-      catchError(() => of(true)) // if API fails, allow navigation or handle differently
+      catchError(() => of(true))
     );
   }
 }

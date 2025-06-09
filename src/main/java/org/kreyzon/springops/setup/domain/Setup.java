@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.*;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -46,4 +47,13 @@ public class Setup {
 
     @Column(name = "is_first_admin_initialized", nullable = false)
     private Boolean isFirstAdminInitialized;
+
+    @Column(name = "ip_address")
+    private String ipAddress;
+
+    @Column(name = "server_name")
+    private String serverName;
+
+    @Column(name = "environment")
+    private String environment;
 }

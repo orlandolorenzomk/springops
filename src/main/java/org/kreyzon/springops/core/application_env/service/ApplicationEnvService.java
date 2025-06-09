@@ -2,13 +2,11 @@ package org.kreyzon.springops.core.application_env.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.kreyzon.springops.common.dto.application.ApplicationDto;
 import org.kreyzon.springops.common.dto.application_env.ApplicationEnvDto;
 import org.kreyzon.springops.common.utils.EncryptionUtils;
 import org.kreyzon.springops.config.ApplicationConfig;
 import org.kreyzon.springops.core.application.entity.Application;
 import org.kreyzon.springops.core.application.service.ApplicationLookupService;
-import org.kreyzon.springops.core.application.service.ApplicationService;
 import org.kreyzon.springops.core.application_env.entity.ApplicationEnv;
 import org.kreyzon.springops.core.application_env.repository.ApplicationEnvRepository;
 import org.springframework.stereotype.Service;
@@ -64,10 +62,10 @@ public class ApplicationEnvService {
      * @param applicationEnvDtoList the list of ApplicationEnvDto to save
      * @return a list of saved ApplicationEnvDto
      */
-    public List<ApplicationEnvDto> save(List<ApplicationEnvDto> applicationEnvDtoList) throws Exception {
-        log.info("Saving multiple ApplicationEnv objects" + " with size: {}", applicationEnvDtoList.size());
+    public List<ApplicationEnvDto> save(Integer applicationId, List<ApplicationEnvDto> applicationEnvDtoList) {
+        log.info("Saving environment variables");
 
-        Application application = applicationLookupService.findEntityById(applicationEnvDtoList.get(0).getApplicationId());
+        Application application = applicationLookupService.findEntityById(applicationId);
         List<ApplicationEnv> existingEnvs = applicationEnvRepository.findByApplication(
                 application
         );
@@ -75,6 +73,8 @@ public class ApplicationEnvService {
             log.error("Maximum environment variables limit exceeded for application: {}", application.getName());
             throw new RuntimeException("Maximum environment variables limit exceeded for application: " + application.getName());
         }
+        applicationEnvRepository.deleteAll(existingEnvs);
+        log.info("Deleted existing ApplicationEnvs for application: {}", application.getName());
 
         return applicationEnvDtoList.stream().map(applicationEnvDto -> {
             try {

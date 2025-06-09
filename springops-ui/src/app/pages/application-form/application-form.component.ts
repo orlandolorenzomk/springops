@@ -41,7 +41,7 @@ export class ApplicationFormComponent implements OnInit {
       id: [null],
       name: ['', Validators.required],
       description: [''],
-      gitProjectHttpsUrl: ['', Validators.pattern(/^https:\/\/github\.com\/.+/)],
+      gitProjectHttpsUrl: ['', Validators.required],
       javaSystemVersionId: [null, Validators.required],
       mvnSystemVersionId: [null, Validators.required]
     });

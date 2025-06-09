@@ -44,6 +44,23 @@ public class SetupController {
     }
 
     /**
+     * Endpoint to initialize system information such as IP address, server name, and environment.
+     *
+     * @param ipAddress the IP address of the server.
+     * @param serverName the name of the server.
+     * @param environment the environment (e.g., development, production).
+     * @return a {@link ResponseEntity} containing {@code true} if the system info was initialized successfully, {@code false} otherwise.
+     */
+    @PatchMapping("/initialize-system-info")
+    public ResponseEntity<Boolean> initializeSystemInfo(
+            @RequestParam String ipAddress,
+            @RequestParam String serverName,
+            @RequestParam String environment
+    ) {
+        return ResponseEntity.ok(setupService.initializeSystemInfo(ipAddress, serverName, environment));
+    }
+
+    /**
      * Endpoint to initialize files required for the application setup.
      *
      * @param filePath the path where the files should be initialized.

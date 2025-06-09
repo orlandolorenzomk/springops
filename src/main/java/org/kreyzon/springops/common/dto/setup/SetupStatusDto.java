@@ -16,4 +16,7 @@ public class SetupStatusDto {
     Boolean isSetupComplete;
     Boolean isFirstAdminInitialized;
     Boolean isFilesRootInitialized;
+    String ipAddress;
+    String serverName;
+    String environment;
 }

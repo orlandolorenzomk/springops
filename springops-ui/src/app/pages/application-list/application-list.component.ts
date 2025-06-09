@@ -7,6 +7,7 @@ import { ApplicationFormComponent } from '../application-form/application-form.c
 import { ConfirmDialogComponent } from '../../dialogs/confirm-dialog/confirm-dialog.component';
 import { DeploymentStatusDto } from '../../models/deployment.model';
 import { DeployDialogComponent } from '../../dialogs/deploy-dialog/deploy-dialog.component';
+import {ManageEnvDialogComponent} from "../../dialogs/manage-env-dialog/manage-env-dialog.component";
 
 @Component({
   selector: 'app-application-list',
@@ -177,5 +178,17 @@ export class ApplicationListComponent implements OnInit {
     const status = this.applicationStatuses[appId];
     if (!status) return 'Loading...';
     return status.isRunning ? `Running (PID: ${status.pid}, Port: ${status.port})` : 'Stopped';
+  }
+
+  openManageEnvDialog(appId: number): void {
+    this.dialog.open(ManageEnvDialogComponent, {
+      width: '700px',
+      data: appId
+    });
+  }
+
+  isAnyActionLoading(appId: number): boolean {
+    const actions = this.loadingActions[appId];
+    return !!(actions?.edit || actions?.delete || actions?.kill || actions?.deploy);
   }
 }

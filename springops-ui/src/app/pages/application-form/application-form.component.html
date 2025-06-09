@@ -62,10 +62,7 @@
         <input matInput formControlName="gitProjectHttpsUrl"
                placeholder="https://github.com/your-org/your-repo">
         <mat-icon matSuffix>link</mat-icon>
-        <mat-hint>Must be a valid GitHub HTTPS URL</mat-hint>
-        <mat-error *ngIf="form.get('gitProjectHttpsUrl')?.hasError('pattern')">
-          Please enter a valid GitHub HTTPS URL (e.g., https://github.com/your-repo)
-        </mat-error>
+        <mat-hint>Must be a valid GitHub/GitLab HTTP(s) URL</mat-hint>
       </mat-form-field>
     </div>
   </form>

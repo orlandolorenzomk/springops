@@ -42,7 +42,10 @@ public class StartupInitializer {
                     Instant.now(),
                     null,
                     false,
-                    false
+                    false,
+                    null,
+                    null,
+                    null
             );
             setupRepository.save(setup);
             log.info("Initialized SpringOps setup row. Please complete the setup process by visiting the application.");

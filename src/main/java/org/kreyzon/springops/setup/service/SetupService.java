@@ -54,7 +54,32 @@ public class SetupService {
                 .isSetupComplete(setupComplete)
                 .isFirstAdminInitialized(setup.getIsFirstAdminInitialized())
                 .isFilesRootInitialized(setup.getIsFilesRootInitialized())
+                .ipAddress(setup.getIpAddress())
+                .serverName(setup.getServerName())
+                .environment(setup.getEnvironment())
                 .build();
+    }
+
+    /**
+     * Initializes the system information such as IP address, server name, and environment.
+     * Saves the provided information to the setup entity in the database.
+     *
+     * @param ipAddress   the IP address of the server.
+     * @param serverName  the name of the server.
+     * @param environment the environment (e.g., development, production).
+     * @return {@code true} if the initialization was successful, {@code false} otherwise.
+     */
+    public Boolean initializeSystemInfo( String ipAddress, String serverName, String environment) {
+        log.info("Initializing system information with IP: {}, Server Name: {}, Environment: {}", ipAddress, serverName, environment);
+
+        Setup setup = getSetup();
+        setup.setIpAddress(ipAddress);
+        setup.setServerName(serverName);
+        setup.setEnvironment(environment);
+        setupRepository.save(setup);
+
+        log.info("System information initialized successfully.");
+        return true;
     }
 
     /**
