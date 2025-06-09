@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.auth.model.User;
 import org.kreyzon.springops.auth.repository.UserRepository;
 import org.kreyzon.springops.common.dto.auth.UserDto;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -124,17 +123,13 @@ public class UserService implements UserDetailsService {
      * @throws UsernameNotFoundException if no user is found with the given email address.
      */
     public User findByEmail(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-        log.info("User found with email: {}", email);
-        return user;
     }
 
     @Override
     public UserDetails loadUserByUsername(String email) {
-        log.info("Loading user by email: {}", email);
         User user = findByEmail(email);
-        log.info("User loaded with email: {}", email);
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getEmail())
                 .password(user.getPassword())

@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleException(Exception ex) {
         Map<String, String> errorResponse = new HashMap<>();
-        log.error("An error occurred: {}", ex.getMessage(), ex);
+        log.error("An error occurred: {}", ex.getMessage());
         errorResponse.put("error", ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }

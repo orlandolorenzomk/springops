@@ -75,4 +75,9 @@ public class ApplicationConfig {
      * Maximum number of environment files allowed per application.
      */
     private Integer maximumEnvFilesPerApplication;
+
+    /**
+     * Flag to indicate whether to display process logs.
+     */
+    private Boolean displayProcessLogs;
 }

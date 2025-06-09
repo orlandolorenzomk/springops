@@ -7,6 +7,10 @@ import org.kreyzon.springops.core.system_version.entity.SystemVersion;
 import org.kreyzon.springops.core.system_version.repository.SystemVersionRepository;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
 
@@ -59,6 +63,8 @@ public class SystemVersionService {
     public SystemVersionDto save(SystemVersionDto systemVersionDto) {
         log.info("Saving system version: {}", systemVersionDto);
 
+        validateSystemVersion(systemVersionDto);
+
         if (systemVersionRepository.existsByName(systemVersionDto.getName())) {
             log.warn("System version with name '{}' already exists", systemVersionDto.getName());
             throw new IllegalArgumentException("A system version with name '" + systemVersionDto.getName() + "' already exists.");
@@ -85,6 +91,8 @@ public class SystemVersionService {
         SystemVersion existingEntity = systemVersionRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("System version not found with ID: " + id));
 
+        validateSystemVersion(systemVersionDto);
+
         if (systemVersionRepository.existsByName(systemVersionDto.getName()) &&
                 !existingEntity.getName().equals(systemVersionDto.getName())) {
             log.warn("System version with name '{}' already exists", systemVersionDto.getName());
@@ -96,7 +104,7 @@ public class SystemVersionService {
         existingEntity.setPath(systemVersionDto.getPath());
         existingEntity.setCreatedAt(Instant.now());
 
-        SystemVersion updatedEntity = SystemVersionDto.toEntity(systemVersionDto);
+        SystemVersion updatedEntity = systemVersionRepository.save(existingEntity);
         log.info("System version updated with ID: {}", id);
 
         return SystemVersionDto.fromEntity(updatedEntity);
@@ -117,9 +125,77 @@ public class SystemVersionService {
         log.info("System version with ID: {} deleted successfully", id);
     }
 
+    /**
+     * Finds a system version by its type.
+     *
+     * @param type the type of the system version to find
+     * @return the corresponding {@link SystemVersion}
+     * @throws IllegalArgumentException if no system version is found with the given type
+     */
     public SystemVersion findByType(String type) {
         log.info("Finding system version by type: {}", type);
         return systemVersionRepository.findByType(type)
                 .orElseThrow(() -> new IllegalArgumentException("System version not found with type: " + type));
+    }
+
+    /**
+     * Validates a system version by checking:
+     * 1. If the path exists
+     * 2. If the version command executes properly
+     *
+     * @param systemVersionDto the system version to validate
+     * @throws IllegalArgumentException if validation fails
+     */
+    public void validateSystemVersion(SystemVersionDto systemVersionDto) {
+        log.info("Validating system version: {}", systemVersionDto.getName());
+
+        // 1. Check if path exists
+        Path path = Paths.get(systemVersionDto.getPath());
+        if (!Files.exists(path)) {
+            log.error("Path does not exist: {}", systemVersionDto.getPath());
+            throw new IllegalArgumentException("Path does not exist: " + systemVersionDto.getPath());
+        }
+
+        // 1.5. Validate path ends with /bin for JAVA and MAVEN
+        String normalizedPath = path.toString().replace("\\", "/"); // for Windows compatibility
+        if (("JAVA".equalsIgnoreCase(systemVersionDto.getType()) ||
+                "MAVEN".equalsIgnoreCase(systemVersionDto.getType())) &&
+                !normalizedPath.endsWith("/bin")) {
+            String errorMessage = "Path must end with '/bin' for type: " + systemVersionDto.getType();
+            log.error(errorMessage);
+            throw new IllegalArgumentException(errorMessage);
+        }
+
+        try {
+            // 2. Check version command based on type
+            String command;
+            if ("JAVA".equalsIgnoreCase(systemVersionDto.getType())) {
+                command = path.resolve("java") + " -version";
+            } else if ("MAVEN".equalsIgnoreCase(systemVersionDto.getType())) {
+                command = path.resolve("mvn") + " -version";
+            } else {
+                throw new IllegalArgumentException("Unsupported system version type: " + systemVersionDto.getType());
+            }
+
+            log.debug("Executing validation command: {}", command);
+            Process process = Runtime.getRuntime().exec(command);
+            int exitCode = process.waitFor();
+
+            if (exitCode != 0) {
+                String errorMessage = "Failed to execute version command for " + systemVersionDto.getType() +
+                        ". Exit code: " + exitCode;
+                log.error(errorMessage);
+                throw new IllegalArgumentException(errorMessage);
+            }
+
+            log.info("Validation successful for system version: {}", systemVersionDto.getName());
+        } catch (IOException e) {
+            log.error("IO error during version validation: {}", e.getMessage());
+            throw new IllegalArgumentException("Failed to execute version command: " + e.getMessage(), e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Version validation interrupted: {}", e.getMessage());
+            throw new IllegalArgumentException("Version validation interrupted", e);
+        }
     }
 }

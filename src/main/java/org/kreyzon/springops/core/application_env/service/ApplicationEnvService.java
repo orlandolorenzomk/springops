@@ -6,6 +6,8 @@ import org.kreyzon.springops.common.dto.application.ApplicationDto;
 import org.kreyzon.springops.common.dto.application_env.ApplicationEnvDto;
 import org.kreyzon.springops.common.utils.EncryptionUtils;
 import org.kreyzon.springops.config.ApplicationConfig;
+import org.kreyzon.springops.core.application.entity.Application;
+import org.kreyzon.springops.core.application.service.ApplicationLookupService;
 import org.kreyzon.springops.core.application.service.ApplicationService;
 import org.kreyzon.springops.core.application_env.entity.ApplicationEnv;
 import org.kreyzon.springops.core.application_env.repository.ApplicationEnvRepository;
@@ -31,7 +33,7 @@ public class ApplicationEnvService {
 
     private final ApplicationConfig applicationConfig;
 
-    private final ApplicationService applicationService;
+    private final ApplicationLookupService applicationLookupService;
 
     /**
      * Finds an ApplicationEnv by its ID.
@@ -42,9 +44,9 @@ public class ApplicationEnvService {
     public List<ApplicationEnvDto> findByApplicationId(Integer applicationId) {
         log.info("Finding ApplicationEnv by application ID: {}", applicationId);
 
-        ApplicationDto application = applicationService.findById(applicationId);
+        Application application = applicationLookupService.findEntityById(applicationId);
 
-        List<ApplicationEnv> applicationEnvs = applicationEnvRepository.findByApplication(ApplicationDto.toEntity(application));
+        List<ApplicationEnv> applicationEnvs = applicationEnvRepository.findByApplication(application);
         if (applicationEnvs.isEmpty()) {
             log.warn("No ApplicationEnv found for application ID: {}", applicationId);
             return List.of();
@@ -65,13 +67,13 @@ public class ApplicationEnvService {
     public List<ApplicationEnvDto> save(List<ApplicationEnvDto> applicationEnvDtoList) throws Exception {
         log.info("Saving multiple ApplicationEnv objects" + " with size: {}", applicationEnvDtoList.size());
 
-        ApplicationDto applicationDto = applicationService.findById(applicationEnvDtoList.get(0).getApplicationId());
+        Application application = applicationLookupService.findEntityById(applicationEnvDtoList.get(0).getApplicationId());
         List<ApplicationEnv> existingEnvs = applicationEnvRepository.findByApplication(
-                ApplicationDto.toEntity(applicationDto)
+                application
         );
         if (existingEnvs.size() > applicationConfig.getMaximumEnvFilesPerApplication()) {
-            log.error("Maximum environment variables limit exceeded for application: {}", applicationDto.getName());
-            throw new RuntimeException("Maximum environment variables limit exceeded for application: " + applicationDto.getName());
+            log.error("Maximum environment variables limit exceeded for application: {}", application.getName());
+            throw new RuntimeException("Maximum environment variables limit exceeded for application: " + application.getName());
         }
 
         return applicationEnvDtoList.stream().map(applicationEnvDto -> {
@@ -85,7 +87,7 @@ public class ApplicationEnvService {
                                 applicationConfig.getAlgorithm()
                         ))
                         .createdAt(Instant.now())
-                        .application(ApplicationDto.toEntity(applicationDto))
+                        .application(application)
                         .build();
 
                 entity.setCreatedAt(Instant.now());

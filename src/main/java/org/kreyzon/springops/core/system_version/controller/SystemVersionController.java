@@ -21,6 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/system-versions")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class SystemVersionController {
 
     private final SystemVersionService systemVersionService;

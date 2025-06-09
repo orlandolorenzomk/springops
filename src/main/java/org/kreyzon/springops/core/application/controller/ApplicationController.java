@@ -19,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/applications")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class ApplicationController {
 
     private final ApplicationService applicationService;

@@ -27,11 +27,20 @@ public class Constants {
      * Subdirectory within the root directory where deployment data is stored.
      * This is used to organize deployment-specific files.
      */
-    public static final String STATUS_RUNNING = "RUNNING";
+    public final String STATUS_RUNNING = "RUNNING";
 
     /**
-     * Subdirectory within the root directory where deployment data is stored.
-     * This is used to organize deployment-specific files.
+     * Type of deployment indicating that the latest version is being used.
      */
-    public static final String TYPE_LATEST = "LATEST";
+    public final String TYPE_LATEST = "LATEST";
+
+    /**
+     * Type of deployment indicating that a specific version is being used.
+     */
+    public final String STATUS_STOPPED = "STOPPED";
+
+    /**
+     * Type of deployment indicating that a previous version is being used.
+     */
+    public final String TYPE_PREVIOUS = "PREVIOUS";
 }

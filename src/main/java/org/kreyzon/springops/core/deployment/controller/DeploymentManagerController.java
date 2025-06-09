@@ -8,6 +8,8 @@ import org.kreyzon.springops.core.deployment.service.DeploymentManagerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/deployment-manager")
 @RequiredArgsConstructor
@@ -29,14 +31,15 @@ public class DeploymentManagerController {
     }
 
     @PostMapping("/kill")
-    public ResponseEntity<String> killApplication(@RequestParam Integer pid) {
+    public ResponseEntity<Map<String, String>> killApplication(@RequestParam Integer pid) {
         boolean killed = deploymentManagerService.killDeploymentProcess(pid);
         if (killed) {
             log.info("Successfully killed process with PID: {}", pid);
-            return ResponseEntity.ok("Process killed successfully.");
+               return ResponseEntity.ok(Map.of("message", "Process killed successfully."));
         } else {
             log.error("Failed to kill process with PID: {}", pid);
-            return ResponseEntity.status(500).body("Failed to kill process.");
+            return ResponseEntity.status(500)
+                    .body(Map.of("error", "Failed to kill process. Please check the PID and try again."));
         }
     }
 

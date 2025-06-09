@@ -2,6 +2,7 @@ package org.kreyzon.springops.core.deployment.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.common.dto.deployment.DeploymentDto;
@@ -14,7 +15,7 @@ import org.kreyzon.springops.common.utils.DeploymentUtils;
 import org.kreyzon.springops.common.utils.EncryptionUtils;
 import org.kreyzon.springops.config.ApplicationConfig;
 import org.kreyzon.springops.core.application.entity.Application;
-import org.kreyzon.springops.core.application.service.ApplicationService;
+import org.kreyzon.springops.core.application.service.ApplicationLookupService;
 import org.kreyzon.springops.core.application_env.service.ApplicationEnvService;
 import org.kreyzon.springops.core.deployment.entity.Deployment;
 import org.kreyzon.springops.core.system_version.entity.SystemVersion;
@@ -42,7 +43,7 @@ import java.util.Objects;
 @Slf4j
 public class DeploymentManagerService {
 
-    private final ApplicationService applicationService;
+    private final ApplicationLookupService applicationLookupService;
     private final ApplicationConfig applicationConfig;
     private final SetupService setupService;
     private final ApplicationEnvService applicationEnvService;
@@ -56,17 +57,21 @@ public class DeploymentManagerService {
      * @throws IllegalArgumentException if no deployments are found for the application
      */
     public DeploymentStatusDto getDeploymentStatus(Integer applicationId) {
-        Application application = applicationService.findEntityById(applicationId);
+        Application application = applicationLookupService.findEntityById(applicationId);
         log.info("Retrieving deployment status for application ID: {}", applicationId);
+
+        DeploymentStatusDto statusDto = new DeploymentStatusDto();
 
         List<Deployment> deployments = deploymentService.findByApplicationId(applicationId);
         if (deployments.isEmpty()) {
             log.info("No deployments found for application ID: {}", applicationId);
-            throw new IllegalArgumentException("No deployments found for application ID: " + applicationId);
+            statusDto.setIsRunning(false);
+            statusDto.setPort("");
+            statusDto.setPid("");
+            return statusDto;
         }
 
         Deployment latestDeployment = deployments.get(deployments.size() - 1);
-        DeploymentStatusDto statusDto = new DeploymentStatusDto();
 
         Integer pid = latestDeployment.getPid();
         boolean isRunning = latestDeployment.getStatus().equals(Constants.STATUS_RUNNING)
@@ -104,6 +109,9 @@ public class DeploymentManagerService {
             int exitCode = killProcess.waitFor();
             if (exitCode == 0) {
                 log.info("Successfully killed process with PID {}", pid);
+                Deployment deployment = deploymentService.findByPid(pid);
+                deployment.setStatus(Constants.STATUS_STOPPED);
+                deploymentService.update(DeploymentDto.fromEntity(deployment));
                 return true;
             } else {
                 log.error("Failed to kill process with PID {}, exit code: {}", pid, exitCode);
@@ -122,13 +130,20 @@ public class DeploymentManagerService {
      * @param branchName    the name of the branch to deploy
      * @return a DeploymentResultDto containing the results of the deployment process
      */
+    @Transactional
     public DeploymentResultDto manageDeployment(Integer applicationId, String branchName) {
-        Application application = applicationService.findEntityById(applicationId);
+        Application application = applicationLookupService.findEntityById(applicationId);
+
+        if (getDeploymentStatus(applicationId).getIsRunning()) {
+            log.warn("Application ID {} is already running. Deployment aborted.", applicationId);
+            throw new IllegalStateException("Application is already running. Please stop it before redeploying.");
+        }
+
         log.info("""
 
                         #############################################################
                         #                                                           #
-                        #   STARTING DEPLOYMENT FOR APPLICATION: {}              #
+                        #   STARTING DEPLOYMENT FOR APPLICATION: {}                 #
                         #   ON BRANCH: {}                                           #
                         #                                                           #
                         #############################################################
@@ -178,6 +193,8 @@ public class DeploymentManagerService {
                     .orElse("");
             log.info("Recovered {} run properties for application ID {}", envs.size(),  applicationId);
 
+            ObjectMapper objectMapper = new ObjectMapper();
+
             CommandResultDto updateResult = executeCommand("update_project.sh", authenticatedUrl, branchName, sourcePath);
             deploymentResult.setUpdateResult(updateResult);
             if (updateResult.getExitCode() != 0) {
@@ -185,14 +202,29 @@ public class DeploymentManagerService {
                 return deploymentResult;
             }
 
-            CommandResultDto buildResult = captureCommandOutput("build_project.sh", jdkPath, mavenPath, sourcePath, javaVersion.getVersion());
-            deploymentResult.setBuildResult(buildResult);
-            if (buildResult.getExitCode() != 0) {
+            JsonNode updateJsonNode = objectMapper.readTree(updateResult.getOutput());
+            if (!updateJsonNode.get("success").asBoolean()) {
+                deploymentResult.setSuccess(false);
+                log.error("Update failed for application ID {}: {}", applicationId, updateJsonNode.get("message").asText());
+                return deploymentResult;
+            }
+
+            JsonNode branchNode = updateJsonNode.get("deployBranch");
+            if (branchNode == null || branchNode.asText().isEmpty()) {
                 deploymentResult.setSuccess(false);
                 return deploymentResult;
             }
 
-            ObjectMapper objectMapper = new ObjectMapper();
+            String deployBranch = branchNode.asText();
+
+            CommandResultDto buildResult = captureCommandOutput("build_project.sh", jdkPath, mavenPath, sourcePath, javaVersion.getVersion());
+            deploymentResult.setBuildResult(buildResult);
+            if (buildResult.getExitCode() != 0) {
+                deploymentResult.setSuccess(false);
+                log.error("Build failed for application ID {}: {}", applicationId, buildResult.getOutput());
+                return deploymentResult;
+            }
+
             JsonNode jsonNode = objectMapper.readTree(buildResult.getOutput());
 
             if (!jsonNode.get("success").asBoolean()) {
@@ -215,6 +247,14 @@ public class DeploymentManagerService {
 
             if (deploymentResult.isSuccess()) {
                 log.info("Deployment for application ID {} completed successfully", applicationId);
+
+                Deployment latestDeployment = deploymentService.findLatestByApplicationId(applicationId);
+                if (latestDeployment != null) {
+                    latestDeployment.setType(Constants.TYPE_PREVIOUS);
+                    latestDeployment.setStatus(Constants.STATUS_STOPPED);
+                    deploymentService.update(DeploymentDto.fromEntity(latestDeployment));
+                }
+
                 DeploymentDto deploymentDto = DeploymentDto
                         .builder()
                         .version(jarName)
@@ -223,6 +263,7 @@ public class DeploymentManagerService {
                         .createdAt(Instant.now())
                         .applicationId(applicationId)
                         .pid(Integer.valueOf(runResult.getOutput().trim()))
+                        .branch(deployBranch)
                         .build();
                 deploymentService.save(deploymentDto);
             } else {
@@ -262,6 +303,12 @@ public class DeploymentManagerService {
             while ((line = reader.readLine()) != null) {
                 output.append(line).append(System.lineSeparator());
             }
+        }
+
+        if (applicationConfig.getDisplayProcessLogs()) {
+            log.info("Output from script {}: {}", scriptName, output.toString().trim());
+        } else {
+            log.debug("Output from script {}: {}", scriptName, output.toString().trim());
         }
 
         int exitCode = process.waitFor();

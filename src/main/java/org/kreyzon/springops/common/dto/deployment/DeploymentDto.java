@@ -30,6 +30,7 @@ public class DeploymentDto implements Serializable {
     String type;
     Instant createdAt;
     Integer applicationId;
+    String branch;
 
     /**
      * Constructs a DeploymentDto from a Deployment entity.
@@ -45,7 +46,8 @@ public class DeploymentDto implements Serializable {
                 deployment.getPid(),
                 deployment.getType(),
                 deployment.getCreatedAt(),
-                deployment.getApplication().getId()
+                deployment.getApplication().getId(),
+                deployment.getBranch()
         );
     }
 
@@ -63,6 +65,7 @@ public class DeploymentDto implements Serializable {
                 .pid(deployment.getPid())
                 .type(deployment.getType())
                 .createdAt(deployment.getCreatedAt())
+                .branch(deployment.getBranch())
                 .build();
     }
 }

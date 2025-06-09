@@ -3,9 +3,12 @@ package org.kreyzon.springops.core.deployment.controller;
 import lombok.RequiredArgsConstructor;
 import org.kreyzon.springops.common.dto.deployment.DeploymentDto;
 import org.kreyzon.springops.core.deployment.service.DeploymentService;
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -75,5 +78,24 @@ public class DeploymentController {
     public ResponseEntity<Void> deleteById(@PathVariable Integer id) {
         deploymentService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Searches for deployments based on application ID and creation date.
+     *
+     * @param applicationId the ID of the application to filter deployments by (optional)
+     * @param createdDate   the creation date to filter deployments by (optional)
+     * @param page          the page number for pagination (default is 0)
+     * @param size          the size of each page for pagination (default is 10)
+     * @return a paginated list of DeploymentDto matching the search criteria
+     */
+    @GetMapping("/search")
+    public ResponseEntity<Page<DeploymentDto>> searchDeployments(
+            @RequestParam(required = false) Integer applicationId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(deploymentService.searchDeployments(applicationId, createdDate, page, size));
     }
 }

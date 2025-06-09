@@ -57,4 +57,7 @@ public class Deployment {
     @Column(name = "created_at")
     private Instant createdAt;
 
+    @Column(name = "branch")
+    private String branch;
+
 }

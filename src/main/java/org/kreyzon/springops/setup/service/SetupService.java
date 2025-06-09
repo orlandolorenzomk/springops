@@ -42,8 +42,6 @@ public class SetupService {
      * @return a {@link SetupStatusDto} containing the setup status and pending initializations.
      */
     public SetupStatusDto isSetupComplete() {
-        log.info("Checking setup status");
-
         Setup setup = setupRepository.findSetup();
         if (setup == null) {
             log.error("Setup entity not found. Cannot proceed with the operation.");

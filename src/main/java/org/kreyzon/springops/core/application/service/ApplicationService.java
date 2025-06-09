@@ -2,22 +2,17 @@ package org.kreyzon.springops.core.application.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.kreyzon.springops.common.dto.application.ApplicationDto;
-import org.kreyzon.springops.common.dto.application.ApplicationRunDto;
+import org.kreyzon.springops.common.dto.deployment.DeploymentStatusDto;
 import org.kreyzon.springops.common.dto.system_version.SystemVersionDto;
 import org.kreyzon.springops.config.ApplicationConfig;
 import org.kreyzon.springops.core.application.entity.Application;
 import org.kreyzon.springops.core.application.repository.ApplicationRepository;
+import org.kreyzon.springops.core.deployment.service.DeploymentManagerService;
 import org.kreyzon.springops.core.system_version.entity.SystemVersion;
 import org.kreyzon.springops.core.system_version.service.SystemVersionService;
 import org.kreyzon.springops.setup.service.SetupService;
 import org.springframework.stereotype.Service;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -41,6 +36,8 @@ public class ApplicationService {
 
     private final SetupService setupService;
 
+    private final DeploymentManagerService deploymentManagerService;
+
     /**
      * Finds an Application by its ID.
      *
@@ -50,17 +47,6 @@ public class ApplicationService {
     public ApplicationDto findById(Integer id) {
         return applicationRepository.findById(id)
                 .map(ApplicationDto::fromEntity)
-                .orElseThrow(() -> new IllegalArgumentException("Application with ID '" + id + "' does not exist"));
-    }
-
-    /**
-     * Finds an Application entity by its ID.
-     *
-     * @param id the ID of the Application to find
-     * @return the Application entity if found, or throws an exception if not found
-     */
-    public Application findEntityById(Integer id) {
-        return applicationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Application with ID '" + id + "' does not exist"));
     }
 
@@ -117,7 +103,16 @@ public class ApplicationService {
         SystemVersionDto javaSystemVersion = systemVersionService.findById(applicationDto.getJavaSystemVersionId());
         SystemVersion javaVersion = SystemVersionDto.toEntity(javaSystemVersion);
 
-        if (applicationRepository.existsByName(applicationDto.getName())) {
+        Application existingApplication = applicationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Application with ID '" + id + "' does not exist"));
+
+        DeploymentStatusDto deploymentStatus = deploymentManagerService.getDeploymentStatus(id);
+        if (Boolean.TRUE.equals(deploymentStatus.getIsRunning())) {
+            log.warn("Application {} with ID '{}' is currently running and cannot be updated", applicationDto.getName(), id);
+            throw new IllegalArgumentException("Application " + applicationDto.getName() + " with ID '" + id + "' is currently running and cannot be updated");
+        }
+
+        if (applicationRepository.existsByName(applicationDto.getName()) && !existingApplication.getName().equals(applicationDto.getName())) {
             log.warn("Application with name '{}' already exists", applicationDto.getName());
             throw new IllegalArgumentException("Application with name '" + applicationDto.getName() + "' already exists");
         }
@@ -134,6 +129,8 @@ public class ApplicationService {
         application.setId(id);
         application.setMvnSystemVersion(systemVersion);
         application.setJavaSystemVersion(javaVersion);
+        application.setFolderRoot(existingApplication.getFolderRoot());
+        application.setCreatedAt(existingApplication.getCreatedAt());
         Application updatedApplication = applicationRepository.save(application);
         return ApplicationDto.fromEntity(updatedApplication);
     }

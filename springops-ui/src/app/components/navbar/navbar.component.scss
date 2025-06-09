@@ -1,0 +1,51 @@
+.navbar {
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  height: 64px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+
+  .title {
+    font-size: 20px;
+    font-weight: 500;
+    margin-right: 24px; // Add some spacing after the title
+  }
+
+  .spacer {
+    flex: 1 1 auto;
+  }
+
+  .dashboard-link {
+    display: flex;
+    align-items: center;
+    color: white;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+    margin-right: 16px; // Space before powered by
+
+    &:hover {
+      background-color: rgba(255,255,255,0.1);
+    }
+
+    .link-text {
+      margin-left: 8px;
+    }
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .powered {
+    font-size: 12px;
+    opacity: 0.8;
+
+    strong {
+      font-weight: 500;
+    }
+  }
+}
