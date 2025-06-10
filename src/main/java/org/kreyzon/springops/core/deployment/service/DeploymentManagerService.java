@@ -10,6 +10,8 @@ import org.kreyzon.springops.common.dto.application_env.ApplicationEnvDto;
 import org.kreyzon.springops.common.dto.deployment.CommandResultDto;
 import org.kreyzon.springops.common.dto.deployment.DeploymentResultDto;
 import org.kreyzon.springops.common.dto.deployment.DeploymentStatusDto;
+import org.kreyzon.springops.common.enums.DeploymentStatus;
+import org.kreyzon.springops.common.enums.DeploymentType;
 import org.kreyzon.springops.common.utils.Constants;
 import org.kreyzon.springops.common.utils.DeploymentUtils;
 import org.kreyzon.springops.common.utils.EncryptionUtils;
@@ -74,7 +76,7 @@ public class DeploymentManagerService {
         Deployment latestDeployment = deployments.get(deployments.size() - 1);
 
         Integer pid = latestDeployment.getPid();
-        boolean isRunning = latestDeployment.getStatus().equals(Constants.STATUS_RUNNING)
+        boolean isRunning = latestDeployment.getStatus().equals(DeploymentStatus.RUNNING)
                 && DeploymentUtils.isPidRunning(pid);
 
         statusDto.setIsRunning(isRunning);
@@ -110,7 +112,7 @@ public class DeploymentManagerService {
             if (exitCode == 0) {
                 log.info("Successfully killed process with PID {}", pid);
                 Deployment deployment = deploymentService.findByPid(pid);
-                deployment.setStatus(Constants.STATUS_STOPPED);
+                deployment.setStatus(DeploymentStatus.STOPPED);
                 deploymentService.update(DeploymentDto.fromEntity(deployment));
                 return true;
             } else {
@@ -250,16 +252,16 @@ public class DeploymentManagerService {
 
                 Deployment latestDeployment = deploymentService.findLatestByApplicationId(applicationId);
                 if (latestDeployment != null) {
-                    latestDeployment.setType(Constants.TYPE_PREVIOUS);
-                    latestDeployment.setStatus(Constants.STATUS_STOPPED);
+                    latestDeployment.setType(DeploymentType.PREVIOUS);
+                    latestDeployment.setStatus(DeploymentStatus.STOPPED);
                     deploymentService.update(DeploymentDto.fromEntity(latestDeployment));
                 }
 
                 DeploymentDto deploymentDto = DeploymentDto
                         .builder()
                         .version(jarName)
-                        .status(Constants.STATUS_RUNNING)
-                        .type(Constants.TYPE_LATEST)
+                        .status(DeploymentStatus.RUNNING)
+                        .type(DeploymentType.LATEST)
                         .createdAt(Instant.now())
                         .applicationId(applicationId)
                         .pid(Integer.valueOf(runResult.getOutput().trim()))
@@ -306,9 +308,9 @@ public class DeploymentManagerService {
         }
 
         if (applicationConfig.getDisplayProcessLogs()) {
-            log.info("Output from script {}: {}", scriptName, output.toString().trim());
+            log.info("Output from script {}: {}", scriptName, output);
         } else {
-            log.debug("Output from script {}: {}", scriptName, output.toString().trim());
+            log.debug("Output from script {}: {}", scriptName, output);
         }
 
         int exitCode = process.waitFor();

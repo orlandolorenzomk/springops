@@ -4,14 +4,13 @@ import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.common.dto.deployment.DeploymentDto;
-import org.kreyzon.springops.common.utils.Constants;
+import org.kreyzon.springops.common.enums.DeploymentStatus;
 import org.kreyzon.springops.core.application.entity.Application;
 import org.kreyzon.springops.core.application.service.ApplicationLookupService;
 import org.kreyzon.springops.core.deployment.entity.Deployment;
 import org.kreyzon.springops.core.deployment.repository.DeploymentRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -119,9 +117,10 @@ public class DeploymentService {
      * @param applicationId the ID of the application to find running deployments for
      * @return a list of Deployment entities representing the running deployments for the specified application
      */
+
     public List<Deployment> findByApplicationId(Integer applicationId) {
         Application application = applicationLookupService.findEntityById(applicationId);
-        return deploymentRepository.findByApplicationAndStatus(application, Constants.STATUS_RUNNING);
+        return deploymentRepository.findByApplicationAndStatus(application, DeploymentStatus.RUNNING);
     }
 
     /**

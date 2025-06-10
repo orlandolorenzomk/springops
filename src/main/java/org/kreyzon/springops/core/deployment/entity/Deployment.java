@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.kreyzon.springops.common.enums.DeploymentStatus;
+import org.kreyzon.springops.common.enums.DeploymentType;
 import org.kreyzon.springops.core.application.entity.Application;
 
 import java.time.Instant;
@@ -42,17 +44,17 @@ public class Deployment {
     @Column(name = "version", nullable = false, length = 50)
     private String version;
 
-    @Size(max = 50)
     @NotNull
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
-    private String status;
+    private DeploymentStatus status;
 
     @Column(name = "pid")
     private Integer pid;
 
-    @Size(max = 20)
     @Column(name = "type", length = 20)
-    private String type;
+    @Enumerated(EnumType.STRING)
+    private DeploymentType type;
 
     @Column(name = "created_at")
     private Instant createdAt;

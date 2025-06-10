@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Value;
+import org.kreyzon.springops.common.enums.DeploymentStatus;
+import org.kreyzon.springops.common.enums.DeploymentType;
 import org.kreyzon.springops.core.deployment.entity.Deployment;
 
 import java.io.Serializable;
@@ -23,11 +25,9 @@ public class DeploymentDto implements Serializable {
     @Size(max = 50)
     String version;
     @NotNull
-    @Size(max = 50)
-    String status;
+    DeploymentStatus status;
     Integer pid;
-    @Size(max = 20)
-    String type;
+    DeploymentType type;
     Instant createdAt;
     Integer applicationId;
     String branch;

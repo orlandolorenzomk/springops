@@ -80,4 +80,9 @@ public class ApplicationConfig {
      * Flag to indicate whether to display process logs.
      */
     private Boolean displayProcessLogs;
+
+    /**
+     * Flag to indicate whether to display exception stack traces.
+     */
+    private Boolean displayExceptionStackTraces;
 }
