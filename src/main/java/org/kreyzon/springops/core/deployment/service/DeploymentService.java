@@ -87,8 +87,9 @@ public class DeploymentService {
         if (!deploymentRepository.existsById(deploymentDto.getId())) {
             throw new SpringOpsException("Deployment with ID '" + deploymentDto.getId() + "' does not exist", HttpStatus.NOT_FOUND);
         }
-        //FIXME: No usage?
-        Deployment existingDeployment = deploymentRepository.findById(deploymentDto.getId())
+
+        // Check if deployment exists
+        deploymentRepository.findById(deploymentDto.getId())
                 .orElseThrow(() -> new SpringOpsException("Deployment with ID '" + deploymentDto.getId() + "' does not exist", HttpStatus.NOT_FOUND));
 
         Deployment deployment = DeploymentDto.toEntity(deploymentDto);

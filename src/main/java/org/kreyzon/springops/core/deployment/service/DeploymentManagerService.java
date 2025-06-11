@@ -61,6 +61,9 @@ public class DeploymentManagerService {
     public DeploymentStatusDto getDeploymentStatus(Integer applicationId) {
         log.info("Retrieving deployment status for application ID: {}", applicationId);
 
+        // Check if the application exists
+        applicationLookupService.findEntityById(applicationId);
+
         DeploymentStatusDto statusDto = new DeploymentStatusDto();
 
         List<Deployment> deployments = deploymentService.findByApplicationId(applicationId);
