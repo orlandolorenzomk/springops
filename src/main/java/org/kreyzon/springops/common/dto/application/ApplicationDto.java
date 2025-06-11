@@ -24,6 +24,7 @@ public class ApplicationDto implements Serializable {
     Integer mvnSystemVersionId;
     Integer javaSystemVersionId;
     String gitProjectHttpsUrl;
+    Integer port;
 
 
     public static ApplicationDto fromEntity(Application application) {
@@ -35,7 +36,8 @@ public class ApplicationDto implements Serializable {
                 application.getCreatedAt(),
                 application.getMvnSystemVersion() != null ? application.getMvnSystemVersion().getId() : null,
                 application.getJavaSystemVersion() != null ? application.getJavaSystemVersion().getId() : null,
-                application.getGitProjectHttpsUrl()
+                application.getGitProjectHttpsUrl(),
+                application.getPort() != null ? application.getPort() : 0
         );
     }
 
@@ -47,7 +49,7 @@ public class ApplicationDto implements Serializable {
                 .description(applicationDto.getDescription())
                 .createdAt(applicationDto.getCreatedAt())
                 .gitProjectHttpsUrl(applicationDto.getGitProjectHttpsUrl())
-
+                .port(applicationDto.getPort())
                 .build();
     }
 }

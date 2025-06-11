@@ -9,7 +9,9 @@ import org.kreyzon.springops.core.system_version.repository.SystemVersionReposit
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -166,7 +168,7 @@ public class SystemVersionService {
         }
 
         // 1.5. Validate path ends with /bin for JAVA and MAVEN
-        String normalizedPath = path.toString().replace("\\", "/"); // for Windows compatibility
+        String normalizedPath = path.toString().replace("\\", "/"); // for Linux compatibility
         if (("JAVA".equalsIgnoreCase(systemVersionDto.getType()) ||
                 "MAVEN".equalsIgnoreCase(systemVersionDto.getType())) &&
                 !normalizedPath.endsWith("/bin")) {
@@ -179,25 +181,51 @@ public class SystemVersionService {
             // 2. Check version command based on type
             String command;
             if ("JAVA".equalsIgnoreCase(systemVersionDto.getType())) {
-                command = path.resolve("java") + " -version";
+                command = normalizedPath + "/java -version";
             } else if ("MAVEN".equalsIgnoreCase(systemVersionDto.getType())) {
-                command = path.resolve("mvn") + " -version";
+                command = normalizedPath + "/mvn -version";
             } else {
                 throw new SpringOpsException("Unsupported system version type: " + systemVersionDto.getType(), HttpStatus.BAD_REQUEST);
             }
 
             log.debug("Executing validation command: {}", command);
-            Process process = Runtime.getRuntime().exec(command);
-            int exitCode = process.waitFor();
+            Process process = new ProcessBuilder()
+                    .command("bash", "-c", command) // Use bash for Linux shell execution
+                    .start();
 
-            if (exitCode != 0) {
-                String errorMessage = "Failed to execute version command for " + systemVersionDto.getType() +
-                        ". Exit code: " + exitCode;
-                log.error(errorMessage);
-                throw new SpringOpsException(errorMessage, HttpStatus.BAD_REQUEST);
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                 BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+
+                StringBuilder output = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
+                while ((line = errorReader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
+
+                int exitCode = process.waitFor();
+                if (exitCode != 0) {
+                    String errorMessage = "Failed to execute version command for " + systemVersionDto.getType() +
+                            ". Exit code: " + exitCode;
+                    log.error(errorMessage);
+                    throw new SpringOpsException(errorMessage, HttpStatus.BAD_REQUEST);
+                }
+
+                log.debug("Command output: {}", output);
+
+                // 3. Parse the output to extract the version
+                String extractedVersion = extractVersionFromOutput(output.toString(), systemVersionDto.getType());
+                if (!extractedVersion.startsWith(systemVersionDto.getVersion())) { // We use contains because versions can be with minor updates
+                    String errorMessage = "Version mismatch. Expected: " + systemVersionDto.getVersion() +
+                            ", Found: " + extractedVersion;
+                    log.error(errorMessage);
+                    throw new SpringOpsException(errorMessage, HttpStatus.BAD_REQUEST);
+                }
+
+                log.info("Validation successful for system version: {}", systemVersionDto.getName());
             }
-
-            log.info("Validation successful for system version: {}", systemVersionDto.getName());
         } catch (IOException e) {
             log.error("IO error during version validation: {}", e.getMessage());
             throw new SpringOpsException("Failed to execute version command: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -205,6 +233,33 @@ public class SystemVersionService {
             Thread.currentThread().interrupt();
             log.error("Version validation interrupted: {}", e.getMessage());
             throw new SpringOpsException("Version validation interrupted" + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Extracts the version from the command output based on the type.
+     *
+     * @param output the command output
+     * @param type the system version type (e.g., JAVA or MAVEN)
+     * @return the extracted version
+     */
+    private String extractVersionFromOutput(String output, String type) {
+        if ("JAVA".equalsIgnoreCase(type)) {
+            // Example output: 'java version "17.0.1"'
+            return output.lines()
+                    .filter(line -> line.contains("version"))
+                    .findFirst()
+                    .map(line -> line.split("\"")[1]) // Extract version between quotes
+                    .orElseThrow(() -> new SpringOpsException("Failed to parse Java version from output", HttpStatus.BAD_REQUEST));
+        } else if ("MAVEN".equalsIgnoreCase(type)) {
+            // Example output: 'Apache Maven 3.8.4'
+            return output.lines()
+                    .filter(line -> line.startsWith("Apache Maven"))
+                    .findFirst()
+                    .map(line -> line.split(" ")[2]) // Extract version after 'Apache Maven'
+                    .orElseThrow(() -> new SpringOpsException("Failed to parse Maven version from output", HttpStatus.BAD_REQUEST));
+        } else {
+            throw new SpringOpsException("Unsupported system version type: " + type, HttpStatus.BAD_REQUEST);
         }
     }
 }

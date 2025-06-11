@@ -6,6 +6,7 @@ import org.kreyzon.springops.common.dto.application.ApplicationDto;
 import org.kreyzon.springops.common.dto.deployment.DeploymentStatusDto;
 import org.kreyzon.springops.common.dto.system_version.SystemVersionDto;
 import org.kreyzon.springops.common.exception.SpringOpsException;
+import org.kreyzon.springops.common.utils.PortUtils;
 import org.kreyzon.springops.config.ApplicationConfig;
 import org.kreyzon.springops.core.application.entity.Application;
 import org.kreyzon.springops.core.application.repository.ApplicationRepository;
@@ -83,12 +84,13 @@ public class ApplicationService {
             log.warn("Application with name '{}' already exists", applicationDto.getName());
             throw new SpringOpsException("Application with name '" + applicationDto.getName() + "' already exists", HttpStatus.CONFLICT);
         }
+
         Application application = ApplicationDto.toEntity(applicationDto);
         application.setMvnSystemVersion(systemVersion);
         application.setJavaSystemVersion(javaVersion);
         application.setCreatedAt(java.time.Instant.now());
         application.setFolderRoot(applicationDto.getName().trim().toLowerCase(Locale.ROOT));
-
+        application.setPort(applicationDto.getPort());
         generateApplicationFolders(application.getName());
 
         Application savedApplication = applicationRepository.save(application);
@@ -139,7 +141,10 @@ public class ApplicationService {
         application.setJavaSystemVersion(javaVersion);
         application.setFolderRoot(existingApplication.getFolderRoot());
         application.setCreatedAt(existingApplication.getCreatedAt());
+        application.setPort(applicationDto.getPort());
+
         Application updatedApplication = applicationRepository.save(application);
+
         return ApplicationDto.fromEntity(updatedApplication);
     }
 

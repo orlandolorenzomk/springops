@@ -54,4 +54,7 @@ public class Application {
 
     @Column(name = "git_project_https_url")
     private String gitProjectHttpsUrl;
+
+    @Column(name = "port")
+    private Integer port;
 }

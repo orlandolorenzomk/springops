@@ -17,7 +17,7 @@ import {ManageEnvDialogComponent} from "../../dialogs/manage-env-dialog/manage-e
 export class ApplicationListComponent implements OnInit {
   applications: ApplicationDto[] = [];
   applicationStatuses: { [id: number]: DeploymentStatusDto } = {};
-  displayedColumns: string[] = ['id', 'name', 'description', 'createdAt', 'status', 'actions'];
+  displayedColumns: string[] = ['id', 'name', 'description', 'port', 'createdAt', 'status', 'actions'];
   loadingActions: { [id: number]: { edit?: boolean; delete?: boolean; deploy?: boolean; kill?: boolean } } = {};
 
   constructor(

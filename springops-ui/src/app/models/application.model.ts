@@ -18,4 +18,5 @@ export interface ApplicationDto {
   mvnSystemVersionId: number | null;
   javaSystemVersionId: number | null;
   gitProjectHttpsUrl: string;
+  port: number;
 }

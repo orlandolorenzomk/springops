@@ -53,8 +53,9 @@ public class DeploymentManagerController {
     @PostMapping("/deploy")
     public ResponseEntity<DeploymentResultDto> deployApplication(
             @RequestParam Integer applicationId,
-            @RequestParam String branchName) {
-        DeploymentResultDto result = deploymentManagerService.manageDeployment(applicationId, branchName);
+            @RequestParam String branchName,
+            @RequestParam(required = false) Integer port) {
+        DeploymentResultDto result = deploymentManagerService.manageDeployment(applicationId, branchName, port);
         return ResponseEntity.ok(result);
     }
 }

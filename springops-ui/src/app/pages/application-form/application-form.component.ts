@@ -40,6 +40,7 @@ export class ApplicationFormComponent implements OnInit {
     this.form = this.fb.group({
       id: [null],
       name: ['', Validators.required],
+      port: [null, Validators.required],
       description: [''],
       gitProjectHttpsUrl: ['', Validators.required],
       javaSystemVersionId: [null, Validators.required],
@@ -49,7 +50,6 @@ export class ApplicationFormComponent implements OnInit {
 
   loadSystemVersions(): void {
     this.systemVersionService.findAll().subscribe(versions => {
-      // Filter versions by type
       this.javaVersions = versions.filter(v => v.type === 'JAVA');
       this.mavenVersions = versions.filter(v => v.type === 'MAVEN');
     });

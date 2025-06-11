@@ -20,11 +20,11 @@ export class AuthInterceptor implements HttpInterceptor {
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     // Skip for specific routes (like login)
-    if (request.url.includes('/auth/login')) {
+    if (request.url.includes('/api/authentication')) {
       return next.handle(request);
     }
 
-    const token = this.authService.getToken(); // Or localStorage.getItem('token')
+    const token = this.authService.getToken();
 
     if (token) {
       request = request.clone({

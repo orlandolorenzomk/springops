@@ -5,22 +5,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.kreyzon.springops.common.dto.deployment.DeploymentDto;
+import org.kreyzon.springops.common.dto.deployment.*;
 import org.kreyzon.springops.common.dto.application_env.ApplicationEnvDto;
-import org.kreyzon.springops.common.dto.deployment.CommandResultDto;
-import org.kreyzon.springops.common.dto.deployment.DeploymentResultDto;
-import org.kreyzon.springops.common.dto.deployment.DeploymentStatusDto;
 import org.kreyzon.springops.common.enums.DeploymentStatus;
 import org.kreyzon.springops.common.enums.DeploymentType;
 import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.common.utils.DeploymentUtils;
 import org.kreyzon.springops.common.utils.EncryptionUtils;
+import org.kreyzon.springops.common.utils.PortUtils;
 import org.kreyzon.springops.config.ApplicationConfig;
 import org.kreyzon.springops.core.application.entity.Application;
 import org.kreyzon.springops.core.application.service.ApplicationLookupService;
 import org.kreyzon.springops.core.application_env.service.ApplicationEnvService;
 import org.kreyzon.springops.core.deployment.entity.Deployment;
-import org.kreyzon.springops.core.system_version.entity.SystemVersion;
 import org.kreyzon.springops.setup.domain.Setup;
 import org.kreyzon.springops.setup.service.SetupService;
 import org.springframework.http.HttpStatus;
@@ -29,9 +26,11 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Service class for managing deployments of applications.
@@ -140,7 +139,36 @@ public class DeploymentManagerService {
      * @return a DeploymentResultDto containing the results of the deployment process
      */
     @Transactional
-    public DeploymentResultDto manageDeployment(Integer applicationId, String branchName) {
+    public DeploymentResultDto manageDeployment(Integer applicationId, String branchName, Integer port) {
+        Application application = validateAndPrepareDeployment(applicationId);
+        logDeploymentStart(application, branchName);
+
+        Integer portForDeployment = port != null ? port : application.getPort();
+
+        if (applicationLookupService.isPortAlreadyInUseByOtherApplications(portForDeployment)) {
+            log.warn("Another deployment is already running on port {}", portForDeployment);
+            throw new SpringOpsException("Another deployment is already running on this port", HttpStatus.CONFLICT);
+        }
+
+        if (PortUtils.isPortOccupied(portForDeployment)) {
+            log.error("Invalid or occupied port: {}", portForDeployment);
+            throw new SpringOpsException("Invalid or occupied port for deployment", HttpStatus.BAD_REQUEST);
+        }
+
+        DeploymentResultDto deploymentResult = new DeploymentResultDto();
+        try {
+            DeploymentContextDto context = prepareDeploymentContext(application, branchName, portForDeployment);
+            executeDeploymentSteps(application, context, deploymentResult);
+            handleSuccessfulDeployment(applicationId, deploymentResult);
+        } catch (SpringOpsException e) {
+            throw e; // Re-throw known exceptions
+        } catch (Exception e) {
+            handleDeploymentFailure(applicationId, deploymentResult, e);
+        }
+        return deploymentResult;
+    }
+
+    private Application validateAndPrepareDeployment(Integer applicationId) {
         Application application = applicationLookupService.findEntityById(applicationId);
 
         if (getDeploymentStatus(applicationId).getIsRunning()) {
@@ -148,145 +176,200 @@ public class DeploymentManagerService {
             throw new SpringOpsException("Application is already running. Please stop it before redeploying.", HttpStatus.CONFLICT);
         }
 
+        validateSystemVersions(application);
+        return application;
+    }
+
+    private void validateSystemVersions(Application application) {
+        if (application.getMvnSystemVersion() == null) {
+            log.error("Maven system version is not set for application ID {}", application.getId());
+            throw new SpringOpsException("Maven system version is not set", HttpStatus.BAD_REQUEST);
+        }
+        if (application.getJavaSystemVersion() == null) {
+            log.error("Java system version is not set for application ID {}", application.getId());
+            throw new SpringOpsException("Java system version is not set", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    private void logDeploymentStart(Application application, String branchName) {
         log.info("""
+            #############################################################
+            #                                                           #
+            #   STARTING DEPLOYMENT FOR APPLICATION: {}                #
+            #   ON BRANCH: {}                                          #
+            #                                                           #
+            #############################################################
+            """, application.getName(), branchName);
+    }
 
-                        #############################################################
-                        #                                                           #
-                        #   STARTING DEPLOYMENT FOR APPLICATION: {}                 #
-                        #   ON BRANCH: {}                                           #
-                        #                                                           #
-                        #############################################################
-                        """,
-                application.getName(), branchName);
-
-        DeploymentResultDto deploymentResult = new DeploymentResultDto();
-
-        SystemVersion mavenVersion = application.getMvnSystemVersion();
-        if (mavenVersion == null) {
-            log.error("Maven system version is not set for application ID {}", applicationId);
-            throw new SpringOpsException("Maven system version is not set for application ID " + applicationId, HttpStatus.BAD_REQUEST);
-        }
-
-        SystemVersion javaVersion = application.getJavaSystemVersion();
-        if (javaVersion == null) {
-            log.error("Java system version is not set for application ID {}", applicationId);
-            throw new SpringOpsException("Java system version is not set for application ID " + applicationId, HttpStatus.BAD_REQUEST);
-        }
-
+    private DeploymentContextDto prepareDeploymentContext(Application application, String branchName, Integer port) {
+        log.info("Preparing deployment context for application ID: {}, branch: {}", application.getId(), branchName);
         Setup setup = setupService.getSetup();
+        String gitToken = validateAndGetGitToken();
 
-        try {
-            String gitToken = applicationConfig.getGitToken();
-            if (gitToken == null || gitToken.isEmpty()) {
-                throw new SpringOpsException("Git token is not configured", HttpStatus.BAD_REQUEST);
-            }
-            String repositoryUrl = application.getGitProjectHttpsUrl();
-            String authenticatedUrl = repositoryUrl.replace("https://", "https://" + gitToken + "@");
-            String sourcePath = setup.getFilesRoot() + "/" + applicationConfig.getRootDirectoryName() + "/" + applicationConfig.getDirectoryApplications()  + "/" + application.getName().trim().toLowerCase().replaceAll("\\s+", "-") + "/" + applicationConfig.getDirectorySource();
-            String jdkPath = javaVersion.getPath();
-            String mavenPath = mavenVersion.getPath();
+        String repositoryUrl = application.getGitProjectHttpsUrl();
+        String authenticatedUrl = repositoryUrl.replace("https://", "https://" + gitToken + "@");
 
-            log.info("Recovered: repositoryUrl, authenticatedUrl, sourcePath, jdkPath, mavenPath, branchName for application ID: {}", applicationId);
+        String sourcePath = Paths.get(
+                setup.getFilesRoot(),
+                applicationConfig.getRootDirectoryName(),
+                applicationConfig.getDirectoryApplications(),
+                application.getName().trim().toLowerCase().replaceAll("\\s+", "-"),
+                applicationConfig.getDirectorySource()
+        ).toString();
 
-            List<ApplicationEnvDto> envs = applicationEnvService.findByApplicationId(applicationId);
-            String runProperties = envs.stream()
-                    .map(env -> {
-                        try {
-                            return env.getName() + "=" + (env.getValue() != null ? EncryptionUtils.decrypt(env.getValue(), applicationConfig.getSecret(), applicationConfig.getAlgorithm()) : "");
-                        } catch (Exception e) {
-                            log.error("Error decrypting environment variable {}: {}", env.getName(), e.getMessage());
-                            throw new SpringOpsException("Failed to decrypt environment variable " + env.getName(), HttpStatus.INTERNAL_SERVER_ERROR);
-                        }
-                    })
-                    .reduce((a, b) -> a + " " + b)
-                    .orElse("");
-            log.info("Recovered {} run properties for application ID {}", envs.size(),  applicationId);
+        return new DeploymentContextDto(
+                authenticatedUrl,
+                sourcePath,
+                application.getJavaSystemVersion(),
+                application.getMvnSystemVersion(),
+                branchName,
+                prepareEnvironmentVariables(application.getId()),
+                port
+        );
+    }
 
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            CommandResultDto updateResult = executeCommand("update_project.sh", authenticatedUrl, branchName, sourcePath);
-            deploymentResult.setUpdateResult(updateResult);
-            if (updateResult.getExitCode() != 0) {
-                deploymentResult.setSuccess(false);
-                return deploymentResult;
-            }
-
-            JsonNode updateJsonNode = objectMapper.readTree(updateResult.getOutput());
-            if (!updateJsonNode.get("success").asBoolean()) {
-                deploymentResult.setSuccess(false);
-                log.error("Update failed for application ID {}: {}", applicationId, updateJsonNode.get("message").asText());
-                return deploymentResult;
-            }
-
-            JsonNode branchNode = updateJsonNode.get("deployBranch");
-            if (branchNode == null || branchNode.asText().isEmpty()) {
-                deploymentResult.setSuccess(false);
-                return deploymentResult;
-            }
-
-            String deployBranch = branchNode.asText();
-
-            CommandResultDto buildResult = captureCommandOutput("build_project.sh", jdkPath, mavenPath, sourcePath, javaVersion.getVersion());
-            deploymentResult.setBuildResult(buildResult);
-            if (buildResult.getExitCode() != 0) {
-                deploymentResult.setSuccess(false);
-                log.error("Build failed for application ID {}: {}", applicationId, buildResult.getOutput());
-                return deploymentResult;
-            }
-
-            JsonNode jsonNode = objectMapper.readTree(buildResult.getOutput());
-
-            if (!jsonNode.get("success").asBoolean()) {
-                deploymentResult.setSuccess(false);
-                return deploymentResult;
-            }
-
-            JsonNode artifactsNode = jsonNode.get("artifacts");
-            if (artifactsNode == null || !artifactsNode.isArray() || artifactsNode.isEmpty()) {
-                deploymentResult.setSuccess(false);
-                return deploymentResult;
-            }
-
-            String jarName = artifactsNode.get(0).asText();
-            deploymentResult.setBuiltJar(jarName);
-
-            CommandResultDto runResult = executeCommand("run_project.sh", jdkPath, sourcePath, jarName, runProperties);
-            deploymentResult.setRunResult(runResult);
-            deploymentResult.setSuccess(runResult.getExitCode() == 0);
-
-            if (deploymentResult.isSuccess()) {
-                log.info("Deployment for application ID {} completed successfully", applicationId);
-
-                Deployment latestDeployment = deploymentService.findLatestByApplicationId(applicationId);
-                if (latestDeployment != null) {
-                    latestDeployment.setType(DeploymentType.PREVIOUS);
-                    latestDeployment.setStatus(DeploymentStatus.STOPPED);
-                    deploymentService.update(DeploymentDto.fromEntity(latestDeployment));
-                }
-
-                DeploymentDto deploymentDto = DeploymentDto
-                        .builder()
-                        .version(jarName)
-                        .status(DeploymentStatus.RUNNING)
-                        .type(DeploymentType.LATEST)
-                        .createdAt(Instant.now())
-                        .applicationId(applicationId)
-                        .pid(Integer.valueOf(runResult.getOutput().trim()))
-                        .branch(deployBranch)
-                        .build();
-                deploymentService.save(deploymentDto);
-            } else {
-                log.error("Deployment for application ID {} failed with exit code: {}", applicationId, runResult.getExitCode());
-            }
-
-            return deploymentResult;
-
-        } catch (Exception e) {
-            log.error("Error managing deployment for application ID {}: {}", applicationId, e.getMessage());
-            deploymentResult.setSuccess(false);
-            deploymentResult.setUpdateResult(new CommandResultDto(-1, e.toString()));
-            return deploymentResult;
+    private String validateAndGetGitToken() {
+        log.info("Validating Git token configuration");
+        String gitToken = applicationConfig.getGitToken();
+        if (gitToken == null || gitToken.isEmpty()) {
+            throw new SpringOpsException("Git token is not configured", HttpStatus.BAD_REQUEST);
         }
+        return gitToken;
+    }
+
+    private String prepareEnvironmentVariables(Integer applicationId) {
+        log.info("Preparing environment variables for application ID: {}", applicationId);
+        List<ApplicationEnvDto> envs = applicationEnvService.findByApplicationId(applicationId);
+        return envs.stream()
+                .map(this::decryptEnvVariable)
+                .collect(Collectors.joining(" "));
+    }
+
+    private String decryptEnvVariable(ApplicationEnvDto env) {
+        try {
+            log.info("Decrypting environment variable: {}", env.getName());
+            String decryptedEnvValue = env.getName() + "=" + (env.getValue() != null ? EncryptionUtils.decrypt(env.getValue(), applicationConfig.getSecret(), applicationConfig.getAlgorithm()) : "");
+            log.info("Decrypted environment variable: {}", decryptedEnvValue);
+            return decryptedEnvValue;
+        } catch (Exception e) {
+            log.error("Error decrypting environment variable {}: {}", env.getName(), e.getMessage());
+            throw new SpringOpsException("Failed to decrypt environment variable " + env.getName(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private void executeDeploymentSteps(Application application, DeploymentContextDto context, DeploymentResultDto result) throws Exception {
+        log.info("Executing deployment steps for application ID: {}", application.getId());
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        // Step 1: Update project
+        CommandResultDto updateResult = executeCommand("update_project.sh",
+                context.authenticatedUrl(), context.branchName(), context.sourcePath());
+        result.setUpdateResult(updateResult);
+
+        if (updateResult.getExitCode() != 0) {
+            result.setSuccess(false);
+            return;
+        }
+
+        JsonNode updateJsonNode = objectMapper.readTree(updateResult.getOutput());
+        if (!updateJsonNode.get("success").asBoolean()) {
+            result.setSuccess(false);
+            log.error("Update failed for application ID {}: {}", application.getId(), updateJsonNode.get("message").asText());
+            return;
+        }
+
+        String deployBranch = updateJsonNode.path("deployBranch").asText();
+        if (deployBranch.isEmpty()) {
+            result.setSuccess(false);
+            return;
+        }
+
+        // Step 2: Build project
+        CommandResultDto buildResult = captureCommandOutput("build_project.sh",
+                context.javaVersion().getPath(),
+                context.mavenVersion().getPath(),
+                context.sourcePath(),
+                context.javaVersion().getVersion());
+        result.setBuildResult(buildResult);
+
+        if (buildResult.getExitCode() != 0) {
+            result.setSuccess(false);
+            log.error("Build failed for application ID {}: {}", application.getId(), buildResult.getOutput());
+            return;
+        }
+
+        JsonNode buildJsonNode = objectMapper.readTree(buildResult.getOutput());
+        if (!buildJsonNode.get("success").asBoolean()) {
+            result.setSuccess(false);
+            return;
+        }
+
+        JsonNode artifactsNode = buildJsonNode.get("artifacts");
+        if (artifactsNode == null || !artifactsNode.isArray() || artifactsNode.isEmpty()) {
+            result.setSuccess(false);
+            return;
+        }
+
+        String jarName = artifactsNode.get(0).asText();
+        result.setBuiltJar(jarName);
+
+        // Step 3: Run project
+        CommandResultDto runResult = executeCommand("run_project.sh",
+                context.javaVersion().getPath(),
+                context.sourcePath(),
+                jarName,
+                context.port().toString(),
+                context.environmentVariables());
+        result.setRunResult(runResult);
+        result.setSuccess(runResult.getExitCode() == 0);
+    }
+
+    private void handleSuccessfulDeployment(Integer applicationId, DeploymentResultDto result) {
+        if (result.isSuccess()) {
+            log.info("Deployment for application ID {} completed successfully", applicationId);
+            updateDeploymentRecords(applicationId, result);
+        } else {
+            log.error("Deployment for application ID {} failed with exit code: {}",
+                    applicationId, result.getRunResult().getExitCode());
+        }
+    }
+
+    private void updateDeploymentRecords(Integer applicationId, DeploymentResultDto result) {
+        Deployment latestDeployment = deploymentService.findLatestByApplicationId(applicationId);
+        if (latestDeployment != null) {
+            latestDeployment.setType(DeploymentType.PREVIOUS);
+            latestDeployment.setStatus(DeploymentStatus.STOPPED);
+            deploymentService.update(DeploymentDto.fromEntity(latestDeployment));
+        }
+
+        DeploymentDto newDeployment = DeploymentDto.builder()
+                .version(result.getBuiltJar())
+                .status(DeploymentStatus.RUNNING)
+                .type(DeploymentType.LATEST)
+                .createdAt(Instant.now())
+                .applicationId(applicationId)
+                .pid(Integer.valueOf(result.getRunResult().getOutput().trim()))
+                .branch(result.getUpdateResult() != null ?
+                        extractDeployBranch(result.getUpdateResult().getOutput()) : "unknown")
+                .build();
+        deploymentService.save(newDeployment);
+    }
+
+    private String extractDeployBranch(String updateOutput) {
+        try {
+            JsonNode node = new ObjectMapper().readTree(updateOutput);
+            return node.path("deployBranch").asText();
+        } catch (Exception e) {
+            log.warn("Failed to extract deploy branch from update output", e);
+            return "unknown";
+        }
+    }
+
+    private void handleDeploymentFailure(Integer applicationId, DeploymentResultDto result, Exception e) {
+        log.error("Error managing deployment for application ID {}: {}", applicationId, e.getMessage());
+        result.setSuccess(false);
+        result.setUpdateResult(new CommandResultDto(-1, e.toString()));
     }
 
     /**
@@ -301,6 +384,9 @@ public class DeploymentManagerService {
     private CommandResultDto executeCommand(String scriptName, String... args) throws IOException, InterruptedException {
         log.info("Executing script: {} with {} arguments", scriptName, args.length);
         String scriptPath = Objects.requireNonNull(getClass().getClassLoader().getResource("scripts/" + scriptName)).getPath();
+
+        // Log the entire command being executed
+        log.info("Command to be executed: /bin/bash {} {}", scriptPath, String.join(" ", args));
 
         String command = String.format("/bin/bash %s %s", scriptPath, String.join(" ", args));
         ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", command);

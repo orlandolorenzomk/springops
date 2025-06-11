@@ -36,6 +36,14 @@
         </td>
       </ng-container>
 
+      <!-- Port Column -->
+      <ng-container matColumnDef="port">
+        <th mat-header-cell *matHeaderCellDef>Port</th>
+        <td mat-cell *matCellDef="let element">
+          <mat-icon class="icon-cell">settings_ethernet</mat-icon> {{ element.port }}
+        </td>
+      </ng-container>
+
       <!-- Created At Column -->
       <ng-container matColumnDef="createdAt">
         <th mat-header-cell *matHeaderCellDef>Created At</th>

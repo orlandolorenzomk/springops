@@ -18,6 +18,31 @@
 
     <div class="form-row">
       <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Port</mat-label>
+        <input matInput type="number" formControlName="port" required>
+        <mat-icon matSuffix class="icon-spacing">settings_ethernet</mat-icon>
+
+        <mat-error *ngIf="form.get('port')?.hasError('required')">
+          Port is required
+        </mat-error>
+        <mat-error *ngIf="form.get('port')?.hasError('min')">
+          Port must be at least 1
+        </mat-error>
+
+        <mat-hint class="text-muted">
+          ⚠️ This port will be passed to the application using <code>--server.port</code>.
+          If your <code>application.yml</code> or environment variables (e.g., <code>PORT=9090</code>)
+          also define a port, they may override this value.
+          <br />
+          <strong>Example:</strong> You set <code>8082</code> here, but if <code>application.yml</code> contains
+          <code>server.port: 9090</code>, then <code>9090</code> will be used instead.
+        </mat-hint>
+      </mat-form-field>
+    </div>
+    <br>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Description</mat-label>
         <textarea matInput formControlName="description" rows="2"></textarea>
         <mat-icon matSuffix>description</mat-icon>
