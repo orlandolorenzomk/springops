@@ -3,8 +3,10 @@ package org.kreyzon.springops.core.system_version.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.common.dto.system_version.SystemVersionDto;
+import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.core.system_version.entity.SystemVersion;
 import org.kreyzon.springops.core.system_version.repository.SystemVersionRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -33,13 +35,13 @@ public class SystemVersionService {
      *
      * @param id the ID of the system version to find
      * @return the corresponding {@link SystemVersionDto}
-     * @throws IllegalArgumentException if no system version is found with the given ID
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if no system version is found with the given ID
      */
     public SystemVersionDto findById(Integer id) {
         log.info("Fetching system version with ID: {}", id);
         return systemVersionRepository.findById(id)
                 .map(SystemVersionDto::fromEntity)
-                .orElseThrow(() -> new IllegalArgumentException("System version not found with ID: " + id));
+                .orElseThrow(() -> new SpringOpsException("System version not found with ID: " + id, HttpStatus.NOT_FOUND));
     }
 
     /**
@@ -58,6 +60,7 @@ public class SystemVersionService {
      * Saves a new system version.
      *
      * @param systemVersionDto the {@link SystemVersionDto} to save
+     * @throws SpringOpsException with {@link HttpStatus#CONFLICT} if a system version with the same name already exists
      * @return the saved {@link SystemVersionDto}
      */
     public SystemVersionDto save(SystemVersionDto systemVersionDto) {
@@ -67,7 +70,7 @@ public class SystemVersionService {
 
         if (systemVersionRepository.existsByName(systemVersionDto.getName())) {
             log.warn("System version with name '{}' already exists", systemVersionDto.getName());
-            throw new IllegalArgumentException("A system version with name '" + systemVersionDto.getName() + "' already exists.");
+            throw new SpringOpsException("A system version with name '" + systemVersionDto.getName() + "' already exists.", HttpStatus.CONFLICT);
         }
 
         SystemVersion entity = SystemVersionDto.toEntity(systemVersionDto);
@@ -83,20 +86,20 @@ public class SystemVersionService {
      * @param id the ID of the system version to update
      * @param systemVersionDto the updated {@link SystemVersionDto}
      * @return the updated {@link SystemVersionDto}
-     * @throws IllegalArgumentException if no system version is found with the given ID
-     * @throws IllegalArgumentException if another system version with the same name exists
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if no system version is found with the given ID
+     * @throws SpringOpsException with {@link HttpStatus#CONFLICT} if another system version with the same name exists
      */
     public SystemVersionDto update(Integer id, SystemVersionDto systemVersionDto) {
         log.info("Updating system version with ID: {}", id);
         SystemVersion existingEntity = systemVersionRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("System version not found with ID: " + id));
+                .orElseThrow(() -> new SpringOpsException("System version not found with ID: " + id, HttpStatus.NOT_FOUND));
 
         validateSystemVersion(systemVersionDto);
 
         if (systemVersionRepository.existsByName(systemVersionDto.getName()) &&
                 !existingEntity.getName().equals(systemVersionDto.getName())) {
             log.warn("System version with name '{}' already exists", systemVersionDto.getName());
-            throw new IllegalArgumentException("Another system version with name '" + systemVersionDto.getName() + "' already exists.");
+            throw new SpringOpsException("Another system version with name '" + systemVersionDto.getName() + "' already exists.", HttpStatus.CONFLICT);
         }
 
         existingEntity.setType(systemVersionDto.getType());
@@ -114,12 +117,12 @@ public class SystemVersionService {
      * Deletes a system version by its ID.
      *
      * @param id the ID of the system version to delete
-     * @throws IllegalArgumentException if no system version is found with the given ID
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if no system version is found with the given ID
      */
     public void delete(Integer id) {
         log.info("Deleting system version with ID: {}", id);
         if (!systemVersionRepository.existsById(id)) {
-            throw new IllegalArgumentException("System version not found with ID: " + id);
+            throw new SpringOpsException("System version not found with ID: " + id, HttpStatus.NOT_FOUND);
         }
         systemVersionRepository.deleteById(id);
         log.info("System version with ID: {} deleted successfully", id);
@@ -130,12 +133,12 @@ public class SystemVersionService {
      *
      * @param type the type of the system version to find
      * @return the corresponding {@link SystemVersion}
-     * @throws IllegalArgumentException if no system version is found with the given type
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if no system version is found with the given type
      */
     public SystemVersion findByType(String type) {
         log.info("Finding system version by type: {}", type);
         return systemVersionRepository.findByType(type)
-                .orElseThrow(() -> new IllegalArgumentException("System version not found with type: " + type));
+                .orElseThrow(() -> new SpringOpsException("System version not found with type: " + type, HttpStatus.NOT_FOUND));
     }
 
     /**
@@ -144,7 +147,13 @@ public class SystemVersionService {
      * 2. If the version command executes properly
      *
      * @param systemVersionDto the system version to validate
-     * @throws IllegalArgumentException if validation fails
+     *  @throws SpringOpsException if:
+     *  *         - The path does not exist ({@link HttpStatus#BAD_REQUEST}).
+     *  *         - The path does not end with '/bin' for JAVA or MAVEN types ({@link HttpStatus#BAD_REQUEST}).
+     *  *         - The system version type is unsupported ({@link HttpStatus#BAD_REQUEST}).
+     *  *         - The version command fails ({@link HttpStatus#BAD_REQUEST}).
+     *  *         - An I/O error occurs ({@link HttpStatus#INTERNAL_SERVER_ERROR}).
+     *  *         - The validation process is interrupted ({@link HttpStatus#INTERNAL_SERVER_ERROR}).
      */
     public void validateSystemVersion(SystemVersionDto systemVersionDto) {
         log.info("Validating system version: {}", systemVersionDto.getName());
@@ -153,7 +162,7 @@ public class SystemVersionService {
         Path path = Paths.get(systemVersionDto.getPath());
         if (!Files.exists(path)) {
             log.error("Path does not exist: {}", systemVersionDto.getPath());
-            throw new IllegalArgumentException("Path does not exist: " + systemVersionDto.getPath());
+            throw new SpringOpsException("Path does not exist: " + systemVersionDto.getPath(), HttpStatus.BAD_REQUEST);
         }
 
         // 1.5. Validate path ends with /bin for JAVA and MAVEN
@@ -163,7 +172,7 @@ public class SystemVersionService {
                 !normalizedPath.endsWith("/bin")) {
             String errorMessage = "Path must end with '/bin' for type: " + systemVersionDto.getType();
             log.error(errorMessage);
-            throw new IllegalArgumentException(errorMessage);
+            throw new SpringOpsException(errorMessage, HttpStatus.BAD_REQUEST);
         }
 
         try {
@@ -174,7 +183,7 @@ public class SystemVersionService {
             } else if ("MAVEN".equalsIgnoreCase(systemVersionDto.getType())) {
                 command = path.resolve("mvn") + " -version";
             } else {
-                throw new IllegalArgumentException("Unsupported system version type: " + systemVersionDto.getType());
+                throw new SpringOpsException("Unsupported system version type: " + systemVersionDto.getType(), HttpStatus.BAD_REQUEST);
             }
 
             log.debug("Executing validation command: {}", command);
@@ -185,17 +194,17 @@ public class SystemVersionService {
                 String errorMessage = "Failed to execute version command for " + systemVersionDto.getType() +
                         ". Exit code: " + exitCode;
                 log.error(errorMessage);
-                throw new IllegalArgumentException(errorMessage);
+                throw new SpringOpsException(errorMessage, HttpStatus.BAD_REQUEST);
             }
 
             log.info("Validation successful for system version: {}", systemVersionDto.getName());
         } catch (IOException e) {
             log.error("IO error during version validation: {}", e.getMessage());
-            throw new IllegalArgumentException("Failed to execute version command: " + e.getMessage(), e);
+            throw new SpringOpsException("Failed to execute version command: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.error("Version validation interrupted: {}", e.getMessage());
-            throw new IllegalArgumentException("Version validation interrupted", e);
+            throw new SpringOpsException("Version validation interrupted" + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

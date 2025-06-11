@@ -6,10 +6,12 @@ import org.kreyzon.springops.auth.service.UserService;
 import org.kreyzon.springops.common.dto.auth.AdminUserResponseDto;
 import org.kreyzon.springops.common.dto.auth.UserDto;
 import org.kreyzon.springops.common.dto.setup.SetupStatusDto;
+import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.common.utils.*;
 import org.kreyzon.springops.config.ApplicationConfig;
 import org.kreyzon.springops.setup.domain.Setup;
 import org.kreyzon.springops.setup.repository.SetupRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -38,14 +40,14 @@ public class SetupService {
     /**
      * Checks the setup process status and returns a DTO indicating
      * whether the setup is complete and which initializations are pending.
-     *
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the setup entity is not found.
      * @return a {@link SetupStatusDto} containing the setup status and pending initializations.
      */
     public SetupStatusDto isSetupComplete() {
         Setup setup = setupRepository.findSetup();
         if (setup == null) {
             log.error("Setup entity not found. Cannot proceed with the operation.");
-            throw new IllegalStateException("Setup entity not found.");
+            throw new SpringOpsException("Setup entity not found.", HttpStatus.NOT_FOUND);
         }
 
         Boolean setupComplete = checkSetupCompleteStatus(setup);
@@ -99,7 +101,7 @@ public class SetupService {
     /**
      * Initializes the first admin user with default credentials.
      * Generates a random password for the admin user and saves it.
-     *
+     * @throws SpringOpsException with {@link HttpStatus#CONFLICT} if the setup is already complete or the admin user already exists.
      * @return a {@link UserDto} representing the initialized admin user.
      */
     public AdminUserResponseDto initializeFirstAdminUser() {
@@ -107,13 +109,13 @@ public class SetupService {
 
         if (isSetupComplete().getIsFirstAdminInitialized()) {
             log.warn("Setup is already complete. Skipping admin user initialization.");
-            throw new IllegalStateException("Setup is already complete. Cannot initialize admin user.");
+            throw new SpringOpsException("Setup is already complete. Cannot initialize admin user.", HttpStatus.CONFLICT);
         }
 
         if (userService.findAll().stream()
                 .anyMatch(user -> user.getUsername().equals(applicationConfig.getStandardAdminUsername()))) {
             log.warn("First admin user already exists. Skipping initialization.");
-            throw new IllegalStateException("First admin user already exists. Cannot initialize again.");
+            throw new SpringOpsException("First admin user already exists. Cannot initialize again.", HttpStatus.CONFLICT);
         }
 
         String password = PasswordGenerator.generateRandomPassword(applicationConfig.getStandardAdminPasswordLength());
@@ -142,14 +144,16 @@ public class SetupService {
      *
      * @param filePath the file path to be saved and used as the root directory.
      * @return {@code true} if the files were initialized successfully, {@code false} otherwise.
-     * @throws IllegalStateException if the setup entity is not found or the directory creation fails.
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the setup entity is not found or the directory creation fails.
+     * @throws SpringOpsException with {@link HttpStatus#CONFLICT} if the files root is already initialized.
+     * @throws SpringOpsException with {@link HttpStatus#INTERNAL_SERVER_ERROR} if the applications root or subdirectory creation fails.
      */
     public Boolean initializeFiles(String filePath) {
         log.info("Initializing files with root directory: {}", filePath);
 
         if (isSetupComplete().getIsFilesRootInitialized()) {
             log.warn("Files root is already initialized. Skipping initialization.");
-            throw new IllegalStateException("Files root is already initialized. Cannot initialize again.");
+            throw new SpringOpsException("Files root is already initialized. Cannot initialize again.", HttpStatus.CONFLICT);
         }
 
         Setup setup = getSetup();
@@ -158,7 +162,7 @@ public class SetupService {
         boolean isRootDirectoryCreated = FileUtils.createDirectory(rootDirectoryPath);
         if (!isRootDirectoryCreated) {
             log.error("Failed to create root directory: {}", rootDirectoryPath);
-            throw new IllegalStateException("Failed to create root directory.");
+            throw new SpringOpsException("Failed to create root directory.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         Path applicationsSubdirectoryPath = Path.of(rootDirectoryPath, Constants.DIRECTORY_APPLICATIONS);
@@ -167,7 +171,7 @@ public class SetupService {
             log.info("Applications subdirectory created successfully: {}", applicationsSubdirectoryPath);
         } catch (IOException e) {
             log.error("Failed to create applications subdirectory: {}", applicationsSubdirectoryPath, e);
-            throw new IllegalStateException("Failed to create applications subdirectory.", e);
+            throw new SpringOpsException("Failed to create applications subdirectory.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         setup.setFilesRoot(filePath);
@@ -184,13 +188,13 @@ public class SetupService {
      * Ensures that the setup entity exists before proceeding with any operation.
      *
      * @return the {@link Setup} entity.
-     * @throws IllegalStateException if the setup entity is not found in the database.
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the setup entity is not found.
      */
     public Setup getSetup() {
         Setup setup = setupRepository.findSetup();
         if (setup == null) {
             log.error("Setup entity not found. Cannot proceed with the operation.");
-            throw new IllegalStateException("Setup entity not found.");
+            throw new SpringOpsException("Setup entity not found.", HttpStatus.NOT_FOUND);
         }
         return setup;
     }

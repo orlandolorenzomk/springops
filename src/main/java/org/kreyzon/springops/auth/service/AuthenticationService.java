@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.auth.model.User;
 import org.kreyzon.springops.auth.util.JwtUtil;
 import org.kreyzon.springops.common.dto.auth.AuthenticationResponseDto;
+import org.kreyzon.springops.common.exception.SpringOpsException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -28,13 +30,13 @@ public class AuthenticationService {
      * @param email    the email of the user.
      * @param password the password of the user.
      * @return a JWT token if authentication is successful.
-     * @throws IllegalArgumentException if authentication fails.
+     * @throws SpringOpsException with {@link HttpStatus#UNAUTHORIZED} if authentication fails.
      */
     public AuthenticationResponseDto authenticate(String email, String password) {
         User user = userService.findByEmail(email);
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new IllegalArgumentException("Invalid email or password.");
+            throw new SpringOpsException("Invalid email or password.", HttpStatus.UNAUTHORIZED);
         }
 
         log.info("User with email {} authenticated successfully", user.getEmail());

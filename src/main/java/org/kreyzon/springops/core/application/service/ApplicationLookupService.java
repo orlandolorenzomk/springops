@@ -2,8 +2,10 @@ package org.kreyzon.springops.core.application.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.core.application.entity.Application;
 import org.kreyzon.springops.core.application.repository.ApplicationRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 /**
@@ -23,10 +25,11 @@ public class ApplicationLookupService {
      * Finds an Application entity by its ID.
      *
      * @param id the ID of the Application to find
-     * @return the Application entity if found, or throws an exception if not found
+     * @return the Application entity if found
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the Application with the given ID does not exist
      */
     public Application findEntityById(Integer id) {
         return applicationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Application with ID '" + id + "' does not exist"));
+                .orElseThrow(() -> new SpringOpsException("Application with ID '" + id + "' does not exist", HttpStatus.NOT_FOUND));
     }
 }

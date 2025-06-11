@@ -1,6 +1,8 @@
 package org.kreyzon.springops.common.utils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.kreyzon.springops.common.exception.SpringOpsException;
+import org.springframework.http.HttpStatus;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -22,12 +24,12 @@ public class EncryptionUtils {
      * @param hexSecret the secret key in hexadecimal format.
      * @param algorithm the encryption algorithm (e.g., "AES").
      * @return the encrypted text in Base64 format.
-     * @throws Exception if encryption fails.
+     * @throws SpringOpsException if encryption fails.
      */
     public static String encrypt(String plainText, String hexSecret, String algorithm) throws Exception {
         byte[] secretBytes = hexStringToByteArray(hexSecret);
         if (secretBytes.length != 32) { // Validate 256-bit key length
-            throw new IllegalArgumentException("Invalid AES key length: " + secretBytes.length);
+            throw new SpringOpsException("Invalid AES key length: " + secretBytes.length, HttpStatus.BAD_REQUEST);
         }
         Cipher cipher = Cipher.getInstance(algorithm);
         SecretKeySpec keySpec = new SecretKeySpec(secretBytes, algorithm);
@@ -43,12 +45,12 @@ public class EncryptionUtils {
      * @param hexSecret the secret key in hexadecimal format.
      * @param algorithm the encryption algorithm (e.g., "AES").
      * @return the decrypted plain text.
-     * @throws Exception if decryption fails.
+     * @throws SpringOpsException with {@link HttpStatus#BAD_REQUEST} if decryption fails due to an invalid key length.
      */
     public static String decrypt(String encryptedText, String hexSecret, String algorithm) throws Exception {
         byte[] secretBytes = hexStringToByteArray(hexSecret);
         if (secretBytes.length != 32) { // Validate 256-bit key length
-            throw new IllegalArgumentException("Invalid AES key length: " + secretBytes.length);
+            throw new SpringOpsException("Invalid AES key length: " + secretBytes.length, HttpStatus.BAD_REQUEST);
         }
         Cipher cipher = Cipher.getInstance(algorithm);
         SecretKeySpec keySpec = new SecretKeySpec(secretBytes, algorithm);

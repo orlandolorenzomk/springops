@@ -1,6 +1,8 @@
 package org.kreyzon.springops.common.utils;
 
 import lombok.experimental.UtilityClass;
+import org.kreyzon.springops.common.exception.SpringOpsException;
+import org.springframework.http.HttpStatus;
 
 import java.security.SecureRandom;
 import java.util.stream.Collectors;
@@ -28,11 +30,11 @@ public class PasswordGenerator {
      *
      * @param length the desired length of the password. Must be at least 8 characters.
      * @return a randomly generated password.
-     * @throws IllegalArgumentException if the length is less than 8.
+     * @throws SpringOpsException with {@link HttpStatus#BAD_REQUEST} if the length is less than 8 characters.
      */
     public String generateRandomPassword(int length) {
         if (length < 8) {
-            throw new IllegalArgumentException("Password length must be at least 8 characters");
+            throw new SpringOpsException("Password length must be at least 8 characters", HttpStatus.BAD_REQUEST);
         }
 
         return IntStream.range(0, length)

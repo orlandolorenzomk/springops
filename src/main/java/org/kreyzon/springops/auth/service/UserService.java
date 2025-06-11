@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.auth.model.User;
 import org.kreyzon.springops.auth.repository.UserRepository;
 import org.kreyzon.springops.common.dto.auth.UserDto;
+import org.kreyzon.springops.common.exception.SpringOpsException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -32,13 +34,13 @@ public class UserService implements UserDetailsService {
      *
      * @param userId the unique ID of the user to find.
      * @return a {@link UserDto} representing the user.
-     * @throws RuntimeException if the user is not found.
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the user is not found.
      */
     public UserDto findById(UUID userId) {
         log.info("Fetching user with ID: {}", userId);
         return userRepository.findById(userId)
                 .map(UserDto::fromEntity)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new SpringOpsException("User not found with ID: " + userId, HttpStatus.NOT_FOUND));
     }
 
     /**
@@ -82,12 +84,12 @@ public class UserService implements UserDetailsService {
      * @param userId  the unique ID of the user to update.
      * @param userDto the {@link UserDto} containing updated user details.
      * @return a {@link UserDto} representing the updated user.
-     * @throws RuntimeException if the user is not found.
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the user is not found.
      */
     public UserDto update(UUID userId, UserDto userDto) {
         log.info("Updating user with ID: {}", userId);
         User existingUser = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new SpringOpsException("User not found with ID: " + userId, HttpStatus.NOT_FOUND));
 
         existingUser.setUsername(userDto.getUsername());
         existingUser.setEmail(userDto.getEmail());
@@ -104,12 +106,12 @@ public class UserService implements UserDetailsService {
      * Deletes a user by their unique ID.
      *
      * @param userId the unique ID of the user to delete.
-     * @throws RuntimeException if the user is not found.
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the user is not found.
      */
     public void delete(UUID userId) {
         log.info("Deleting user with ID: {}", userId);
         if (!userRepository.existsById(userId)) {
-            throw new RuntimeException("User not found");
+            throw new SpringOpsException("User not found", HttpStatus.NOT_FOUND);
         }
         userRepository.deleteById(userId);
         log.info("User deleted with ID: {}", userId);

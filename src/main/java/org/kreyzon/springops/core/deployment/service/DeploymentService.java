@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.common.dto.deployment.DeploymentDto;
 import org.kreyzon.springops.common.enums.DeploymentStatus;
+import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.core.application.entity.Application;
 import org.kreyzon.springops.core.application.service.ApplicationLookupService;
 import org.kreyzon.springops.core.deployment.entity.Deployment;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -41,12 +43,12 @@ public class DeploymentService {
      *
      * @param id the ID of the deployment to find
      * @return the DeploymentDto representing the found deployment
-     * @throws IllegalArgumentException if the deployment with the given ID does not exist
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the deployment with the given ID does not exist
      */
     public DeploymentDto findById(Integer id) {
         return deploymentRepository.findById(id)
                 .map(DeploymentDto::fromEntity)
-                .orElseThrow(() -> new IllegalArgumentException("Deployment with ID '" + id + "' does not exist"));
+                .orElseThrow(() -> new SpringOpsException("Deployment with ID '" + id + "' does not exist", HttpStatus.NOT_FOUND));
     }
 
     /**
@@ -79,15 +81,15 @@ public class DeploymentService {
      *
      * @param deploymentDto the DeploymentDto representing the deployment to update
      * @return the DeploymentDto representing the updated deployment
-     * @throws IllegalArgumentException if the deployment with the given ID does not exist
+     * @throws SpringOpsException if the deployment with the given ID does not exist
      */
     public DeploymentDto update(DeploymentDto deploymentDto) {
         if (!deploymentRepository.existsById(deploymentDto.getId())) {
-            throw new IllegalArgumentException("Deployment with ID '" + deploymentDto.getId() + "' does not exist");
+            throw new SpringOpsException("Deployment with ID '" + deploymentDto.getId() + "' does not exist", HttpStatus.NOT_FOUND);
         }
-
+        //FIXME: No usage?
         Deployment existingDeployment = deploymentRepository.findById(deploymentDto.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Deployment with ID '" + deploymentDto.getId() + "' does not exist"));
+                .orElseThrow(() -> new SpringOpsException("Deployment with ID '" + deploymentDto.getId() + "' does not exist", HttpStatus.NOT_FOUND));
 
         Deployment deployment = DeploymentDto.toEntity(deploymentDto);
         Application application = applicationLookupService.findEntityById(deploymentDto.getApplicationId());
@@ -102,11 +104,11 @@ public class DeploymentService {
      * Deletes a deployment by its ID.
      *
      * @param id the ID of the deployment to delete
-     * @throws IllegalArgumentException if the deployment with the given ID does not exist
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the deployment with the given ID does not exist
      */
     public void deleteById(Integer id) {
         if (!deploymentRepository.existsById(id)) {
-            throw new IllegalArgumentException("Deployment with ID '" + id + "' does not exist");
+            throw new SpringOpsException("Deployment with ID '" + id + "' does not exist", HttpStatus.NOT_FOUND);
         }
         deploymentRepository.deleteById(id);
     }
@@ -128,11 +130,11 @@ public class DeploymentService {
      *
      * @param pid the process ID of the deployment to find
      * @return the Deployment entity representing the found deployment
-     * @throws IllegalArgumentException if the deployment with the given PID does not exist
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the deployment with the given PID does not exist
      */
     public Deployment findByPid(Integer pid) {
         return deploymentRepository.findByPid(pid)
-                .orElseThrow(() -> new IllegalArgumentException("Deployment with PID '" + pid + "' does not exist"));
+                .orElseThrow(() -> new SpringOpsException("Deployment with PID '" + pid + "' does not exist", HttpStatus.NOT_FOUND));
     }
 
     /**
@@ -140,11 +142,11 @@ public class DeploymentService {
      *
      * @param applicationId the ID of the application to find the latest running deployment for
      * @return the Deployment entity representing the latest running deployment for the specified application
-     * @throws IllegalArgumentException if no running deployments are found for the specified application
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if no running deployments are found for the application
      */
     public Deployment findLatestByApplicationId(Integer applicationId) {
         return deploymentRepository.findByCreatedAtDesc(applicationId)
-                .orElse(null);
+                .orElseThrow(() -> new SpringOpsException("No running deployments found for application with ID '" + applicationId + "'", HttpStatus.NOT_FOUND));
     }
 
     /**

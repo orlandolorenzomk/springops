@@ -3,8 +3,11 @@ package org.kreyzon.springops.config;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.kreyzon.springops.common.exception.SpringOpsException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
+import javax.swing.*;
 import java.util.Base64;
 import java.util.List;
 
@@ -46,11 +49,11 @@ public class ConfigValidator {
 
     /**
      * Validates the JWT secret to ensure it is not null, not empty, and has a valid format.
-     * Throws an exception if the validation fails.
+     * @throws SpringOpsException if the JWT secret is invalid or missing.
      */
     private void validateJwtSecret() {
         if (jwtConfig.getSecret() == null || jwtConfig.getSecret().isEmpty()) {
-            throw new IllegalStateException("JWT secret is invalid or missing.");
+            throw new SpringOpsException("JWT secret is invalid or missing.", HttpStatus.BAD_REQUEST);
         }
         validateKeyFormat(jwtConfig.getSecret(), "JWT secret");
         log.info("JWT secret is valid and properly formatted.");
@@ -58,11 +61,11 @@ public class ConfigValidator {
 
     /**
      * Validates the application secret to ensure it is not null, not empty, and has a valid format.
-     * Throws an exception if the validation fails.
+     * @throws SpringOpsException with {@link HttpStatus#BAD_REQUEST} if the application secret is invalid or missing.
      */
     private void validateAppSecret() {
         if (applicationConfig.getSecret() == null || applicationConfig.getSecret().isEmpty()) {
-            throw new IllegalStateException("Application secret is invalid or missing.");
+            throw new SpringOpsException("Application secret is invalid or missing.", HttpStatus.BAD_REQUEST);
         }
         validateKeyFormat(applicationConfig.getSecret(), "Application secret");
         log.info("Application secret is valid and properly formatted.");
@@ -71,14 +74,14 @@ public class ConfigValidator {
     /**
      * Validates the encryption algorithm to ensure it is supported.
      * Supported algorithms include AES, RSA, and HMAC.
-     * Throws an exception if the validation fails.
+     * @throws SpringOpsException with {@link HttpStatus#BAD_REQUEST} if the algorithm is invalid or unsupported.
      */
     private void validateAlgorithm() {
         String algorithm = applicationConfig.getAlgorithm();
         List<String> supportedAlgorithms = List.of("AES", "RSA", "HMAC");
 
         if (algorithm == null || algorithm.isEmpty() || !supportedAlgorithms.contains(algorithm.toUpperCase())) {
-            throw new IllegalStateException("Application algorithm is invalid or unsupported: " + algorithm);
+            throw new SpringOpsException("Application algorithm is invalid or unsupported: " + algorithm, HttpStatus.BAD_REQUEST);
         }
         log.info("Application algorithm '{}' is valid and supported.", algorithm);
     }
@@ -88,16 +91,16 @@ public class ConfigValidator {
      *
      * @param key     the secret key to validate.
      * @param keyName the name of the key (used for error messages).
-     * @throws IllegalStateException if the key is not valid.
+     * @throws SpringOpsException with {@link HttpStatus#BAD_REQUEST} if the key is not valid.
      */
     private void validateKeyFormat(String key, String keyName) {
         try {
             byte[] decodedKey = Base64.getDecoder().decode(key);
             if (decodedKey.length < 16) { // Example: Minimum 128-bit key length
-                throw new IllegalStateException(keyName + " is too short. It must be at least 128 bits.");
+                throw new SpringOpsException(keyName + " is too short. It must be at least 128 bits.", HttpStatus.BAD_REQUEST);
             }
         } catch (IllegalArgumentException e) {
-            throw new IllegalStateException(keyName + " is not a valid Base64-encoded string.", e);
+            throw new SpringOpsException(keyName + " is not a valid Base64-encoded string.", HttpStatus.BAD_REQUEST);
         }
     }
 }
