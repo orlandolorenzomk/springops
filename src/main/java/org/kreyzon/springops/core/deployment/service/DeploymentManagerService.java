@@ -59,8 +59,6 @@ public class DeploymentManagerService {
      * @return a DeploymentStatusDto containing the status and port information
      */
     public DeploymentStatusDto getDeploymentStatus(Integer applicationId) {
-        //FIXME: No usage of application?
-        Application application = applicationLookupService.findEntityById(applicationId);
         log.info("Retrieving deployment status for application ID: {}", applicationId);
 
         DeploymentStatusDto statusDto = new DeploymentStatusDto();
