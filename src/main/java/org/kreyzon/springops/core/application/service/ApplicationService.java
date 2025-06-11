@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.common.dto.application.ApplicationDto;
 import org.kreyzon.springops.common.dto.deployment.DeploymentStatusDto;
 import org.kreyzon.springops.common.dto.system_version.SystemVersionDto;
+import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.config.ApplicationConfig;
 import org.kreyzon.springops.core.application.entity.Application;
 import org.kreyzon.springops.core.application.repository.ApplicationRepository;
@@ -12,7 +13,10 @@ import org.kreyzon.springops.core.deployment.service.DeploymentManagerService;
 import org.kreyzon.springops.core.system_version.entity.SystemVersion;
 import org.kreyzon.springops.core.system_version.service.SystemVersionService;
 import org.kreyzon.springops.setup.service.SetupService;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
+import javax.swing.*;
 import java.util.List;
 import java.util.Locale;
 
@@ -42,12 +46,13 @@ public class ApplicationService {
      * Finds an Application by its ID.
      *
      * @param id the ID of the Application to find
-     * @return an ApplicationDto representing the found Application, or null if not found
+     * @return an ApplicationDto representing the found Application
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the Application with the given ID does not exist
      */
     public ApplicationDto findById(Integer id) {
         return applicationRepository.findById(id)
                 .map(ApplicationDto::fromEntity)
-                .orElseThrow(() -> new IllegalArgumentException("Application with ID '" + id + "' does not exist"));
+                .orElseThrow(() -> new SpringOpsException("Application with ID '" + id + "' does not exist", HttpStatus.NOT_FOUND));
     }
 
     /**
@@ -66,6 +71,7 @@ public class ApplicationService {
      *
      * @param applicationDto the ApplicationDto to save
      * @return the saved ApplicationDto
+     * @throws SpringOpsException with {@link HttpStatus#CONFLICT} if an Application with the same name already exists
      */
     public ApplicationDto save(ApplicationDto applicationDto) {
         SystemVersionDto mvnSystemVersion = systemVersionService.findById(applicationDto.getMvnSystemVersionId());
@@ -75,7 +81,7 @@ public class ApplicationService {
 
         if (applicationRepository.existsByName(applicationDto.getName())) {
             log.warn("Application with name '{}' already exists", applicationDto.getName());
-            throw new IllegalArgumentException("Application with name '" + applicationDto.getName() + "' already exists");
+            throw new SpringOpsException("Application with name '" + applicationDto.getName() + "' already exists", HttpStatus.CONFLICT);
         }
         Application application = ApplicationDto.toEntity(applicationDto);
         application.setMvnSystemVersion(systemVersion);
@@ -94,7 +100,9 @@ public class ApplicationService {
      *
      * @param id the ID of the Application to update
      * @param applicationDto the ApplicationDto containing updated data
-     *
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the Application with the given ID does not exist
+     * @throws SpringOpsException with {@link HttpStatus#CONFLICT} if an Application with the same name already exists (for different ID)
+     * @throws SpringOpsException with {@link HttpStatus#CONFLICT} if the Application is currently running and cannot be updated
      * @return the updated ApplicationDto
      */
     public ApplicationDto update(Integer id, ApplicationDto applicationDto) {
@@ -104,26 +112,26 @@ public class ApplicationService {
         SystemVersion javaVersion = SystemVersionDto.toEntity(javaSystemVersion);
 
         Application existingApplication = applicationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Application with ID '" + id + "' does not exist"));
+                .orElseThrow(() -> new SpringOpsException("Application with ID '" + id + "' does not exist", HttpStatus.NOT_FOUND));
 
         DeploymentStatusDto deploymentStatus = deploymentManagerService.getDeploymentStatus(id);
         if (Boolean.TRUE.equals(deploymentStatus.getIsRunning())) {
             log.warn("Application {} with ID '{}' is currently running and cannot be updated", applicationDto.getName(), id);
-            throw new IllegalArgumentException("Application " + applicationDto.getName() + " with ID '" + id + "' is currently running and cannot be updated");
+            throw new SpringOpsException("Application " + applicationDto.getName() + " with ID '" + id + "' is currently running and cannot be updated", HttpStatus.CONFLICT);
         }
 
         if (applicationRepository.existsByName(applicationDto.getName()) && !existingApplication.getName().equals(applicationDto.getName())) {
             log.warn("Application with name '{}' already exists", applicationDto.getName());
-            throw new IllegalArgumentException("Application with name '" + applicationDto.getName() + "' already exists");
+            throw new SpringOpsException("Application with name '" + applicationDto.getName() + "' already exists", HttpStatus.CONFLICT);
         }
 
         if (!applicationRepository.existsById(id)) {
             log.warn("Application with ID '{}' does not exist", id);
-            throw new IllegalArgumentException("Application with ID '" + id + "' does not exist");
+            throw new SpringOpsException("Application with ID '" + id + "' does not exist", HttpStatus.NOT_FOUND);
         }
         if (applicationRepository.existsByName(applicationDto.getName()) && !applicationDto.getId().equals(id)) {
             log.warn("Application with name '{}' already exists", applicationDto.getName());
-            throw new IllegalArgumentException("Application with name '" + applicationDto.getName() + "' already exists");
+            throw new SpringOpsException("Application with name '" + applicationDto.getName() + "' already exists", HttpStatus.CONFLICT);
         }
         Application application = ApplicationDto.toEntity(applicationDto);
         application.setId(id);
@@ -137,19 +145,20 @@ public class ApplicationService {
 
     /**
      * Deletes an Application by its ID.
-     *
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the Application with the given ID does not exist
+     * @throws SpringOpsException with {@link HttpStatus#CONFLICT} if the Application is currently running and cannot be deleted
      * @param id the ID of the Application to delete
      */
     public void deleteById(Integer id) {
         if (!applicationRepository.existsById(id)) {
             log.warn("Application with ID '{}' does not exist", id);
-            throw new IllegalArgumentException("Application with ID '" + id + "' does not exist");
+            throw new SpringOpsException("Application with ID '" + id + "' does not exist", HttpStatus.NOT_FOUND);
         }
 
         DeploymentStatusDto deploymentStatus = deploymentManagerService.getDeploymentStatus(id);
         if (Boolean.TRUE.equals(deploymentStatus.getIsRunning())) {
             log.warn("Application with ID '{}' is currently running and cannot be updated", id);
-            throw new IllegalArgumentException("Application with ID '" + id + "' is currently running and cannot be updated");
+            throw new SpringOpsException("Application with ID '" + id + "' is currently running and cannot be updated", HttpStatus.CONFLICT);
         }
 
         applicationRepository.deleteById(id);
@@ -204,11 +213,11 @@ public class ApplicationService {
      *
      * @param applicationId the ID of the Application to retrieve
      * @return the Application entity if found
-     * @throws IllegalArgumentException if the Application with the given ID does not exist
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the Application with the given ID does not exist
      */
     public Application getEntityById(Integer applicationId) {
         return applicationRepository
                 .findById(applicationId)
-                .orElseThrow(() -> new IllegalArgumentException("Application with ID '" + applicationId + "' does not exist"));
+                .orElseThrow(() -> new SpringOpsException("Application with ID '" + applicationId + "' does not exist", HttpStatus.NOT_FOUND));
     }
 }

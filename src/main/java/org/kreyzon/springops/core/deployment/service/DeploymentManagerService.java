@@ -12,7 +12,7 @@ import org.kreyzon.springops.common.dto.deployment.DeploymentResultDto;
 import org.kreyzon.springops.common.dto.deployment.DeploymentStatusDto;
 import org.kreyzon.springops.common.enums.DeploymentStatus;
 import org.kreyzon.springops.common.enums.DeploymentType;
-import org.kreyzon.springops.common.utils.Constants;
+import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.common.utils.DeploymentUtils;
 import org.kreyzon.springops.common.utils.EncryptionUtils;
 import org.kreyzon.springops.config.ApplicationConfig;
@@ -23,6 +23,7 @@ import org.kreyzon.springops.core.deployment.entity.Deployment;
 import org.kreyzon.springops.core.system_version.entity.SystemVersion;
 import org.kreyzon.springops.setup.domain.Setup;
 import org.kreyzon.springops.setup.service.SetupService;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -56,9 +57,9 @@ public class DeploymentManagerService {
      *
      * @param applicationId the ID of the application to check
      * @return a DeploymentStatusDto containing the status and port information
-     * @throws IllegalArgumentException if no deployments are found for the application
      */
     public DeploymentStatusDto getDeploymentStatus(Integer applicationId) {
+        //FIXME: No usage of application?
         Application application = applicationLookupService.findEntityById(applicationId);
         log.info("Retrieving deployment status for application ID: {}", applicationId);
 
@@ -130,6 +131,11 @@ public class DeploymentManagerService {
      *
      * @param applicationId the ID of the application to deploy
      * @param branchName    the name of the branch to deploy
+     * @throws SpringOpsException if the deployment process fails due to:
+     *  *         - The application is already running ({@link HttpStatus#CONFLICT}).
+     *  *         - Missing Maven or Java system versions ({@link HttpStatus#BAD_REQUEST}).
+     *  *         - Missing Git token configuration ({@link HttpStatus#BAD_REQUEST}).
+     *  *         - Error decrypting environment variables ({@link HttpStatus#INTERNAL_SERVER_ERROR}).
      * @return a DeploymentResultDto containing the results of the deployment process
      */
     @Transactional
@@ -138,7 +144,7 @@ public class DeploymentManagerService {
 
         if (getDeploymentStatus(applicationId).getIsRunning()) {
             log.warn("Application ID {} is already running. Deployment aborted.", applicationId);
-            throw new IllegalStateException("Application is already running. Please stop it before redeploying.");
+            throw new SpringOpsException("Application is already running. Please stop it before redeploying.", HttpStatus.CONFLICT);
         }
 
         log.info("""
@@ -157,13 +163,13 @@ public class DeploymentManagerService {
         SystemVersion mavenVersion = application.getMvnSystemVersion();
         if (mavenVersion == null) {
             log.error("Maven system version is not set for application ID {}", applicationId);
-            throw new IllegalArgumentException("Maven system version is not set for application ID " + applicationId);
+            throw new SpringOpsException("Maven system version is not set for application ID " + applicationId, HttpStatus.BAD_REQUEST);
         }
 
         SystemVersion javaVersion = application.getJavaSystemVersion();
         if (javaVersion == null) {
             log.error("Java system version is not set for application ID {}", applicationId);
-            throw new IllegalArgumentException("Java system version is not set for application ID " + applicationId);
+            throw new SpringOpsException("Java system version is not set for application ID " + applicationId, HttpStatus.BAD_REQUEST);
         }
 
         Setup setup = setupService.getSetup();
@@ -171,7 +177,7 @@ public class DeploymentManagerService {
         try {
             String gitToken = applicationConfig.getGitToken();
             if (gitToken == null || gitToken.isEmpty()) {
-                throw new IllegalStateException("Git token is not configured");
+                throw new SpringOpsException("Git token is not configured", HttpStatus.BAD_REQUEST);
             }
             String repositoryUrl = application.getGitProjectHttpsUrl();
             String authenticatedUrl = repositoryUrl.replace("https://", "https://" + gitToken + "@");
@@ -188,7 +194,7 @@ public class DeploymentManagerService {
                             return env.getName() + "=" + (env.getValue() != null ? EncryptionUtils.decrypt(env.getValue(), applicationConfig.getSecret(), applicationConfig.getAlgorithm()) : "");
                         } catch (Exception e) {
                             log.error("Error decrypting environment variable {}: {}", env.getName(), e.getMessage());
-                            throw new RuntimeException("Failed to decrypt environment variable " + env.getName(), e);
+                            throw new SpringOpsException("Failed to decrypt environment variable " + env.getName(), HttpStatus.INTERNAL_SERVER_ERROR);
                         }
                     })
                     .reduce((a, b) -> a + " " + b)
