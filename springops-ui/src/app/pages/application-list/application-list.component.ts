@@ -8,6 +8,8 @@ import { ConfirmDialogComponent } from '../../dialogs/confirm-dialog/confirm-dia
 import { DeploymentStatusDto } from '../../models/deployment.model';
 import { DeployDialogComponent } from '../../dialogs/deploy-dialog/deploy-dialog.component';
 import {ManageEnvDialogComponent} from "../../dialogs/manage-env-dialog/manage-env-dialog.component";
+import { Router } from '@angular/router';
+import {ViewLogsDialogComponent} from "../../dialogs/view-logs-dialog/view-logs-dialog.component";
 
 @Component({
   selector: 'app-application-list',
@@ -23,7 +25,8 @@ export class ApplicationListComponent implements OnInit {
   constructor(
     private applicationService: ApplicationService,
     private deploymentService: DeploymentService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -123,6 +126,7 @@ export class ApplicationListComponent implements OnInit {
                 console.log('Deployment result:', res);
                 this.setLoading(appId, 'deploy', false);
                 this.loadApplications();
+                this.router.navigate(['/applications']);
               },
               error: err => {
                 console.error('Deployment error', err);
@@ -190,5 +194,12 @@ export class ApplicationListComponent implements OnInit {
   isAnyActionLoading(appId: number): boolean {
     const actions = this.loadingActions[appId];
     return !!(actions?.edit || actions?.delete || actions?.kill || actions?.deploy);
+  }
+
+  openViewLogsDialog(appId: number): void {
+    this.dialog.open(ViewLogsDialogComponent, {
+      width: '600px',
+      data: appId
+    });
   }
 }

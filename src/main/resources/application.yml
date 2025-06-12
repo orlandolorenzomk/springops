@@ -48,5 +48,6 @@ application:
   directory-source: ${APP_DIRECTORY_SOURCE:source}
   directory-backups: ${APP_DIRECTORY_BACKUPS:backups}
   maximum-env-files-per-application: ${APP_MAXIMUM_ENV_FILES_PER_APPLICATION:599}
-  display-process-logs: ${APP_DISPLAY_PROCESS_LOGS:true}
-  display-exception-stack-traces: ${APP_DISPLAY_EXCEPTION_STACK_TRACES:true}
+  display-process-logs: ${APP_DISPLAY_PROCESS_LOGS:false}
+  display-exception-stack-traces: ${APP_DISPLAY_EXCEPTION_STACK_TRACES:false}
+  directory-application-logs: ${APP_DIRECTORY_APPLICATION_LOGS:logs}

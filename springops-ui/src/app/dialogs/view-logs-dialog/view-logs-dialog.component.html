@@ -1,0 +1,28 @@
+<h2 mat-dialog-title>Application Logs</h2>
+
+<mat-dialog-content *ngIf="!loading && !error" class="log-content">
+  <ng-container *ngIf="logs.length > 0; else noLogs">
+    <div class="log-row" *ngFor="let log of logs">
+      <span class="log-filename">{{ log.filePath }}</span>
+      <button mat-icon-button (click)="downloadLog(log.filePath)" class="download-button" aria-label="Download log">
+        <mat-icon>download</mat-icon>
+      </button>
+    </div>
+  </ng-container>
+</mat-dialog-content>
+
+<mat-dialog-content *ngIf="loading" class="loading-spinner">
+  <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+</mat-dialog-content>
+
+<mat-dialog-content *ngIf="error">
+  <p class="error-text">{{ error }}</p>
+</mat-dialog-content>
+
+<ng-template #noLogs>
+  <p>No log files available for this application.</p>
+</ng-template>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Close</button>
+</mat-dialog-actions>

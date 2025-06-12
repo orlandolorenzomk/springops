@@ -80,6 +80,8 @@ public class ApplicationService {
         SystemVersionDto javaSystemVersion = systemVersionService.findById(applicationDto.getJavaSystemVersionId());
         SystemVersion javaVersion = SystemVersionDto.toEntity(javaSystemVersion);
 
+        PortUtils.validatePort(applicationDto.getPort());
+
         if (applicationRepository.existsByName(applicationDto.getName())) {
             log.warn("Application with name '{}' already exists", applicationDto.getName());
             throw new SpringOpsException("Application with name '" + applicationDto.getName() + "' already exists", HttpStatus.CONFLICT);
@@ -112,6 +114,8 @@ public class ApplicationService {
         SystemVersion systemVersion = SystemVersionDto.toEntity(mvnSystemVersion);
         SystemVersionDto javaSystemVersion = systemVersionService.findById(applicationDto.getJavaSystemVersionId());
         SystemVersion javaVersion = SystemVersionDto.toEntity(javaSystemVersion);
+
+        PortUtils.validatePort(applicationDto.getPort());
 
         Application existingApplication = applicationRepository.findById(id)
                 .orElseThrow(() -> new SpringOpsException("Application with ID '" + id + "' does not exist", HttpStatus.NOT_FOUND));

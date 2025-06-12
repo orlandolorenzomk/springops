@@ -249,9 +249,7 @@ public class DeploymentManagerService {
     private String decryptEnvVariable(ApplicationEnvDto env) {
         try {
             log.info("Decrypting environment variable: {}", env.getName());
-            String decryptedEnvValue = env.getName() + "=" + (env.getValue() != null ? EncryptionUtils.decrypt(env.getValue(), applicationConfig.getSecret(), applicationConfig.getAlgorithm()) : "");
-            log.info("Decrypted environment variable: {}", decryptedEnvValue);
-            return decryptedEnvValue;
+            return env.getName() + "=" + (env.getValue() != null ? EncryptionUtils.decrypt(env.getValue(), applicationConfig.getSecret(), applicationConfig.getAlgorithm()) : "");
         } catch (Exception e) {
             log.error("Error decrypting environment variable {}: {}", env.getName(), e.getMessage());
             throw new SpringOpsException("Failed to decrypt environment variable " + env.getName(), HttpStatus.INTERNAL_SERVER_ERROR);

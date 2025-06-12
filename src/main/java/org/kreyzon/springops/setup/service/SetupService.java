@@ -158,20 +158,29 @@ public class SetupService {
 
         Setup setup = getSetup();
 
-        String rootDirectoryPath = filePath.concat(Constants.ROOT_DIRECTORY_NAME);
+        String rootDirectoryPath = filePath.concat(applicationConfig.getRootDirectoryName());
         boolean isRootDirectoryCreated = FileUtils.createDirectory(rootDirectoryPath);
         if (!isRootDirectoryCreated) {
             log.error("Failed to create root directory: {}", rootDirectoryPath);
             throw new SpringOpsException("Failed to create root directory.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        Path applicationsSubdirectoryPath = Path.of(rootDirectoryPath, Constants.DIRECTORY_APPLICATIONS);
+        Path applicationsSubdirectoryPath = Path.of(rootDirectoryPath, applicationConfig.getDirectoryApplications());
         try {
             Files.createDirectories(applicationsSubdirectoryPath);
             log.info("Applications subdirectory created successfully: {}", applicationsSubdirectoryPath);
         } catch (IOException e) {
             log.error("Failed to create applications subdirectory: {}", applicationsSubdirectoryPath, e);
             throw new SpringOpsException("Failed to create applications subdirectory.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        Path applicationLogsSubdirectoryPath = Path.of(applicationsSubdirectoryPath.toString(), applicationConfig.getDirectoryApplicationLogs());
+        try {
+            Files.createDirectories(applicationLogsSubdirectoryPath);
+            log.info("Application logs subdirectory created successfully: {}", applicationLogsSubdirectoryPath);
+        } catch (IOException e) {
+            log.error("Failed to create application logs subdirectory: {}", applicationLogsSubdirectoryPath, e);
+            throw new SpringOpsException("Failed to create application logs subdirectory.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         setup.setFilesRoot(filePath);

@@ -21,11 +21,11 @@ set -a
 source "$TMP_ENV_FILE"
 set +a
 
-# Create log directory if it doesn't exist
-mkdir -p target/logs
+# Use log directory one level above the project directory
+LOG_DIR="$(dirname "$PROJECT_DIR")/logs"
 
 # Define log file path with timestamp
-LOG_FILE="target/logs/app_$(date +%Y%m%d_%H%M%S).log"
+LOG_FILE="$LOG_DIR/app_$(date +%Y%m%d_%H%M%S).log"
 
 # Run the Java application with --server.port
 nohup "$JAVA_PATH/java" -jar "target/$JAR_NAME" --server.port="$PORT" >> "$LOG_FILE" 2>&1 &
@@ -37,7 +37,7 @@ PID=$!
 rm -f "$TMP_ENV_FILE"
 
 # Create symlink to latest log file
-ln -sf "$LOG_FILE" target/logs/latest.log
+ln -sf "$LOG_FILE" "$LOG_DIR/latest.log"
 
 # Return PID
 echo $PID

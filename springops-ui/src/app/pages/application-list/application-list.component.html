@@ -126,6 +126,12 @@
             <span>Environment</span>
           </button>
 
+          <!-- View Logs Action -->
+          <button mat-menu-item (click)="openViewLogsDialog(element.id)">
+            <mat-icon>subject</mat-icon>
+            <span>View Logs</span>
+          </button>
+
           <!-- Delete Action -->
           <button mat-menu-item (click)="deleteApplication(element.id)">
             <mat-icon color="warn">delete</mat-icon>

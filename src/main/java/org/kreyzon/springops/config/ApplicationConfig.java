@@ -85,4 +85,9 @@ public class ApplicationConfig {
      * Flag to indicate whether to display exception stack traces.
      */
     private Boolean displayExceptionStackTraces;
+
+    /**
+     * Directory where application logs are stored.
+     */
+    private String directoryApplicationLogs;
 }

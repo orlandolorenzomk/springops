@@ -52,6 +52,8 @@ import { MAT_DATE_LOCALE } from '@angular/material/core';
 import {MatChip, MatChipListbox} from "@angular/material/chips";
 import { ManageEnvDialogComponent } from './dialogs/manage-env-dialog/manage-env-dialog.component';
 import {MatMenu, MatMenuItem, MatMenuTrigger} from "@angular/material/menu";
+import { ViewLogsDialogComponent } from './dialogs/view-logs-dialog/view-logs-dialog.component';
+import { MatListModule } from '@angular/material/list';
 
 @NgModule({
   declarations: [
@@ -69,7 +71,8 @@ import {MatMenu, MatMenuItem, MatMenuTrigger} from "@angular/material/menu";
     SystemVersionFormComponent,
     DeployDialogComponent,
     DeploymentsListComponent,
-    ManageEnvDialogComponent
+    ManageEnvDialogComponent,
+    ViewLogsDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -120,7 +123,8 @@ import {MatMenu, MatMenuItem, MatMenuTrigger} from "@angular/material/menu";
     MatMenuTrigger,
     MatMenuItem,
     MatChipListbox,
-    MatAnchor
+    MatAnchor,
+    MatListModule,
   ],
   providers: [
     provideClientHydration(),
