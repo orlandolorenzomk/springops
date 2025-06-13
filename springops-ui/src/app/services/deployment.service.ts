@@ -67,4 +67,12 @@ export class DeploymentService {
 
     return this.http.get<Page<DeploymentDto>>(`${this.apiUrl}/search`, { params });
   }
+
+  downloadLog(filename: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/logs`, {
+      params: { filename },
+      responseType: 'blob'
+    });
+  }
+
 }

@@ -3,41 +3,63 @@ GIT_URL=$1
 BRANCH=$2
 CLONE_DIR=$3
 
-# Initialize JSON result
-RESULT_JSON=$(mktemp)
-
-# Function to output JSON result
-output_result() {
-  local success=$1
-  local branch=$2
-  echo "{\"success\": $success, \"deployBranch\": \"$branch\"}" > $RESULT_JSON
-  cat $RESULT_JSON
-  rm -f $RESULT_JSON
-  exit $([ "$success" = "true" ] && echo 0 || echo 1)
-}
-
-if [ -z "$GIT_URL" ] || [ -z "$BRANCH" ] || [ -z "$CLONE_DIR" ]; then
-  echo "Usage: $0 <GIT_URL> <BRANCH> <CLONE_DIR>"
-  output_result "false" ""
-fi
-
-rm -rf "$CLONE_DIR"
-mkdir -p "$CLONE_DIR"
-
-# Clone into the specified directory
-git clone --verbose --single-branch -b "$BRANCH" "$GIT_URL" "$CLONE_DIR"
-if [ $? -ne 0 ]; then
-  output_result "false" ""
-fi
-
-cd "$CLONE_DIR" || output_result "false" ""
+EXIT_CODE=0
+OUTPUT=""
+STATUS="SUCCESS"
+MESSAGE=""
+DATA="[]"
 
 TIMESTAMP=$(date '+%Y-%m-%d_%H-%M-%S')
 DEPLOY_BRANCH="deploy/$TIMESTAMP"
 
-git checkout -b "$DEPLOY_BRANCH"
-if [ $? -ne 0 ]; then
-  output_result "false" ""
+function fail() {
+  EXIT_CODE=$1
+  STATUS="FAILURE"
+  MESSAGE="$2"
+  DATA="[]"
+  OUTPUT="$3"
+  finish
+}
+
+function finish() {
+  JSON=$(jq -n \
+    --arg output "$OUTPUT" \
+    --arg status "$STATUS" \
+    --arg message "$MESSAGE" \
+    --argjson data "$DATA" \
+    --argjson exitCode "$EXIT_CODE" \
+    '{
+      exitCode: $exitCode,
+      output: $output,
+      status: $status,
+      message: $message,
+      data: $data
+    }')
+
+  echo "springops-result=${JSON}"
+  exit "$EXIT_CODE"
+}
+
+if [ -z "$GIT_URL" ] || [ -z "$BRANCH" ] || [ -z "$CLONE_DIR" ]; then
+  fail 1 "Missing required arguments: <GIT_URL> <BRANCH> <CLONE_DIR>" ""
 fi
 
-output_result "true" "$DEPLOY_BRANCH"
+rm -rf "$CLONE_DIR" 2>&1 | tee /tmp/script_output.log
+mkdir -p "$CLONE_DIR" 2>&1 | tee -a /tmp/script_output.log
+
+git clone --verbose --single-branch -b "$BRANCH" "$GIT_URL" "$CLONE_DIR" 2>&1 | tee -a /tmp/script_output.log
+if [ ${PIPESTATUS[0]} -ne 0 ]; then
+  fail 1 "Git clone failed" "$(cat /tmp/script_output.log)"
+fi
+
+cd "$CLONE_DIR" || fail 1 "Failed to cd into $CLONE_DIR" "$(cat /tmp/script_output.log)"
+
+git checkout -b "$DEPLOY_BRANCH" 2>&1 | tee -a /tmp/script_output.log
+if [ ${PIPESTATUS[0]} -ne 0 ]; then
+  fail 1 "Failed to create deploy branch $DEPLOY_BRANCH" "$(cat /tmp/script_output.log)"
+fi
+
+MESSAGE="Cloned and created deploy branch $DEPLOY_BRANCH"
+DATA="[\"$DEPLOY_BRANCH\"]"
+OUTPUT="$(cat /tmp/script_output.log)"
+finish

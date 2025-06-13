@@ -30,6 +30,7 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -139,7 +140,7 @@ public class DeploymentManagerService {
      * @return a DeploymentResultDto containing the results of the deployment process
      */
     @Transactional
-    public DeploymentResultDto manageDeployment(Integer applicationId, String branchName, Integer port) {
+    public List<CommandResultDto> manageDeployment(Integer applicationId, String branchName, Integer port) {
         Application application = validateAndPrepareDeployment(applicationId);
         logDeploymentStart(application, branchName);
 
@@ -158,16 +159,38 @@ public class DeploymentManagerService {
         DeploymentResultDto deploymentResult = new DeploymentResultDto();
         try {
             DeploymentContextDto context = prepareDeploymentContext(application, branchName, portForDeployment);
-            executeDeploymentSteps(application, context, deploymentResult);
-            handleSuccessfulDeployment(applicationId, deploymentResult);
+
+            List<CommandResultDto> commandResultDtos = executeDeploymentSteps(application, context, deploymentResult);
+
+            AtomicReference<String> status = new AtomicReference<>(DeploymentStatus.SUCCEEDED.name());
+            commandResultDtos.forEach(commandResult -> {
+                if (commandResult.getExitCode() != 0) {
+                    status.set(DeploymentStatus.FAILED.name());
+                    log.error("Command failed with exit code {}: {}", commandResult.getExitCode(), commandResult.getOutput());
+                }
+            });
+
+            String jarName = commandResultDtos.get(1).getData().get(0).toString();
+            Integer pid = commandResultDtos.get(2).getData().get(0) != null ? Integer.parseInt(commandResultDtos.get(2).getData().get(1).toString()) : null;
+            String branch = commandResultDtos.get(0).getData().get(0) != null ? commandResultDtos.get(0).getData().get(0).toString() : "unknown";
+            handleSuccessfulDeployment(applicationId, status.get(), jarName, pid, branch, commandResultDtos);
+            return commandResultDtos;
         } catch (SpringOpsException e) {
             throw e; // Re-throw known exceptions
         } catch (Exception e) {
             handleDeploymentFailure(applicationId, deploymentResult, e);
         }
-        return deploymentResult;
+        return List.of();
     }
 
+    /**
+     * Validates the application and prepares it for deployment.
+     * Checks if the application is already running and validates system versions.
+     *
+     * @param applicationId the ID of the application to validate
+     * @return the validated Application entity
+     * @throws SpringOpsException if the application is already running or if system versions are not set
+     */
     private Application validateAndPrepareDeployment(Integer applicationId) {
         Application application = applicationLookupService.findEntityById(applicationId);
 
@@ -180,6 +203,13 @@ public class DeploymentManagerService {
         return application;
     }
 
+    /**
+     * Validates that the application has the required system versions set.
+     * Throws an exception if any version is missing.
+     *
+     * @param application the Application entity to validate
+     * @throws SpringOpsException if Maven or Java system versions are not set
+     */
     private void validateSystemVersions(Application application) {
         if (application.getMvnSystemVersion() == null) {
             log.error("Maven system version is not set for application ID {}", application.getId());
@@ -191,6 +221,12 @@ public class DeploymentManagerService {
         }
     }
 
+    /**
+     * Logs the start of the deployment process for an application.
+     *
+     * @param application the Application entity being deployed
+     * @param branchName  the name of the branch being deployed
+     */
     private void logDeploymentStart(Application application, String branchName) {
         log.info("""
             #############################################################
@@ -202,6 +238,15 @@ public class DeploymentManagerService {
             """, application.getName(), branchName);
     }
 
+    /**
+     * Prepares the deployment context for the application.
+     * This includes setting up the repository URL, source path, environment variables, and port.
+     *
+     * @param application the Application entity to prepare
+     * @param branchName  the name of the branch to deploy
+     * @param port        the port to use for deployment
+     * @return a DeploymentContextDto containing the prepared context
+     */
     private DeploymentContextDto prepareDeploymentContext(Application application, String branchName, Integer port) {
         log.info("Preparing deployment context for application ID: {}, branch: {}", application.getId(), branchName);
         Setup setup = setupService.getSetup();
@@ -229,6 +274,12 @@ public class DeploymentManagerService {
         );
     }
 
+    /**
+     * Validates the Git token configuration and retrieves the token.
+     *
+     * @return the Git token
+     * @throws SpringOpsException if the Git token is not configured
+     */
     private String validateAndGetGitToken() {
         log.info("Validating Git token configuration");
         String gitToken = applicationConfig.getGitToken();
@@ -246,6 +297,13 @@ public class DeploymentManagerService {
                 .collect(Collectors.joining(" "));
     }
 
+    /**
+     * Decrypts the value of an environment variable.
+     *
+     * @param env the ApplicationEnvDto containing the environment variable
+     * @return the decrypted environment variable in the format "name=value"
+     * @throws SpringOpsException if decryption fails
+     */
     private String decryptEnvVariable(ApplicationEnvDto env) {
         try {
             log.info("Decrypting environment variable: {}", env.getName());
@@ -256,118 +314,104 @@ public class DeploymentManagerService {
         }
     }
 
-    private void executeDeploymentSteps(Application application, DeploymentContextDto context, DeploymentResultDto result) throws Exception {
+    /**
+     * Executes the deployment steps for the application.
+     * This includes updating the project, building it, and running the application.
+     *
+     * @param application the Application entity being deployed
+     * @param context     the DeploymentContextDto containing the deployment context
+     * @param result      the DeploymentResultDto to store the results of the deployment
+     * @throws Exception if any step in the deployment process fails
+     */
+    private List<CommandResultDto> executeDeploymentSteps(Application application, DeploymentContextDto context, DeploymentResultDto result) throws Exception {
         log.info("Executing deployment steps for application ID: {}", application.getId());
-        ObjectMapper objectMapper = new ObjectMapper();
 
-        // Step 1: Update project
-        CommandResultDto updateResult = executeCommand("update_project.sh",
+        CommandResultDto updateResult = updateProject(application, context, result);
+        CommandResultDto buildResult = buildProject(application, context, result);
+        result.setBuiltJar(buildResult.getData().get(0).toString());
+        CommandResultDto runResult = runProject(context, result);
+
+        return List.of(updateResult, buildResult, runResult);
+    }
+
+    private CommandResultDto updateProject(Application application, DeploymentContextDto context, DeploymentResultDto result) throws IOException, InterruptedException {
+        return executeCommand(context, "update_project.sh",
                 context.authenticatedUrl(), context.branchName(), context.sourcePath());
-        result.setUpdateResult(updateResult);
+    }
 
-        if (updateResult.getExitCode() != 0) {
-            result.setSuccess(false);
-            return;
-        }
-
-        JsonNode updateJsonNode = objectMapper.readTree(updateResult.getOutput());
-        if (!updateJsonNode.get("success").asBoolean()) {
-            result.setSuccess(false);
-            log.error("Update failed for application ID {}: {}", application.getId(), updateJsonNode.get("message").asText());
-            return;
-        }
-
-        String deployBranch = updateJsonNode.path("deployBranch").asText();
-        if (deployBranch.isEmpty()) {
-            result.setSuccess(false);
-            return;
-        }
-
-        // Step 2: Build project
-        CommandResultDto buildResult = captureCommandOutput("build_project.sh",
+    private CommandResultDto buildProject(Application application, DeploymentContextDto context, DeploymentResultDto result) throws IOException, InterruptedException {
+        return captureCommandOutput(context,
+                "build_project.sh",
                 context.javaVersion().getPath(),
                 context.mavenVersion().getPath(),
                 context.sourcePath(),
                 context.javaVersion().getVersion());
-        result.setBuildResult(buildResult);
+    }
 
-        if (buildResult.getExitCode() != 0) {
-            result.setSuccess(false);
-            log.error("Build failed for application ID {}: {}", application.getId(), buildResult.getOutput());
-            return;
-        }
-
-        JsonNode buildJsonNode = objectMapper.readTree(buildResult.getOutput());
-        if (!buildJsonNode.get("success").asBoolean()) {
-            result.setSuccess(false);
-            return;
-        }
-
-        JsonNode artifactsNode = buildJsonNode.get("artifacts");
-        if (artifactsNode == null || !artifactsNode.isArray() || artifactsNode.isEmpty()) {
-            result.setSuccess(false);
-            return;
-        }
-
-        String jarName = artifactsNode.get(0).asText();
-        result.setBuiltJar(jarName);
-
-        // Step 3: Run project
-        CommandResultDto runResult = executeCommand("run_project.sh",
+    private CommandResultDto runProject(DeploymentContextDto context, DeploymentResultDto result) throws IOException, InterruptedException {
+        return executeCommand(context,
+                "run_project.sh",
                 context.javaVersion().getPath(),
                 context.sourcePath(),
-                jarName,
+                result.getBuiltJar(),
                 context.port().toString(),
                 context.environmentVariables());
-        result.setRunResult(runResult);
-        result.setSuccess(runResult.getExitCode() == 0);
     }
 
-    private void handleSuccessfulDeployment(Integer applicationId, DeploymentResultDto result) {
-        if (result.isSuccess()) {
+    private void handleSuccessfulDeployment(Integer applicationId, String status, String jarName, Integer pid, String branch, List<CommandResultDto> finalResult) {
+        if (status.equalsIgnoreCase(DeploymentStatus.SUCCEEDED.name())) {
             log.info("Deployment for application ID {} completed successfully", applicationId);
-            updateDeploymentRecords(applicationId, result);
+            updateDeploymentRecords(applicationId, jarName, pid, branch, finalResult);
         } else {
-            log.error("Deployment for application ID {} failed with exit code: {}",
-                    applicationId, result.getRunResult().getExitCode());
+            log.error("Deployment for application ID {} failed",
+                    applicationId);
         }
     }
 
-    private void updateDeploymentRecords(Integer applicationId, DeploymentResultDto result) {
-        Deployment latestDeployment = deploymentService.findLatestByApplicationId(applicationId);
-        if (latestDeployment != null) {
-            latestDeployment.setType(DeploymentType.PREVIOUS);
-            latestDeployment.setStatus(DeploymentStatus.STOPPED);
-            deploymentService.update(DeploymentDto.fromEntity(latestDeployment));
-        }
-
-        DeploymentDto newDeployment = DeploymentDto.builder()
-                .version(result.getBuiltJar())
-                .status(DeploymentStatus.RUNNING)
-                .type(DeploymentType.LATEST)
-                .createdAt(Instant.now())
-                .applicationId(applicationId)
-                .pid(Integer.valueOf(result.getRunResult().getOutput().trim()))
-                .branch(result.getUpdateResult() != null ?
-                        extractDeployBranch(result.getUpdateResult().getOutput()) : "unknown")
-                .build();
-        deploymentService.save(newDeployment);
+    public void updateDeploymentRecords(Integer applicationId, String jarName, Integer pid, String branch, List<CommandResultDto> finalResult) {
+    Deployment latestDeployment = deploymentService.findLatestByApplicationId(applicationId);
+    if (latestDeployment != null) {
+        latestDeployment.setType(DeploymentType.PREVIOUS);
+        latestDeployment.setStatus(DeploymentStatus.STOPPED);
+        deploymentService.update(DeploymentDto.fromEntity(latestDeployment));
     }
 
-    private String extractDeployBranch(String updateOutput) {
-        try {
-            JsonNode node = new ObjectMapper().readTree(updateOutput);
-            return node.path("deployBranch").asText();
-        } catch (Exception e) {
-            log.warn("Failed to extract deploy branch from update output", e);
-            return "unknown";
-        }
+    DeploymentDto newDeployment = DeploymentDto.builder()
+            .version(jarName)
+            .status(DeploymentStatus.RUNNING)
+            .type(DeploymentType.LATEST)
+            .createdAt(Instant.now())
+            .applicationId(applicationId)
+            .pid(pid)
+            .branch(branch)
+            .build();
+    DeploymentDto result = deploymentService.save(newDeployment);
+
+    ObjectMapper mapper = new ObjectMapper();
+    String finalResultJson;
+    try {
+        finalResultJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(finalResult);
+    } catch (Exception e) {
+        log.error("Failed to convert final result to JSON: {}", e.getMessage());
+        throw new SpringOpsException("Error converting final result to JSON", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    deploymentService.generateLogsPath(result.getId(), finalResultJson);
+}
+
+    /**
+     * Handles the failure of a deployment process.
+     * Logs the error and updates the deployment result with failure information.
+     *
+     * @param applicationId the ID of the application that failed to deploy
+     * @param result        the DeploymentResultDto to update with failure information
+     * @param e            the exception that caused the failure
+     */
     private void handleDeploymentFailure(Integer applicationId, DeploymentResultDto result, Exception e) {
         log.error("Error managing deployment for application ID {}: {}", applicationId, e.getMessage());
         result.setSuccess(false);
-        result.setUpdateResult(new CommandResultDto(-1, e.toString()));
+        result.setUpdateResult(new CommandResultDto(-1, e.toString(),
+                DeploymentStatus.FAILED.name(), "Deployment failed during update step", null, null));
     }
 
     /**
@@ -379,34 +423,73 @@ public class DeploymentManagerService {
      * @throws IOException          if an I/O error occurs
      * @throws InterruptedException if the process is interrupted
      */
-    private CommandResultDto executeCommand(String scriptName, String... args) throws IOException, InterruptedException {
+    private CommandResultDto executeCommand(DeploymentContextDto context, String scriptName, String... args) throws IOException, InterruptedException {
         log.info("Executing script: {} with {} arguments", scriptName, args.length);
         String scriptPath = Objects.requireNonNull(getClass().getClassLoader().getResource("scripts/" + scriptName)).getPath();
 
-        // Log the entire command being executed
         log.info("Command to be executed: /bin/bash {} {}", scriptPath, String.join(" ", args));
 
         String command = String.format("/bin/bash %s %s", scriptPath, String.join(" ", args));
         ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
         Process process = processBuilder.start();
 
-        StringBuilder output = new StringBuilder();
+        List<String> outputLines;
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append(System.lineSeparator());
-            }
-        }
-
-        if (applicationConfig.getDisplayProcessLogs()) {
-            log.info("Output from script {}: {}", scriptName, output);
-        } else {
-            log.debug("Output from script {}: {}", scriptName, output);
+            outputLines = reader.lines().toList();
         }
 
         int exitCode = process.waitFor();
-        log.info("Script {} executed with exit code: {}", scriptName, exitCode);
-        return new CommandResultDto(exitCode, output.toString());
+
+        String rawOutput = String.join(System.lineSeparator(), outputLines);
+        if (applicationConfig.getDisplayProcessLogs()) {
+            log.info("Output from script {}:\n{}", scriptName, rawOutput);
+        } else {
+            log.debug("Output from script {}:\n{}", scriptName, rawOutput);
+        }
+
+        // Find index of the line containing springops-result=
+        int startIndex = -1;
+        for (int i = 0; i < outputLines.size(); i++) {
+            if (outputLines.get(i).startsWith("springops-result=")) {
+                startIndex = i;
+                break;
+            }
+        }
+
+        if (startIndex == -1) {
+            log.error("Script {} did not return a valid springops-result line.", scriptName);
+            return CommandResultDto.builder()
+                    .exitCode(exitCode)
+                    .output(rawOutput)
+                    .status("FAILED")
+                    .message("Missing springops-result line in script output")
+                    .data(null)
+                    .build();
+        }
+
+        // Join all lines starting from the springops-result line
+        String joined = outputLines.subList(startIndex, outputLines.size()).stream()
+                .collect(Collectors.joining(System.lineSeparator()));
+
+        // Extract JSON part
+        String json = joined.substring("springops-result=".length()).trim();
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            log.info("Parsing JSON from springops-result: {}", json);
+            CommandResultDto dto = mapper.readValue(json, CommandResultDto.class);
+            dto.setDeploymentContext(context);
+            return dto;
+        } catch (Exception e) {
+            log.error("Failed to parse JSON from springops-result: {}", e.getMessage());
+            return CommandResultDto.builder()
+                    .exitCode(exitCode)
+                    .output(json)
+                    .status(DeploymentStatus.FAILED.name())
+                    .message("Invalid JSON in springops-result")
+                    .data(null)
+                    .build();
+        }
     }
 
     /**
@@ -418,7 +501,7 @@ public class DeploymentManagerService {
      * @throws IOException          if an I/O error occurs
      * @throws InterruptedException if the process is interrupted
      */
-    private CommandResultDto captureCommandOutput(String scriptName, String... args) throws IOException, InterruptedException {
-        return executeCommand(scriptName, args);
+    private CommandResultDto captureCommandOutput(DeploymentContextDto context, String scriptName, String... args) throws IOException, InterruptedException {
+        return executeCommand(context, scriptName, args);
     }
 }

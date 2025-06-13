@@ -1,43 +1,66 @@
 #!/bin/bash
-
 JAVA_PATH=$1
-PROJECT_DIR=$2
+SOURCE_DIR=$2
 JAR_NAME=$3
 PORT=$4
-shift 4
+ENV_VARS=$5
 
-ENV_VARS=("$@")
+EXIT_CODE=0
+OUTPUT=""
+STATUS="SUCCESS"
+MESSAGE=""
+DATA="[]"
 
-cd "$PROJECT_DIR" || exit 1
+function fail() {
+  EXIT_CODE=$1
+  STATUS="FAILURE"
+  MESSAGE="$2"
+  DATA="[]"
+  OUTPUT="$3"
+  finish
+}
 
-# Create temporary environment file
-TMP_ENV_FILE=$(mktemp)
-for var in "${ENV_VARS[@]}"; do
-  echo "$var" >> "$TMP_ENV_FILE"
-done
+function finish() {
+  JSON=$(jq -n \
+    --argjson exitCode "$EXIT_CODE" \
+    --arg output "$OUTPUT" \
+    --arg status "$STATUS" \
+    --arg message "$MESSAGE" \
+    --argjson data "$DATA" \
+    '{
+      exitCode: $exitCode,
+      output: $output,
+      status: $status,
+      message: $message,
+      data: $data
+    }')
 
-# Source environment variables
-set -a
-source "$TMP_ENV_FILE"
-set +a
+  echo "springops-result=${JSON}"
+  exit "$EXIT_CODE"
+}
 
-# Use log directory one level above the project directory
-LOG_DIR="$(dirname "$PROJECT_DIR")/logs"
+if [ -z "$JAVA_PATH" ] || [ -z "$SOURCE_DIR" ] || [ -z "$JAR_NAME" ] || [ -z "$PORT" ]; then
+  fail 1 "Missing arguments: JAVA_PATH, SOURCE_DIR, JAR_NAME, PORT" ""
+fi
 
-# Define log file path with timestamp
-LOG_FILE="$LOG_DIR/app_$(date +%Y%m%d_%H%M%S).log"
+cd "$SOURCE_DIR" || fail 1 "Failed to cd into $SOURCE_DIR" ""
 
-# Run the Java application with --server.port
-nohup "$JAVA_PATH/java" -jar "target/$JAR_NAME" --server.port="$PORT" >> "$LOG_FILE" 2>&1 &
+JAR_PATH=$(find "$SOURCE_DIR" -name "$JAR_NAME" | head -n 1)
+if [ ! -f "$JAR_PATH" ]; then
+  fail 1 "Jar file $JAR_NAME not found in $SOURCE_DIR" ""
+fi
 
-# Store PID
+COMMAND="$ENV_VARS $JAVA_PATH/java -jar $JAR_PATH --server.port=$PORT"
+nohup bash -c "$COMMAND" > "$SOURCE_DIR/app.log" 2>&1 &
+
 PID=$!
+sleep 2
 
-# Clean up temp file
-rm -f "$TMP_ENV_FILE"
+if ps -p $PID > /dev/null; then
+  MESSAGE="Application started successfully"
+  DATA="[\"$JAR_NAME\", $PID]"
+else
+  fail 1 "Application failed to start" "$(cat "$SOURCE_DIR/app.log")"
+fi
 
-# Create symlink to latest log file
-ln -sf "$LOG_FILE" "$LOG_DIR/latest.log"
-
-# Return PID
-echo $PID
+finish

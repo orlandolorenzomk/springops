@@ -1,15 +1,19 @@
 package org.kreyzon.springops.core.deployment.service;
 
 import jakarta.persistence.criteria.Predicate;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.common.dto.deployment.DeploymentDto;
 import org.kreyzon.springops.common.enums.DeploymentStatus;
 import org.kreyzon.springops.common.exception.SpringOpsException;
+import org.kreyzon.springops.config.ApplicationConfig;
 import org.kreyzon.springops.core.application.entity.Application;
 import org.kreyzon.springops.core.application.service.ApplicationLookupService;
 import org.kreyzon.springops.core.deployment.entity.Deployment;
 import org.kreyzon.springops.core.deployment.repository.DeploymentRepository;
+import org.kreyzon.springops.setup.domain.Setup;
+import org.kreyzon.springops.setup.service.SetupService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -17,6 +21,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -37,6 +45,10 @@ public class DeploymentService {
     private final DeploymentRepository deploymentRepository;
 
     private final ApplicationLookupService applicationLookupService;
+
+    private final SetupService setupService;
+
+    private final ApplicationConfig applicationConfig;
 
     /**
      * Finds a deployment by its ID.
@@ -182,5 +194,63 @@ public class DeploymentService {
                 spec,
                 PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"))
         ).map(DeploymentDto::fromEntity);
+    }
+
+    /**
+     * Generates a logs path for a deployment and writes the provided content to that path.
+     *
+     * @param deploymentId the ID of the deployment for which to generate the logs path
+     * @param content      the content to write to the logs file
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the deployment with the given ID does not exist
+     */
+    @Transactional
+    public void generateLogsPath(Integer deploymentId, String content) {
+        log.info("Generating logs path for deployment with ID: {}", deploymentId);
+        Deployment deployment = deploymentRepository.findById(deploymentId)
+                .orElseThrow(() -> new SpringOpsException("Deployment with ID '" + deploymentId + "' does not exist", HttpStatus.NOT_FOUND));
+
+        Application application = applicationLookupService.findEntityById(deployment.getApplication().getId());
+        Setup setup = setupService.getSetup();
+
+        String logsPath = setup.getFilesRoot() + "/" +
+                applicationConfig.getRootDirectoryName() + "/" +
+                applicationConfig.getDirectoryApplications() + "/" +
+                application.getName().toLowerCase().replace(" ", "-") + "/logs/deploy-" + deployment.getCreatedAt().toString() + ".log";
+
+        deployment.setLogsPath(logsPath);
+
+        deploymentRepository.save(deployment);
+
+        try {
+            java.nio.file.Files.writeString(java.nio.file.Paths.get(logsPath), content);
+            log.info("Logs written to path: {}", logsPath);
+        } catch (java.io.IOException e) {
+            log.error("Failed to write logs to path: {}", logsPath, e);
+            throw new SpringOpsException("Error writing logs to path", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Downloads a specific log file for the given application.
+     *
+     * @param filename      the name of the log file to be downloaded
+     * @return byte array containing the contents of the log file
+     */
+    public byte[] downloadLogFile(String filename) {
+        log.info("Downloading log file '{}'", filename);
+
+        Path path = Paths.get(filename);
+
+        if (!Files.exists(path) || !Files.isRegularFile(path)) {
+            log.error("Log file '{}' not found at path: {}", filename, filename);
+            throw new SpringOpsException("Log file not found", HttpStatus.NOT_FOUND);
+        }
+
+        try {
+            return Files.readAllBytes(path);
+        } catch (IOException e) {
+            log.error("Failed to read log file: {}", filename, e);
+            throw new RuntimeException("Error reading log file", e);
+        }
     }
 }

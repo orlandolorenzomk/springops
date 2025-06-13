@@ -37,4 +37,5 @@ export interface DeploymentDto {
   createdAt?: string; // ISO 8601 format
   applicationId: number;
   branch?: string;
+  logsPath?: string;
 }

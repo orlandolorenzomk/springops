@@ -15,7 +15,7 @@ import { PageEvent } from '@angular/material/paginator';
 export class DeploymentsListComponent implements OnInit {
   deployments: DeploymentDto[] = [];
   deploymentStatuses: { [id: number]: DeploymentStatusDto } = {};
-  displayedColumns: string[] = ['id', 'version', 'status', 'branch', 'createdAt', 'typeInfo'];
+  displayedColumns: string[] = ['id', 'version', 'status', 'branch', 'createdAt', 'typeInfo', 'actions'];
   loadingActions: { [id: number]: { delete?: boolean; deploy?: boolean; kill?: boolean } } = {};
 
   filterForm: FormGroup;
@@ -180,4 +180,21 @@ export class DeploymentsListComponent implements OnInit {
     if (!this.loadingActions[id]) this.loadingActions[id] = {};
     this.loadingActions[id][action] = loading;
   }
+
+  downloadLogFile(logsPath: string): void {
+    this.deploymentService.downloadLog(logsPath).subscribe({
+      next: blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = logsPath.split('/').pop() || 'log.txt';
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: err => {
+        console.error('Download failed', err);
+      }
+    });
+  }
+
 }

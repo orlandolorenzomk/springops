@@ -65,6 +65,7 @@ public class UserService implements UserDetailsService {
      */
     public UserDto create(UserDto userDto) {
         log.info("Creating new user: {}", userDto.getUsername());
+        // TODO Check if user already exists by email or username
         User user = User.builder()
                 .id(UUID.randomUUID())
                 .username(userDto.getUsername())
@@ -88,6 +89,8 @@ public class UserService implements UserDetailsService {
      */
     public UserDto update(UUID userId, UserDto userDto) {
         log.info("Updating user with ID: {}", userId);
+        // TODO Check if user already exists by email or username and their value it's different than userDto.getEmail() and userDto.getUsername()
+
         User existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new SpringOpsException("User not found with ID: " + userId, HttpStatus.NOT_FOUND));
 
@@ -129,6 +132,13 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
 
+    /**
+     * Loads user details by email for authentication.
+     *
+     * @param email the email address of the user to load.
+     * @return a {@link UserDetails} object containing user information for authentication.
+     * @throws UsernameNotFoundException if no user is found with the given email address.
+     */
     @Override
     public UserDetails loadUserByUsername(String email) {
         User user = findByEmail(email);

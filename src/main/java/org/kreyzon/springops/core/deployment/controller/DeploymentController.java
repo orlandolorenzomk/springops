@@ -3,11 +3,15 @@ package org.kreyzon.springops.core.deployment.controller;
 import lombok.RequiredArgsConstructor;
 import org.kreyzon.springops.common.dto.deployment.DeploymentDto;
 import org.kreyzon.springops.core.deployment.service.DeploymentService;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -97,5 +101,23 @@ public class DeploymentController {
             @RequestParam(defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(deploymentService.searchDeployments(applicationId, createdDate, page, size));
+    }
+
+    /**
+     * Downloads a log file for a deployment.
+     *
+     * @param filename the name of the log file to download
+     * @return a ResponseEntity containing the log file as a ByteArrayResource
+     */
+    @GetMapping("/logs")
+    public ResponseEntity<ByteArrayResource> downloadLog(@RequestParam String filename) {
+        byte[] content = deploymentService.downloadLogFile(filename);
+        ByteArrayResource resource = new ByteArrayResource(content);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + Paths.get(filename).getFileName())
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .contentLength(content.length)
+                .body(resource);
     }
 }

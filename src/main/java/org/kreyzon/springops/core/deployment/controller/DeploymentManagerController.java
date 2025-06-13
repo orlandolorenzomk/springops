@@ -2,12 +2,14 @@ package org.kreyzon.springops.core.deployment.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.kreyzon.springops.common.dto.deployment.CommandResultDto;
 import org.kreyzon.springops.common.dto.deployment.DeploymentResultDto;
 import org.kreyzon.springops.common.dto.deployment.DeploymentStatusDto;
 import org.kreyzon.springops.core.deployment.service.DeploymentManagerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -51,11 +53,10 @@ public class DeploymentManagerController {
      * @return ResponseEntity indicating the status of the deployment
      */
     @PostMapping("/deploy")
-    public ResponseEntity<DeploymentResultDto> deployApplication(
+    public ResponseEntity<List<CommandResultDto>> deployApplication(
             @RequestParam Integer applicationId,
             @RequestParam String branchName,
             @RequestParam(required = false) Integer port) {
-        DeploymentResultDto result = deploymentManagerService.manageDeployment(applicationId, branchName, port);
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(deploymentManagerService.manageDeployment(applicationId, branchName, port));
     }
 }

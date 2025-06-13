@@ -62,4 +62,7 @@ public class Deployment {
     @Column(name = "branch")
     private String branch;
 
+    @Column(name = "logs_path")
+    private String logsPath;
+
 }
