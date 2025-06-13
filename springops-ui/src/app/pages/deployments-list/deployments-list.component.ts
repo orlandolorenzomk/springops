@@ -6,6 +6,7 @@ import { ConfirmDialogComponent } from '../../dialogs/confirm-dialog/confirm-dia
 import { DeployDialogComponent } from '../../dialogs/deploy-dialog/deploy-dialog.component';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { PageEvent } from '@angular/material/paginator';
+import {ActivatedRoute} from "@angular/router";
 
 @Component({
   selector: 'app-deployments-list',
@@ -23,10 +24,14 @@ export class DeploymentsListComponent implements OnInit {
   pageIndex = 0;
   pageSize = 10;
 
+  highlightFirstRow = false;
+  highlightedId: number | null = null;
+
   constructor(
     private deploymentService: DeploymentService,
     private dialog: MatDialog,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private route: ActivatedRoute
   ) {
     this.filterForm = this.fb.group({
       applicationId: [''],
@@ -36,29 +41,45 @@ export class DeploymentsListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadDeployments();
-  }
-
-  loadDeployments(): void {
-    const { applicationId, createdDate } = this.filterForm.value;
-
-    const formattedDate = createdDate
-      ? new Date(createdDate).toISOString().split('T')[0]
-      : undefined;
-
-    this.deploymentService.search(
-      applicationId || undefined,
-      formattedDate,
-      this.pageIndex,
-      this.pageSize
-    ).subscribe({
-      next: page => {
-        this.deployments = page.content;
-        this.totalElements = page.totalElements;
-        this.loadStatuses();
-      },
-      error: err => console.error('Failed to fetch deployments', err)
+    this.route.queryParams.subscribe(params => {
+      const isNewDeploy = params['new-deploy'] === 'true';
+      this.loadDeployments(isNewDeploy);
     });
   }
+
+  loadDeployments(highlight: boolean = false): void {
+    this.highlightFirstRow = highlight;
+
+    const { applicationId, createdDate } = this.filterForm.value;
+    const formattedDate = createdDate ? new Date(createdDate).toISOString().split('T')[0] : undefined;
+
+    this.deploymentService.search(applicationId || undefined, formattedDate, this.pageIndex, this.pageSize)
+      .subscribe({
+        next: page => {
+          this.deployments = page.content;
+          this.totalElements = page.totalElements;
+          this.loadStatuses();
+
+          if (highlight && this.deployments.length > 0) {
+            setTimeout(() => this.blinkRow(this.deployments[0].id!), 0);
+          }
+        },
+        error: err => console.error('Failed to fetch deployments', err)
+      });
+  }
+
+  blinkRow(id: number): void {
+    this.highlightedId = id;
+    const interval = setInterval(() => {
+      this.highlightedId = this.highlightedId === id ? null : id;
+    }, 500);
+
+    setTimeout(() => {
+      clearInterval(interval);
+      this.highlightedId = null;
+    }, 5000);
+  }
+
 
   loadStatuses(): void {
     this.deployments.forEach(d => {

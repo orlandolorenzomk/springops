@@ -5,7 +5,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 2rem;
-  height: 70px;
+  height: 120px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   background: linear-gradient(135deg, mat.get-color-from-palette(mat.$indigo-palette, 500) 0%, mat.get-color-from-palette(mat.$blue-palette, 500) 100%);
 
@@ -32,26 +32,89 @@
   }
 
   .environment-info {
-    .env-chip {
-      background-color: rgba(255, 255, 255, 0.15);
-      color: white;
-      border-radius: 16px;
-      padding: 0.25rem 0.75rem;
-      margin: 0 0.25rem;
-      font-size: 0.8rem;
-      font-weight: 500;
-      transition: all 0.3s ease;
+    .system-status-container {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 0.5rem 1rem;
+      border-radius: 12px;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
-      mat-icon {
-        margin-right: 0.5rem;
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-      }
+      .status-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        position: relative;
 
-      &:hover {
-        background-color: rgba(255, 255, 255, 0.25);
-        transform: translateY(-1px);
+        &:not(:last-child):after {
+          content: '';
+          position: absolute;
+          right: -0.75rem;
+          height: 60%;
+          width: 1px;
+          background: rgba(255, 255, 255, 0.2);
+        }
+
+        .status-icon-bg {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.15);
+          transition: all 0.3s ease;
+
+          &.production {
+            background: rgba(244, 67, 54, 0.2);
+            .status-icon { color: #ff5252; }
+          }
+          &.staging {
+            background: rgba(255, 193, 7, 0.2);
+            .status-icon { color: #ffd740; }
+          }
+          &.development {
+            background: rgba(76, 175, 80, 0.2);
+            .status-icon { color: #69f0ae; }
+          }
+
+          .status-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+            color: white;
+          }
+        }
+
+        .status-details {
+          display: flex;
+          flex-direction: column;
+
+          .status-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.1rem;
+          }
+
+          .status-value {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: white;
+            white-space: nowrap;
+          }
+        }
+
+        &:hover {
+          .status-icon-bg {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.25);
+          }
+        }
       }
     }
   }

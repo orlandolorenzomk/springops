@@ -54,6 +54,7 @@ import { ManageEnvDialogComponent } from './dialogs/manage-env-dialog/manage-env
 import {MatMenu, MatMenuItem, MatMenuTrigger} from "@angular/material/menu";
 import { ViewLogsDialogComponent } from './dialogs/view-logs-dialog/view-logs-dialog.component';
 import { MatListModule } from '@angular/material/list';
+import { FootbarComponent } from './components/footbar/footbar.component';
 
 @NgModule({
   declarations: [
@@ -72,7 +73,8 @@ import { MatListModule } from '@angular/material/list';
     DeployDialogComponent,
     DeploymentsListComponent,
     ManageEnvDialogComponent,
-    ViewLogsDialogComponent
+    ViewLogsDialogComponent,
+    FootbarComponent
   ],
   imports: [
     BrowserModule,

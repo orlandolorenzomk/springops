@@ -151,4 +151,14 @@
     background-color: #616161;
     color: white;
   }
+
+  .blink-highlight {
+    animation: blink 1s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { background-color: #fff176; }
+    50% { background-color: transparent; }
+  }
+
 }
