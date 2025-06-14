@@ -149,6 +149,9 @@
     </table>
   </div>
   <div class="global-spinner-overlay" *ngIf="globalLoading">
-    <mat-progress-spinner mode="indeterminate" diameter="60" color="primary"></mat-progress-spinner>
+    <div class="spinner-content">
+      <mat-progress-spinner mode="indeterminate" diameter="60" color="primary"></mat-progress-spinner>
+      <p>Performing requested action...</p>
+    </div>
   </div>
 </div>

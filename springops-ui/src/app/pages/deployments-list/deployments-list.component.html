@@ -7,6 +7,13 @@
 
   </div>
 
+  <div class="global-spinner-overlay" *ngIf="isDeploying">
+    <div class="spinner-content">
+      <mat-progress-spinner mode="indeterminate" diameter="60" color="primary"></mat-progress-spinner>
+      <p>Deploying application...</p>
+    </div>
+  </div>
+
   <div class="table-container">
     <table mat-table [dataSource]="deployments" class="mat-elevation-z8">
 
@@ -89,6 +96,9 @@
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef>Actions</th>
         <td mat-cell *matCellDef="let d">
+          <button mat-icon-button (click)="rollbackDeployment(d)">
+            <mat-icon>undo</mat-icon>
+          </button>
           <button mat-icon-button (click)="downloadLogFile(d.logsPath)" [disabled]="!d.logsPath">
             <mat-icon>download</mat-icon>
           </button>

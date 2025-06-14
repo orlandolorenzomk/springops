@@ -6,7 +6,7 @@ import { ConfirmDialogComponent } from '../../dialogs/confirm-dialog/confirm-dia
 import { DeployDialogComponent } from '../../dialogs/deploy-dialog/deploy-dialog.component';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { PageEvent } from '@angular/material/paginator';
-import {ActivatedRoute} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 
 @Component({
   selector: 'app-deployments-list',
@@ -18,11 +18,12 @@ export class DeploymentsListComponent implements OnInit {
   deploymentStatuses: { [id: number]: DeploymentStatusDto } = {};
   displayedColumns: string[] = ['id', 'version', 'status', 'branch', 'createdAt', 'typeInfo', 'actions'];
   loadingActions: { [id: number]: { delete?: boolean; deploy?: boolean; kill?: boolean } } = {};
+  isDeploying: boolean = false;
 
   filterForm: FormGroup;
   totalElements = 0;
   pageIndex = 0;
-  pageSize = 10;
+  pageSize = 5;
 
   highlightFirstRow = false;
   highlightedId: number | null = null;
@@ -31,7 +32,8 @@ export class DeploymentsListComponent implements OnInit {
     private deploymentService: DeploymentService,
     private dialog: MatDialog,
     private fb: FormBuilder,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {
     this.filterForm = this.fb.group({
       applicationId: [''],
@@ -129,39 +131,67 @@ export class DeploymentsListComponent implements OnInit {
     });
   }
 
-  openDeployDialog(applicationId: number): void {
-    const dialogRef = this.dialog.open(DeployDialogComponent, {
+  rollbackDeployment(targetDeployment: DeploymentDto): void {
+    const runningDeployment = this.deployments.find(d =>
+      d.applicationId === targetDeployment.applicationId &&
+      d.status?.toUpperCase() === 'RUNNING'
+    );
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
-      data: applicationId
+      data: {
+        title: 'Confirm Rollback',
+        message: `Are you sure you want to rollback to version "${targetDeployment.version}"?`,
+        confirmText: 'Rollback',
+        cancelText: 'Cancel'
+      }
     });
 
-    dialogRef.afterClosed().subscribe(branch => {
-      if (branch) {
-        const confirmRef = this.dialog.open(ConfirmDialogComponent, {
-          width: '400px',
-          data: {
-            title: 'Confirm Deployment',
-            message: `Deploy application with branch "${branch}"?`,
-            confirmText: 'Deploy',
-            cancelText: 'Cancel'
-          }
-        });
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        const status = runningDeployment ? this.deploymentStatuses[runningDeployment.id!] : null;
+        const hasRunningPid = !!status?.pid;
 
-        confirmRef.afterClosed().subscribe(confirmed => {
-          if (confirmed) {
-            this.setLoading(applicationId, 'deploy', true);
-            this.deploymentService.deployApplication(applicationId, branch).subscribe({
-              next: () => {
-                this.setLoading(applicationId, 'deploy', false);
-                this.loadDeployments();
-              },
-              error: err => {
-                console.error('Deployment failed', err);
-                this.setLoading(applicationId, 'deploy', false);
-              }
-            });
-          }
-        });
+        if (hasRunningPid) {
+          this.setLoading(runningDeployment!.id!, 'kill', true);
+        }
+        this.setLoading(targetDeployment.applicationId, 'deploy', true);
+        this.isDeploying = true;
+
+        const doDeploy = () => {
+          this.deploymentService.deployApplication(
+            targetDeployment.applicationId,
+            targetDeployment.branch!,
+            'ROLLBACK'
+          ).subscribe({
+            next: () => {
+              if (hasRunningPid) this.setLoading(runningDeployment!.id!, 'kill', false);
+              this.setLoading(targetDeployment.applicationId, 'deploy', false);
+              this.isDeploying = false;
+              window.location.href = '/deployments?new-deploy=true';
+            },
+            error: err => {
+              console.error('Rollback failed', err);
+              if (hasRunningPid) this.setLoading(runningDeployment!.id!, 'kill', false);
+              this.setLoading(targetDeployment.applicationId, 'deploy', false);
+              this.isDeploying = false;
+            }
+          });
+        };
+
+        if (hasRunningPid) {
+          this.deploymentService.killProcess(status.pid!).subscribe({
+            next: () => doDeploy(),
+            error: err => {
+              console.error('Kill failed', err);
+              this.setLoading(runningDeployment!.id!, 'kill', false);
+              this.setLoading(targetDeployment.applicationId, 'deploy', false);
+              this.isDeploying = false;
+            }
+          });
+        } else {
+          doDeploy();
+        }
       }
     });
   }

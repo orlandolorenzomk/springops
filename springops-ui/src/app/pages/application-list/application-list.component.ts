@@ -109,6 +109,9 @@ export class ApplicationListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(branch => {
       if (branch) {
+        const isRollback = branch.startsWith('deploy');
+        const deployType = isRollback ? 'ROLLBACK' : 'CLASSIC';
+
         const confirmRef = this.dialog.open(ConfirmDialogComponent, {
           width: '400px',
           data: {
@@ -123,7 +126,8 @@ export class ApplicationListComponent implements OnInit {
           if (confirmed) {
             this.setLoading(appId, 'deploy', true);
             this.globalLoading = true;
-            this.deploymentService.deployApplication(appId, branch).subscribe({
+
+            this.deploymentService.deployApplication(appId, branch, deployType).subscribe({
               next: res => {
                 console.log('Deployment result:', res);
                 this.setLoading(appId, 'deploy', false);

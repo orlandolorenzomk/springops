@@ -1,5 +1,6 @@
 package org.kreyzon.springops.common.exception;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.config.ApplicationConfig;

@@ -1,6 +1,5 @@
 package org.kreyzon.springops.core.deployment.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -138,7 +137,7 @@ public class DeploymentManagerService {
      * @return a DeploymentResultDto containing the results of the deployment process
      */
     @Transactional
-    public List<CommandResultDto> manageDeployment(Integer applicationId, String branchName, Integer port) {
+    public List<CommandResultDto> manageDeployment(Integer applicationId, String branchName, DeploymentType deploymentType, Integer port) {
         Application application = validateAndPrepareDeployment(applicationId);
         logDeploymentStart(application, branchName);
 
@@ -156,7 +155,7 @@ public class DeploymentManagerService {
 
         DeploymentResultDto deploymentResult = new DeploymentResultDto();
         try {
-            DeploymentContextDto context = prepareDeploymentContext(application, branchName, portForDeployment);
+            DeploymentContextDto context = prepareDeploymentContext(application, branchName, deploymentType, portForDeployment);
 
             List<CommandResultDto> commandResultDtos = executeDeploymentSteps(application, context, deploymentResult);
 
@@ -171,7 +170,7 @@ public class DeploymentManagerService {
             String jarName = commandResultDtos.get(1).getData().get(0).toString();
             Integer pid = commandResultDtos.get(2).getData().get(0) != null ? Integer.parseInt(commandResultDtos.get(2).getData().get(1).toString()) : null;
             String branch = commandResultDtos.get(0).getData().get(0) != null ? commandResultDtos.get(0).getData().get(0).toString() : "unknown";
-            handleSuccessfulDeployment(applicationId, status.get(), jarName, pid, branch, commandResultDtos);
+            handleSuccessfulDeployment(applicationId, status.get(), jarName, pid, branch, deploymentType, commandResultDtos);
             return commandResultDtos;
         } catch (SpringOpsException e) {
             throw e; // Re-throw known exceptions
@@ -245,7 +244,7 @@ public class DeploymentManagerService {
      * @param port        the port to use for deployment
      * @return a DeploymentContextDto containing the prepared context
      */
-    private DeploymentContextDto prepareDeploymentContext(Application application, String branchName, Integer port) {
+    private DeploymentContextDto prepareDeploymentContext(Application application, String branchName, DeploymentType deploymentType, Integer port) {
         log.info("Preparing deployment context for application ID: {}, branch: {}", application.getId(), branchName);
         Setup setup = setupService.getSetup();
         String gitToken = validateAndGetGitToken();
@@ -267,6 +266,7 @@ public class DeploymentManagerService {
                 application.getJavaSystemVersion(),
                 application.getMvnSystemVersion(),
                 branchName,
+                deploymentType,
                 prepareEnvironmentVariables(application.getId()),
                 port
         );
@@ -334,7 +334,7 @@ public class DeploymentManagerService {
 
     private CommandResultDto updateProject(Application application, DeploymentContextDto context, DeploymentResultDto result) throws IOException, InterruptedException {
         return executeCommand(context, "update_project.sh",
-                context.authenticatedUrl(), context.branchName(), context.sourcePath());
+                context.authenticatedUrl(), context.branchName(), context.sourcePath(), context.deploymentType().name());
     }
 
     private CommandResultDto buildProject(Application application, DeploymentContextDto context, DeploymentResultDto result) throws IOException, InterruptedException {
@@ -356,20 +356,22 @@ public class DeploymentManagerService {
                 context.environmentVariables());
     }
 
-    private void handleSuccessfulDeployment(Integer applicationId, String status, String jarName, Integer pid, String branch, List<CommandResultDto> finalResult) {
+    private void handleSuccessfulDeployment(Integer applicationId, String status, String jarName, Integer pid, String branch, DeploymentType deploymentType, List<CommandResultDto> finalResult) {
         if (status.equalsIgnoreCase(DeploymentStatus.SUCCEEDED.name())) {
             log.info("Deployment for application ID {} completed successfully", applicationId);
-            updateDeploymentRecords(applicationId, jarName, pid, branch, finalResult);
+            updateDeploymentRecords(applicationId, jarName, pid, branch, deploymentType, finalResult);
         } else {
             log.error("Deployment for application ID {} failed",
                     applicationId);
         }
     }
 
-    public void updateDeploymentRecords(Integer applicationId, String jarName, Integer pid, String branch, List<CommandResultDto> finalResult) {
+    public void updateDeploymentRecords(Integer applicationId, String jarName, Integer pid, String branch, DeploymentType deploymentType, List<CommandResultDto> finalResult) {
     Deployment latestDeployment = deploymentService.findLatestByApplicationId(applicationId);
     if (latestDeployment != null) {
-        latestDeployment.setType(DeploymentType.PREVIOUS);
+        if (!deploymentType.equals(DeploymentType.ROLLBACK)) {
+            latestDeployment.setType(DeploymentType.PREVIOUS);
+        }
         latestDeployment.setStatus(DeploymentStatus.STOPPED);
         deploymentService.update(DeploymentDto.fromEntity(latestDeployment));
     }
@@ -377,8 +379,7 @@ public class DeploymentManagerService {
     DeploymentDto newDeployment = DeploymentDto.builder()
             .version(jarName)
             .status(DeploymentStatus.RUNNING)
-            .type(DeploymentType.LATEST)
-            .createdAt(Instant.now())
+            .type(deploymentType == DeploymentType.ROLLBACK ? DeploymentType.ROLLBACK : DeploymentType.LATEST)            .createdAt(Instant.now())
             .applicationId(applicationId)
             .pid(pid)
             .branch(branch)

@@ -20,11 +20,12 @@ export class DeploymentService {
     });
   }
 
-  deployApplication(applicationId: number, branchName: string): Observable<DeploymentResultDto> {
+  deployApplication(applicationId: number, branchName: string, deployType: 'CLASSIC' | 'ROLLBACK'): Observable<DeploymentResultDto> {
     return this.http.post<DeploymentResultDto>(`${this.apiUrlManager}/deploy`, null, {
       params: {
         applicationId: applicationId.toString(),
-        branchName: branchName
+        branchName,
+        deployType
       }
     });
   }

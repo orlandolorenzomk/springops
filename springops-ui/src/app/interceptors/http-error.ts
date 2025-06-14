@@ -9,10 +9,14 @@ import {
 import { Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 
 @Injectable()
 export class HttpErrorInterceptor implements HttpInterceptor {
-  constructor(private snackBar: MatSnackBar) {}
+  constructor(
+    private snackBar: MatSnackBar,
+    private router: Router
+  ) {}
 
   intercept(
     request: HttpRequest<unknown>,
@@ -29,8 +33,13 @@ export class HttpErrorInterceptor implements HttpInterceptor {
           }
         },
         error: (error: HttpErrorResponse) => {
-          const msg = error.error?.error || 'Unexpected server error';
+          const errBody = error.error || {};
+          const msg = errBody.error || 'Unexpected server error';
           this.showError(msg);
+
+          if (errBody.code === 'JWT_EXPIRED') {
+            this.router.navigate(['/auth/login']);
+          }
         }
       })
     );
