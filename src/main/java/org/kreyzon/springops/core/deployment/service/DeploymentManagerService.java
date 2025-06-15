@@ -268,7 +268,9 @@ public class DeploymentManagerService {
                 branchName,
                 deploymentType,
                 prepareEnvironmentVariables(application.getId()),
-                port
+                port,
+                application.getJavaMinimumMemory() != null ? application.getJavaMinimumMemory() : "512m",
+                application.getJavaMaximumMemory() != null ? application.getJavaMaximumMemory() : "1024m"
         );
     }
 
@@ -393,6 +395,8 @@ public class DeploymentManagerService {
                 context.sourcePath(),
                 result.getBuiltJar(),
                 context.port().toString(),
+                context.javaMinimumMemory(),
+                context.javaMaximumMemory(),
                 context.environmentVariables());
     }
 

@@ -57,4 +57,10 @@ public class Application {
 
     @Column(name = "port")
     private Integer port;
+
+    @Column(name = "java_minimum_memory")
+    private String javaMinimumMemory;
+
+    @Column(name = "java_maximum_memory")
+    private String javaMaximumMemory;
 }

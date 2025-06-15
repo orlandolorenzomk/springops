@@ -12,7 +12,9 @@ public record DeploymentContextDto(
         DeploymentType deploymentType,
 
         String environmentVariables,
-        Integer port
+        Integer port,
+        String javaMinimumMemory,
+        String javaMaximumMemory
 ) {
 
 }
