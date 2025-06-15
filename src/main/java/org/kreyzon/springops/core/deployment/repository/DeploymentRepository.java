@@ -46,4 +46,13 @@ public interface DeploymentRepository extends JpaRepository<Deployment, Integer>
      */
     @Query("SELECT d FROM Deployment d WHERE d.application.id = ?1 ORDER BY d.createdAt DESC LIMIT 1")
     Optional<Deployment> findByCreatedAtDesc(Integer applicationId);
+
+    /**
+     * Finds all deployments with a specific status.
+     *
+     * @param deploymentStatus the status of the deployments to find
+     * @return a list of deployments with the specified status
+     */
+    @Query("SELECT d FROM Deployment d WHERE d.status = ?1")
+    List<Deployment> findByStatus(DeploymentStatus deploymentStatus);
 }

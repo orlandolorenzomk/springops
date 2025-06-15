@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.common.dto.deployment.DeploymentDto;
 import org.kreyzon.springops.common.enums.DeploymentStatus;
 import org.kreyzon.springops.common.exception.SpringOpsException;
+import org.kreyzon.springops.common.utils.DeploymentUtils;
 import org.kreyzon.springops.config.ApplicationConfig;
 import org.kreyzon.springops.core.application.entity.Application;
 import org.kreyzon.springops.core.application.service.ApplicationLookupService;
@@ -272,5 +273,24 @@ public class DeploymentService {
 
         log.info("Updated notes for deployment with ID: {}", deploymentId);
         return DeploymentDto.fromEntity(deployment);
+    }
+
+    /**
+     * Retrieves a list of DeploymentDto for deployments currently marked as RUNNING
+     * and whose processes are actually alive.
+     *
+     * @return list of active running deployment DTOs
+     */
+    public List<DeploymentDto> findActiveRunningDeployments() {
+        return deploymentRepository.findByStatus(DeploymentStatus.RUNNING).stream()
+                .filter(deployment -> {
+                    boolean alive = DeploymentUtils.isPidRunning(deployment.getPid());
+                    if (!alive) {
+                        log.warn("PID {} for deployment ID {} is not active; skipping", deployment.getPid(), deployment.getId());
+                    }
+                    return alive;
+                })
+                .map(DeploymentDto::fromEntity)
+                .toList();
     }
 }

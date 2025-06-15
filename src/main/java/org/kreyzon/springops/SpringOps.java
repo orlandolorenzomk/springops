@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * The entry point of the SpringOps application.
@@ -14,6 +15,7 @@ import org.springframework.retry.annotation.EnableRetry;
  */
 @SpringBootApplication
 @EnableRetry
+@EnableScheduling
 @Slf4j
 public class SpringOps {
 
