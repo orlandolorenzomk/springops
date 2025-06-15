@@ -25,6 +25,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/deployments")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class DeploymentController {
 
     private final DeploymentService deploymentService;
@@ -119,5 +120,18 @@ public class DeploymentController {
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .contentLength(content.length)
                 .body(resource);
+    }
+
+    /**
+     * Updates the notes of a deployment.
+     *
+     * @param id    the ID of the deployment to update
+     * @param value the new notes value to set
+     * @return the updated DeploymentDto
+     */
+    @PatchMapping("/{id}/notes")
+    public ResponseEntity<DeploymentDto> updateNotes(@PathVariable Integer id, @RequestParam String value) {
+        DeploymentDto updatedDeployment = deploymentService.updateNotes(id, value);
+        return ResponseEntity.ok(updatedDeployment);
     }
 }

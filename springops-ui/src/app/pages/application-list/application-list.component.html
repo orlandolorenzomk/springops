@@ -101,7 +101,7 @@
           </button>
 
           <!-- Deploy Action -->
-          <button mat-menu-item (click)="openDeployDialog(element.id)">
+          <button mat-menu-item (click)="openDeployDialog(element.id, element.gitProjectHttpsUrl)">
             <mat-icon color="accent">cloud_upload</mat-icon>
             <span>Deploy</span>
             <mat-progress-spinner *ngIf="loadingActions[element.id]?.deploy"
@@ -147,5 +147,11 @@
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
     </table>
+  </div>
+  <div class="global-spinner-overlay" *ngIf="globalLoading">
+    <div class="spinner-content">
+      <mat-progress-spinner mode="indeterminate" diameter="60" color="primary"></mat-progress-spinner>
+      <p>Performing requested action...</p>
+    </div>
   </div>
 </div>

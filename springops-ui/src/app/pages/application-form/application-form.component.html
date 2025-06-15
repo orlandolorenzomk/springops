@@ -43,6 +43,35 @@
 
     <div class="form-row">
       <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Java Minimum Memory (Xms)</mat-label>
+        <input matInput formControlName="javaMinimumMemory" placeholder="e.g. 512m">
+        <mat-error *ngIf="form.get('javaMinimumMemory')?.hasError('pattern')">
+          Must be a number followed by <code>m</code> or <code>g</code> (e.g. 512m, 1g)
+        </mat-error>
+        <mat-icon matSuffix>memory</mat-icon>
+        <mat-hint class="text-muted">
+          Defaults to <strong>512m</strong> if left empty.
+        </mat-hint>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Java Maximum Memory (Xmx)</mat-label>
+        <input matInput formControlName="javaMaximumMemory" placeholder="e.g. 1024m">
+        <mat-error *ngIf="form.get('javaMaximumMemory')?.hasError('pattern')">
+          Must be a number followed by <code>m</code> or <code>g</code> (e.g. 512m, 1g)
+        </mat-error>
+
+        <mat-icon matSuffix>memory</mat-icon>
+        <mat-hint class="text-muted">
+          Defaults to <strong>1024m</strong> if left empty.
+        </mat-hint>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Description</mat-label>
         <textarea matInput formControlName="description" rows="2"></textarea>
         <mat-icon matSuffix>description</mat-icon>

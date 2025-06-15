@@ -1,19 +1,18 @@
 package org.kreyzon.springops.common.exception;
 
-import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.kreyzon.springops.config.ApplicationConfig;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -95,13 +94,14 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.toMap(
                         error -> {
                             String field = "unknown";
-                            if (error.getCodes() != null && error.getCodes().length > 0) {
+                            error.getCodes();
+                            if (error.getCodes().length > 0) {
                                 String[] parts = error.getCodes()[0].split("\\.");
                                 field = parts[parts.length - 1]; // Get actual field name
                             }
                             return field;
                         },
-                        error -> error.getDefaultMessage(),
+                        MessageSourceResolvable::getDefaultMessage,
                         (existing, replacement) -> existing // in case of duplicate field names
                 ));
 
@@ -128,5 +128,25 @@ public class GlobalExceptionHandler {
         }
 
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * Handles ExpiredJwtException and returns a JSON response with the error message.
+     *
+     * @param ex the ExpiredJwtException that was thrown.
+     * @return a {@link ResponseEntity} containing the error message and HTTP status.
+     * @author Domenico Ferraro
+     */
+    @ExceptionHandler(GitAPIException.class)
+    public ResponseEntity<Map<String, String>> handleGitAPIException(GitAPIException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        log.error("Git API error: {}", ex.getMessage());
+        errorResponse.put("error", "Git error: " + ex.getMessage());
+
+        if (applicationConfig.getDisplayExceptionStackTraces()) {
+            ex.printStackTrace();
+        }
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_GATEWAY);
     }
 }

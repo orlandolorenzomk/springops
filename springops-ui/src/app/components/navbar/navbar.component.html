@@ -7,20 +7,37 @@
 
   <!-- Center Section - Environment Info -->
   <div class="environment-info">
-    <mat-chip-listbox aria-label="Environment information">
-      <mat-chip *ngIf="ipAddress" class="env-chip">
-        <mat-icon>dns</mat-icon>
-        <span>{{ ipAddress }}</span>
-      </mat-chip>
-      <mat-chip *ngIf="serverName" class="env-chip">
-        <mat-icon>computer</mat-icon>
-        <span>{{ serverName }}</span>
-      </mat-chip>
-      <mat-chip *ngIf="environment" class="env-chip" [color]="getEnvironmentColor()">
-        <mat-icon>code</mat-icon>
-        <span>{{ environment }}</span>
-      </mat-chip>
-    </mat-chip-listbox>
+    <div class="system-status-container">
+      <div class="status-item" *ngIf="ipAddress">
+        <div class="status-icon-bg">
+          <mat-icon class="status-icon">dns</mat-icon>
+        </div>
+        <div class="status-details">
+          <div class="status-label">Server IP</div>
+          <div class="status-value">{{ ipAddress }}</div>
+        </div>
+      </div>
+
+      <div class="status-item" *ngIf="serverName">
+        <div class="status-icon-bg">
+          <mat-icon class="status-icon">computer</mat-icon>
+        </div>
+        <div class="status-details">
+          <div class="status-label">Host</div>
+          <div class="status-value">{{ serverName }}</div>
+        </div>
+      </div>
+
+      <div class="status-item" *ngIf="environment">
+        <div class="status-icon-bg" [ngClass]="getEnvironmentColor()">
+          <mat-icon class="status-icon">code</mat-icon>
+        </div>
+        <div class="status-details">
+          <div class="status-label">Environment</div>
+          <div class="status-value">{{ environment }}</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Right Section - Navigation -->

@@ -93,6 +93,12 @@ public class ApplicationService {
         application.setCreatedAt(java.time.Instant.now());
         application.setFolderRoot(applicationDto.getName().trim().toLowerCase(Locale.ROOT));
         application.setPort(applicationDto.getPort());
+        application.setJavaMinimumMemory(
+                applicationDto.getJavaMinimumMemory() != null ? applicationDto.getJavaMinimumMemory() : "512m"
+        );
+        application.setJavaMaximumMemory(
+                applicationDto.getJavaMaximumMemory() != null ? applicationDto.getJavaMaximumMemory() : "1024m"
+        );
         generateApplicationFolders(application.getName());
 
         Application savedApplication = applicationRepository.save(application);
@@ -146,6 +152,12 @@ public class ApplicationService {
         application.setFolderRoot(existingApplication.getFolderRoot());
         application.setCreatedAt(existingApplication.getCreatedAt());
         application.setPort(applicationDto.getPort());
+        application.setJavaMinimumMemory(
+                applicationDto.getJavaMinimumMemory() != null ? applicationDto.getJavaMinimumMemory() : "512m"
+        );
+        application.setJavaMaximumMemory(
+                applicationDto.getJavaMaximumMemory() != null ? applicationDto.getJavaMaximumMemory() : "1024m"
+        );
 
         Application updatedApplication = applicationRepository.save(application);
 
@@ -193,9 +205,11 @@ public class ApplicationService {
 
         String sourceDirectory = rootDirectory + "/" + applicationConfig.getDirectorySource();
         String backupDirectory = rootDirectory + "/" + applicationConfig.getDirectoryBackups();
+        String logsDirectory = rootDirectory + "/" + applicationConfig.getDirectoryApplicationLogs();
 
         createDirectory(sourceDirectory);
         createDirectory(backupDirectory);
+        createDirectory(logsDirectory);
     }
 
     /**

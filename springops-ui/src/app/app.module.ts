@@ -54,6 +54,10 @@ import { ManageEnvDialogComponent } from './dialogs/manage-env-dialog/manage-env
 import {MatMenu, MatMenuItem, MatMenuTrigger} from "@angular/material/menu";
 import { ViewLogsDialogComponent } from './dialogs/view-logs-dialog/view-logs-dialog.component';
 import { MatListModule } from '@angular/material/list';
+import { FootbarComponent } from './components/footbar/footbar.component';
+import {MatProgressBar} from "@angular/material/progress-bar";
+import { NotesDialogComponent } from './dialogs/notes-dialog/notes-dialog.component';
+import {MatAutocomplete, MatAutocompleteTrigger} from "@angular/material/autocomplete";
 
 @NgModule({
   declarations: [
@@ -72,7 +76,9 @@ import { MatListModule } from '@angular/material/list';
     DeployDialogComponent,
     DeploymentsListComponent,
     ManageEnvDialogComponent,
-    ViewLogsDialogComponent
+    ViewLogsDialogComponent,
+    FootbarComponent,
+    NotesDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -125,6 +131,9 @@ import { MatListModule } from '@angular/material/list';
     MatChipListbox,
     MatAnchor,
     MatListModule,
+    MatProgressBar,
+    MatAutocompleteTrigger,
+    MatAutocomplete,
   ],
   providers: [
     provideClientHydration(),

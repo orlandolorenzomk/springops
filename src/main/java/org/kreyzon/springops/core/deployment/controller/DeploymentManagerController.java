@@ -2,9 +2,11 @@ package org.kreyzon.springops.core.deployment.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.kreyzon.springops.common.dto.deployment.CommandResultDto;
 import org.kreyzon.springops.common.dto.deployment.DeploymentResultDto;
 import org.kreyzon.springops.common.dto.deployment.DeploymentStatusDto;
+import org.kreyzon.springops.common.enums.DeploymentType;
 import org.kreyzon.springops.core.deployment.service.DeploymentManagerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -56,7 +58,8 @@ public class DeploymentManagerController {
     public ResponseEntity<List<CommandResultDto>> deployApplication(
             @RequestParam Integer applicationId,
             @RequestParam String branchName,
-            @RequestParam(required = false) Integer port) {
-        return ResponseEntity.ok(deploymentManagerService.manageDeployment(applicationId, branchName, port));
+            @RequestParam DeploymentType deployType,
+            @RequestParam(required = false) Integer port) throws GitAPIException {
+        return ResponseEntity.ok(deploymentManagerService.manageDeployment(applicationId, branchName, deployType, port));
     }
 }

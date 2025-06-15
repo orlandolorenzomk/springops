@@ -38,4 +38,5 @@ export interface DeploymentDto {
   applicationId: number;
   branch?: string;
   logsPath?: string;
+  notes?: string;
 }

@@ -21,6 +21,7 @@ export class ApplicationListComponent implements OnInit {
   applicationStatuses: { [id: number]: DeploymentStatusDto } = {};
   displayedColumns: string[] = ['id', 'name', 'description', 'port', 'createdAt', 'status', 'actions'];
   loadingActions: { [id: number]: { edit?: boolean; delete?: boolean; deploy?: boolean; kill?: boolean } } = {};
+  globalLoading = false;
 
   constructor(
     private applicationService: ApplicationService,
@@ -100,14 +101,20 @@ export class ApplicationListComponent implements OnInit {
     });
   }
 
-  openDeployDialog(appId: number): void {
+  openDeployDialog(appId: number, gitProjectHttpsUrl: string): void {
     const dialogRef = this.dialog.open(DeployDialogComponent, {
       width: '400px',
-      data: appId
+      data: {
+        appId: appId,
+        gitUrl: gitProjectHttpsUrl
+      }
     });
 
     dialogRef.afterClosed().subscribe(branch => {
       if (branch) {
+        const isRollback = branch.startsWith('deploy');
+        const deployType = isRollback ? 'ROLLBACK' : 'CLASSIC';
+
         const confirmRef = this.dialog.open(ConfirmDialogComponent, {
           width: '400px',
           data: {
@@ -121,16 +128,20 @@ export class ApplicationListComponent implements OnInit {
         confirmRef.afterClosed().subscribe(confirmed => {
           if (confirmed) {
             this.setLoading(appId, 'deploy', true);
-            this.deploymentService.deployApplication(appId, branch).subscribe({
+            this.globalLoading = true;
+
+            this.deploymentService.deployApplication(appId, branch, deployType).subscribe({
               next: res => {
                 console.log('Deployment result:', res);
                 this.setLoading(appId, 'deploy', false);
+                this.globalLoading = false;
                 this.loadApplications();
-                this.router.navigate(['/applications']);
+                this.router.navigate(['/deployments'], { queryParams: { 'new-deploy': true } });
               },
               error: err => {
                 console.error('Deployment error', err);
                 this.setLoading(appId, 'deploy', false);
+                this.globalLoading = false;
               }
             });
           }

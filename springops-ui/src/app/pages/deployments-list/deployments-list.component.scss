@@ -151,4 +151,26 @@
     background-color: #616161;
     color: white;
   }
+
+  .blink-highlight {
+    animation: blink 1s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { background-color: #fff176; }
+    50% { background-color: transparent; }
+  }
+
+  mat-progress-bar {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+
+  .danger-action {
+    color: #d32f2f;
+
+    mat-icon {
+      color: #d32f2f;
+    }
+  }
 }

@@ -1,10 +1,10 @@
 package org.kreyzon.springops.core.deployment.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.kreyzon.springops.common.dto.deployment.*;
 import org.kreyzon.springops.common.dto.application_env.ApplicationEnvDto;
 import org.kreyzon.springops.common.enums.DeploymentStatus;
@@ -12,6 +12,7 @@ import org.kreyzon.springops.common.enums.DeploymentType;
 import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.common.utils.DeploymentUtils;
 import org.kreyzon.springops.common.utils.EncryptionUtils;
+import org.kreyzon.springops.common.utils.GitUtils;
 import org.kreyzon.springops.common.utils.PortUtils;
 import org.kreyzon.springops.config.ApplicationConfig;
 import org.kreyzon.springops.core.application.entity.Application;
@@ -59,8 +60,6 @@ public class DeploymentManagerService {
      * @return a DeploymentStatusDto containing the status and port information
      */
     public DeploymentStatusDto getDeploymentStatus(Integer applicationId) {
-        log.info("Retrieving deployment status for application ID: {}", applicationId);
-
         // Check if the application exists
         applicationLookupService.findEntityById(applicationId);
 
@@ -140,7 +139,7 @@ public class DeploymentManagerService {
      * @return a DeploymentResultDto containing the results of the deployment process
      */
     @Transactional
-    public List<CommandResultDto> manageDeployment(Integer applicationId, String branchName, Integer port) {
+    public List<CommandResultDto> manageDeployment(Integer applicationId, String branchName, DeploymentType deploymentType, Integer port) throws GitAPIException {
         Application application = validateAndPrepareDeployment(applicationId);
         logDeploymentStart(application, branchName);
 
@@ -156,9 +155,16 @@ public class DeploymentManagerService {
             throw new SpringOpsException("Invalid or occupied port for deployment", HttpStatus.BAD_REQUEST);
         }
 
+        if (GitUtils.branchExists(application.getGitProjectHttpsUrl(), branchName, applicationConfig.getGitToken())) {
+            log.info("Branch {} exists in the repository, proceeding with deployment.", branchName);
+        } else {
+            log.error("Branch {} does not exist in the repository, aborting deployment.", branchName);
+            throw new SpringOpsException("Branch does not exist in the repository", HttpStatus.BAD_REQUEST);
+        }
+
         DeploymentResultDto deploymentResult = new DeploymentResultDto();
         try {
-            DeploymentContextDto context = prepareDeploymentContext(application, branchName, portForDeployment);
+            DeploymentContextDto context = prepareDeploymentContext(application, branchName, deploymentType, portForDeployment);
 
             List<CommandResultDto> commandResultDtos = executeDeploymentSteps(application, context, deploymentResult);
 
@@ -173,7 +179,7 @@ public class DeploymentManagerService {
             String jarName = commandResultDtos.get(1).getData().get(0).toString();
             Integer pid = commandResultDtos.get(2).getData().get(0) != null ? Integer.parseInt(commandResultDtos.get(2).getData().get(1).toString()) : null;
             String branch = commandResultDtos.get(0).getData().get(0) != null ? commandResultDtos.get(0).getData().get(0).toString() : "unknown";
-            handleSuccessfulDeployment(applicationId, status.get(), jarName, pid, branch, commandResultDtos);
+            handleSuccessfulDeployment(applicationId, status.get(), jarName, pid, branch, deploymentType, commandResultDtos);
             return commandResultDtos;
         } catch (SpringOpsException e) {
             throw e; // Re-throw known exceptions
@@ -231,8 +237,8 @@ public class DeploymentManagerService {
         log.info("""
             #############################################################
             #                                                           #
-            #   STARTING DEPLOYMENT FOR APPLICATION: {}                #
-            #   ON BRANCH: {}                                          #
+            #   STARTING DEPLOYMENT FOR APPLICATION: {}                 #
+            #   ON BRANCH: {}                                           #
             #                                                           #
             #############################################################
             """, application.getName(), branchName);
@@ -247,7 +253,7 @@ public class DeploymentManagerService {
      * @param port        the port to use for deployment
      * @return a DeploymentContextDto containing the prepared context
      */
-    private DeploymentContextDto prepareDeploymentContext(Application application, String branchName, Integer port) {
+    private DeploymentContextDto prepareDeploymentContext(Application application, String branchName, DeploymentType deploymentType, Integer port) {
         log.info("Preparing deployment context for application ID: {}, branch: {}", application.getId(), branchName);
         Setup setup = setupService.getSetup();
         String gitToken = validateAndGetGitToken();
@@ -269,8 +275,11 @@ public class DeploymentManagerService {
                 application.getJavaSystemVersion(),
                 application.getMvnSystemVersion(),
                 branchName,
+                deploymentType,
                 prepareEnvironmentVariables(application.getId()),
-                port
+                port,
+                application.getJavaMinimumMemory() != null ? application.getJavaMinimumMemory() : "512m",
+                application.getJavaMaximumMemory() != null ? application.getJavaMaximumMemory() : "1024m"
         );
     }
 
@@ -292,9 +301,10 @@ public class DeploymentManagerService {
     private String prepareEnvironmentVariables(Integer applicationId) {
         log.info("Preparing environment variables for application ID: {}", applicationId);
         List<ApplicationEnvDto> envs = applicationEnvService.findByApplicationId(applicationId);
-        return envs.stream()
+        String result = envs.stream()
                 .map(this::decryptEnvVariable)
                 .collect(Collectors.joining(" "));
+        return result.isEmpty() ? "" : result;
     }
 
     /**
@@ -307,12 +317,21 @@ public class DeploymentManagerService {
     private String decryptEnvVariable(ApplicationEnvDto env) {
         try {
             log.info("Decrypting environment variable: {}", env.getName());
-            return env.getName() + "=" + (env.getValue() != null ? EncryptionUtils.decrypt(env.getValue(), applicationConfig.getSecret(), applicationConfig.getAlgorithm()) : "");
+            log.info("Using secret: {}", applicationConfig.getSecret());
+            log.info("Using algorithm: {}", applicationConfig.getAlgorithm());
+
+            String result = env.getName() + "=" +
+                    (env.getValue() != null
+                            ? EncryptionUtils.decrypt(env.getValue(), applicationConfig.getSecret(), applicationConfig.getAlgorithm())
+                            : "");
+            log.info("Decrypted environment variable: {}", result);
+            return result;
         } catch (Exception e) {
             log.error("Error decrypting environment variable {}: {}", env.getName(), e.getMessage());
             throw new SpringOpsException("Failed to decrypt environment variable " + env.getName(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     /**
      * Executes the deployment steps for the application.
@@ -334,11 +353,31 @@ public class DeploymentManagerService {
         return List.of(updateResult, buildResult, runResult);
     }
 
+    /**
+     * Updates the project by executing the update script.
+     *
+     * @param application the Application entity being deployed
+     * @param context     the DeploymentContextDto containing the deployment context
+     * @param result      the DeploymentResultDto to store the results of the deployment
+     * @return a CommandResultDto containing the result of the update command
+     * @throws IOException          if an I/O error occurs
+     * @throws InterruptedException if the process is interrupted
+     */
     private CommandResultDto updateProject(Application application, DeploymentContextDto context, DeploymentResultDto result) throws IOException, InterruptedException {
         return executeCommand(context, "update_project.sh",
-                context.authenticatedUrl(), context.branchName(), context.sourcePath());
+                context.authenticatedUrl(), context.branchName(), context.sourcePath(), context.deploymentType().name());
     }
 
+    /**
+     * Builds the project by executing the build script.
+     *
+     * @param application the Application entity being deployed
+     * @param context     the DeploymentContextDto containing the deployment context
+     * @param result      the DeploymentResultDto to store the results of the deployment
+     * @return a CommandResultDto containing the result of the build command
+     * @throws IOException          if an I/O error occurs
+     * @throws InterruptedException if the process is interrupted
+     */
     private CommandResultDto buildProject(Application application, DeploymentContextDto context, DeploymentResultDto result) throws IOException, InterruptedException {
         return captureCommandOutput(context,
                 "build_project.sh",
@@ -348,56 +387,92 @@ public class DeploymentManagerService {
                 context.javaVersion().getVersion());
     }
 
+    /**
+     * Runs the project by executing the run script.
+     *
+     * @param context the DeploymentContextDto containing the deployment context
+     * @param result  the DeploymentResultDto to store the results of the deployment
+     * @return a CommandResultDto containing the result of the run command
+     * @throws IOException          if an I/O error occurs
+     * @throws InterruptedException if the process is interrupted
+     */
     private CommandResultDto runProject(DeploymentContextDto context, DeploymentResultDto result) throws IOException, InterruptedException {
+        log.info("Running project with context: {}", context);
         return executeCommand(context,
                 "run_project.sh",
                 context.javaVersion().getPath(),
                 context.sourcePath(),
                 result.getBuiltJar(),
                 context.port().toString(),
+                context.javaMinimumMemory(),
+                context.javaMaximumMemory(),
                 context.environmentVariables());
     }
 
-    private void handleSuccessfulDeployment(Integer applicationId, String status, String jarName, Integer pid, String branch, List<CommandResultDto> finalResult) {
+    /**
+     * Handles the successful deployment of an application.
+     * Updates the deployment records and logs the success message.
+     *
+     * @param applicationId the ID of the application that was deployed
+     * @param status        the status of the deployment
+     * @param jarName       the name of the built JAR file
+     * @param pid           the process ID of the running application
+     * @param branch        the branch that was deployed
+     * @param deploymentType the type of deployment (e.g., ROLLBACK, LATEST)
+     * @param finalResult   the final result of the deployment process
+     */
+    private void handleSuccessfulDeployment(Integer applicationId, String status, String jarName, Integer pid, String branch, DeploymentType deploymentType, List<CommandResultDto> finalResult) {
         if (status.equalsIgnoreCase(DeploymentStatus.SUCCEEDED.name())) {
             log.info("Deployment for application ID {} completed successfully", applicationId);
-            updateDeploymentRecords(applicationId, jarName, pid, branch, finalResult);
+            updateDeploymentRecords(applicationId, jarName, pid, branch, deploymentType, finalResult);
         } else {
             log.error("Deployment for application ID {} failed",
                     applicationId);
         }
     }
 
-    public void updateDeploymentRecords(Integer applicationId, String jarName, Integer pid, String branch, List<CommandResultDto> finalResult) {
-    Deployment latestDeployment = deploymentService.findLatestByApplicationId(applicationId);
-    if (latestDeployment != null) {
-        latestDeployment.setType(DeploymentType.PREVIOUS);
-        latestDeployment.setStatus(DeploymentStatus.STOPPED);
-        deploymentService.update(DeploymentDto.fromEntity(latestDeployment));
+    /**
+     * Updates the deployment records in the database.
+     * This includes updating the latest deployment to PREVIOUS status and creating a new deployment record.
+     *
+     * @param applicationId the ID of the application being deployed
+     * @param jarName       the name of the built JAR file
+     * @param pid           the process ID of the running application
+     * @param branch        the branch that was deployed
+     * @param deploymentType the type of deployment (e.g., ROLLBACK, LATEST)
+     * @param finalResult   the final result of the deployment process
+     */
+    public void updateDeploymentRecords(Integer applicationId, String jarName, Integer pid, String branch, DeploymentType deploymentType, List<CommandResultDto> finalResult) {
+        Deployment latestDeployment = deploymentService.findLatestByApplicationId(applicationId);
+        if (latestDeployment != null) {
+            if (!deploymentType.equals(DeploymentType.ROLLBACK)) {
+                latestDeployment.setType(DeploymentType.PREVIOUS);
+            }
+            latestDeployment.setStatus(DeploymentStatus.STOPPED);
+            deploymentService.update(DeploymentDto.fromEntity(latestDeployment));
+        }
+
+        DeploymentDto newDeployment = DeploymentDto.builder()
+                .version(jarName)
+                .status(DeploymentStatus.RUNNING)
+                .type(deploymentType == DeploymentType.ROLLBACK ? DeploymentType.ROLLBACK : DeploymentType.LATEST)            .createdAt(Instant.now())
+                .applicationId(applicationId)
+                .pid(pid)
+                .branch(branch)
+                .build();
+        DeploymentDto result = deploymentService.save(newDeployment);
+
+        ObjectMapper mapper = new ObjectMapper();
+        String finalResultJson;
+        try {
+            finalResultJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(finalResult);
+        } catch (Exception e) {
+            log.error("Failed to convert final result to JSON: {}", e.getMessage());
+            throw new SpringOpsException("Error converting final result to JSON", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        deploymentService.generateLogsPath(result.getId(), finalResultJson);
     }
-
-    DeploymentDto newDeployment = DeploymentDto.builder()
-            .version(jarName)
-            .status(DeploymentStatus.RUNNING)
-            .type(DeploymentType.LATEST)
-            .createdAt(Instant.now())
-            .applicationId(applicationId)
-            .pid(pid)
-            .branch(branch)
-            .build();
-    DeploymentDto result = deploymentService.save(newDeployment);
-
-    ObjectMapper mapper = new ObjectMapper();
-    String finalResultJson;
-    try {
-        finalResultJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(finalResult);
-    } catch (Exception e) {
-        log.error("Failed to convert final result to JSON: {}", e.getMessage());
-        throw new SpringOpsException("Error converting final result to JSON", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    deploymentService.generateLogsPath(result.getId(), finalResultJson);
-}
 
     /**
      * Handles the failure of a deployment process.
