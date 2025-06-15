@@ -8,6 +8,7 @@ import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
@@ -106,6 +107,19 @@ public class GlobalExceptionHandler {
                 ));
 
         log.info("Handler method validation errors occurred: {}", errors);
+        return new ResponseEntity<>(errors, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = ex.getBindingResult().getFieldErrors().stream()
+                .collect(Collectors.toMap(
+                        error -> error.getField(),
+                        error -> error.getDefaultMessage(),
+                        (existing, replacement) -> existing
+                ));
+
+        log.info("Method argument validation errors occurred: {}", errors);
         return new ResponseEntity<>(errors, HttpStatus.UNPROCESSABLE_ENTITY);
     }
 

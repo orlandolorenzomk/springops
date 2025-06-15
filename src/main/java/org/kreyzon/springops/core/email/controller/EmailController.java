@@ -22,6 +22,7 @@ import java.util.UUID;
 @RequestMapping("/email")
 @RequiredArgsConstructor
 @Slf4j
+@CrossOrigin(origins = "*", allowedHeaders = "*") // Uncomment if CORS is needed
 public class EmailController {
 
     private final EmailServiceBridge emailServiceBridge;

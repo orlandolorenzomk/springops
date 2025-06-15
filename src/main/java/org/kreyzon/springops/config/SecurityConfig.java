@@ -32,7 +32,9 @@ public class SecurityConfig {
         "/setup/initialize-files",
         "/setup/initialize-secret-key",
         "/setup/initialize-git-ssh-key",
-        "/authentication"
+        "/authentication",
+        "/users/create", //TODO: Should it be public?
+
     };
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
