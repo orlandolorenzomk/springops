@@ -1,0 +1,95 @@
+package org.kreyzon.springops.core.email.service;
+
+import io.micrometer.common.util.StringUtils;
+import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
+import org.kreyzon.springops.common.exception.SpringOpsException;
+import org.kreyzon.springops.core.email.dto.EmailConfigurationDto;
+import org.kreyzon.springops.core.email.entity.EmailConfiguration;
+import org.kreyzon.springops.core.email.mapper.EmailConfigurationMapper;
+import org.kreyzon.springops.core.email.entity.SmtpConfiguration;
+import org.kreyzon.springops.core.email.repository.SmtpConfigurationRepository;
+import org.kreyzon.springops.core.email.request.SmtpConfigurationRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.util.UUID;
+
+/**
+ * Service for handling SMTP email configurations.
+ * Provides methods to save, update, and delete SMTP configurations.
+ * Extends the base EmailService for common functionality.
+ *
+ * @author Domenico Ferraro
+ */
+@Service
+@Slf4j
+public class SmtpService extends EmailService {
+
+    private final SmtpConfigurationRepository smtpConfigurationRepository;
+
+    public SmtpService(SmtpConfigurationRepository smtpConfigurationRepository, EmailConfigurationMapper emailConfigurationMapper) {
+        super(emailConfigurationMapper);
+        this.smtpConfigurationRepository = smtpConfigurationRepository;
+    }
+
+    public SmtpConfiguration findById(UUID id) {
+        return this.smtpConfigurationRepository.findById(id)
+                .orElseThrow(() -> new SpringOpsException("SMTP configuration not found", HttpStatus.NOT_FOUND));
+    }
+
+    @Transactional
+    public void deleteById(String id) {
+        UUID uuid = UUID.fromString(id);
+        this.smtpConfigurationRepository.deleteById(uuid);
+    }
+
+    @Transactional
+    public void deleteById(UUID id) {
+        this.smtpConfigurationRepository.deleteById(id);
+    }
+
+    @Transactional
+    public EmailConfigurationDto save(SmtpConfigurationRequest emailConfigurationRequest) {
+       this.validateAuthOrThrow(emailConfigurationRequest);
+        SmtpConfiguration smtpConfiguration = mapper.fromRequest(emailConfigurationRequest);
+        smtpConfiguration.setCreatedAt(Instant.now());
+        return mapper.toDto(
+                smtpConfigurationRepository.save(smtpConfiguration)
+        );
+    }
+
+    /**
+     * Updates an existing SMTP configuration.
+     * Validates the authentication details and updates the configuration with the provided request data.
+     *
+     * @param emailConfigurationRequest the request containing updated SMTP configuration details
+     * @param existingConfig the existing SMTP configuration to update
+     * @return the updated email configuration DTO
+     */
+    @Transactional
+    public EmailConfigurationDto update(SmtpConfigurationRequest emailConfigurationRequest, EmailConfiguration existingConfig) {
+        this.validateAuthOrThrow(emailConfigurationRequest);
+        SmtpConfiguration smtpConfig = mapper.fromRequest(emailConfigurationRequest);
+        smtpConfig.setId(existingConfig.getId());
+        smtpConfig.setCreatedAt(existingConfig.getCreatedAt());
+        smtpConfig.setUpdatedAt(Instant.now());
+        return mapper.toDto(smtpConfigurationRepository.save(smtpConfig));
+    }
+
+    /**
+     * Validates the authentication details in the SMTP configuration request.
+     * Throws an exception if authentication is required but credentials are missing.
+     *
+     * @param emailConfigurationRequest the SMTP configuration request to validate
+     * @throws SpringOpsException with {@link HttpStatus#BAD_REQUEST} if authentication is required but username or password is blank
+     */
+    private void validateAuthOrThrow(SmtpConfigurationRequest emailConfigurationRequest) {
+        if(emailConfigurationRequest.getUseAuth()){
+            if(StringUtils.isBlank(emailConfigurationRequest.getUsername()) || StringUtils.isBlank(emailConfigurationRequest.getPassword())) {
+                throw new SpringOpsException("Username and password must be provided for authenticated SMTP configurations", HttpStatus.BAD_REQUEST);
+            }
+        }
+    }
+}

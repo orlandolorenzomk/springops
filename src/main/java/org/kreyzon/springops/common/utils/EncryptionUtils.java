@@ -1,5 +1,6 @@
 package org.kreyzon.springops.common.utils;
 
+import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,10 @@ public class EncryptionUtils {
      * @throws SpringOpsException if encryption fails.
      */
     public static String encrypt(String plainText, String hexSecret, String algorithm) throws Exception {
+        if(StringUtils.isBlank(plainText)) {
+            log.warn("Plain text is empty or null, returning as is.");
+            return plainText; // Return the plain text if it's empty or null
+        }
         byte[] secretBytes = hexStringToByteArray(hexSecret);
         if (secretBytes.length != 32) { // Validate 256-bit key length
             throw new SpringOpsException("Invalid AES key length: " + secretBytes.length, HttpStatus.BAD_REQUEST);
