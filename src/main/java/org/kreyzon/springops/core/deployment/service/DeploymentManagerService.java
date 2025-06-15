@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.kreyzon.springops.common.dto.deployment.*;
 import org.kreyzon.springops.common.dto.application_env.ApplicationEnvDto;
 import org.kreyzon.springops.common.enums.DeploymentStatus;
@@ -11,6 +12,7 @@ import org.kreyzon.springops.common.enums.DeploymentType;
 import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.common.utils.DeploymentUtils;
 import org.kreyzon.springops.common.utils.EncryptionUtils;
+import org.kreyzon.springops.common.utils.GitUtils;
 import org.kreyzon.springops.common.utils.PortUtils;
 import org.kreyzon.springops.config.ApplicationConfig;
 import org.kreyzon.springops.core.application.entity.Application;
@@ -137,7 +139,7 @@ public class DeploymentManagerService {
      * @return a DeploymentResultDto containing the results of the deployment process
      */
     @Transactional
-    public List<CommandResultDto> manageDeployment(Integer applicationId, String branchName, DeploymentType deploymentType, Integer port) {
+    public List<CommandResultDto> manageDeployment(Integer applicationId, String branchName, DeploymentType deploymentType, Integer port) throws GitAPIException {
         Application application = validateAndPrepareDeployment(applicationId);
         logDeploymentStart(application, branchName);
 
@@ -151,6 +153,13 @@ public class DeploymentManagerService {
         if (PortUtils.isPortOccupied(portForDeployment)) {
             log.error("Invalid or occupied port: {}", portForDeployment);
             throw new SpringOpsException("Invalid or occupied port for deployment", HttpStatus.BAD_REQUEST);
+        }
+
+        if (GitUtils.branchExists(application.getGitProjectHttpsUrl(), branchName, applicationConfig.getGitToken())) {
+            log.info("Branch {} exists in the repository, proceeding with deployment.", branchName);
+        } else {
+            log.error("Branch {} does not exist in the repository, aborting deployment.", branchName);
+            throw new SpringOpsException("Branch does not exist in the repository", HttpStatus.BAD_REQUEST);
         }
 
         DeploymentResultDto deploymentResult = new DeploymentResultDto();

@@ -101,10 +101,13 @@ export class ApplicationListComponent implements OnInit {
     });
   }
 
-  openDeployDialog(appId: number): void {
+  openDeployDialog(appId: number, gitProjectHttpsUrl: string): void {
     const dialogRef = this.dialog.open(DeployDialogComponent, {
       width: '400px',
-      data: appId
+      data: {
+        appId: appId,
+        gitUrl: gitProjectHttpsUrl
+      }
     });
 
     dialogRef.afterClosed().subscribe(branch => {

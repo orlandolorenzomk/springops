@@ -2,6 +2,7 @@ package org.kreyzon.springops.core.deployment.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.kreyzon.springops.common.dto.deployment.CommandResultDto;
 import org.kreyzon.springops.common.dto.deployment.DeploymentResultDto;
 import org.kreyzon.springops.common.dto.deployment.DeploymentStatusDto;
@@ -58,7 +59,7 @@ public class DeploymentManagerController {
             @RequestParam Integer applicationId,
             @RequestParam String branchName,
             @RequestParam DeploymentType deployType,
-            @RequestParam(required = false) Integer port) {
+            @RequestParam(required = false) Integer port) throws GitAPIException {
         return ResponseEntity.ok(deploymentManagerService.manageDeployment(applicationId, branchName, deployType, port));
     }
 }

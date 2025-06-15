@@ -3,6 +3,7 @@ package org.kreyzon.springops.common.exception;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.kreyzon.springops.config.ApplicationConfig;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -83,5 +84,25 @@ public class GlobalExceptionHandler {
             ex.printStackTrace();
         }
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * Handles ExpiredJwtException and returns a JSON response with the error message.
+     *
+     * @param ex the ExpiredJwtException that was thrown.
+     * @return a {@link ResponseEntity} containing the error message and HTTP status.
+     * @author Domenico Ferraro
+     */
+    @ExceptionHandler(GitAPIException.class)
+    public ResponseEntity<Map<String, String>> handleGitAPIException(GitAPIException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        log.error("Git API error: {}", ex.getMessage());
+        errorResponse.put("error", "Git error: " + ex.getMessage());
+
+        if (applicationConfig.getDisplayExceptionStackTraces()) {
+            ex.printStackTrace();
+        }
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_GATEWAY);
     }
 }

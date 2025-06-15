@@ -101,7 +101,7 @@
           </button>
 
           <!-- Deploy Action -->
-          <button mat-menu-item (click)="openDeployDialog(element.id)">
+          <button mat-menu-item (click)="openDeployDialog(element.id, element.gitProjectHttpsUrl)">
             <mat-icon color="accent">cloud_upload</mat-icon>
             <span>Deploy</span>
             <mat-progress-spinner *ngIf="loadingActions[element.id]?.deploy"
