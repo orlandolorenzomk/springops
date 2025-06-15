@@ -53,10 +53,23 @@ public class EmailController {
     }
 
     /**
+     * Deletes an email configuration by its identifier.
+     *
+     * @param id the identifier of the configuration to delete
+     * @return a response indicating the deletion status
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteById(@NotBlank @PathVariable("id") String id) {
+        log.info("Deleting email configuration with ID: {}", id);
+        emailServiceBridge.deleteById(UUID.fromString(id));
+        return ResponseEntity.ok().build();
+    }
+
+    /**
      * Updates an existing email configuration.
      *
      * @param emailConfigurationRequest the email configuration request
-     * @param id the identifier of the configuration to update
+     * @param id                        the identifier of the configuration to update
      * @return the updated email configuration
      */
     @PatchMapping("update/{id}")

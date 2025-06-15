@@ -1,16 +1,17 @@
 package org.kreyzon.springops.core.email.factory;
 
 import io.micrometer.common.util.StringUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.common.utils.EncryptionUtils;
 import org.kreyzon.springops.config.ApplicationConfig;
-import org.kreyzon.springops.core.email.constants.MailjetConstants;
+import org.kreyzon.springops.core.email.config.MailConfig;
 import org.kreyzon.springops.core.email.entity.EmailConfiguration;
 import org.kreyzon.springops.core.email.entity.MailjetConfiguration;
 import org.kreyzon.springops.core.email.entity.SmtpConfiguration;
 import org.kreyzon.springops.core.email.enums.SmtpSecurity;
-import org.springframework.beans.factory.annotation.Value;
+import org.kreyzon.springops.core.email.config.MailjetConfig;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -26,25 +27,12 @@ import java.util.Properties;
  */
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class MailSenderFactory {
 
     private final ApplicationConfig applicationConfig;
-
-    // TODO put in a class with @ConfigurationProperties
-    @Value("${mail.smtp.connectiontimeout:5000}")
-    private int connectionTimeout;
-
-    // TODO put in a class with @ConfigurationProperties
-    @Value("${mail.smtp.timeout:5000}")
-    private int timeout;
-
-    // TODO put in a class with @ConfigurationProperties
-    @Value("${mail.smtp.writetimeout:5000}")
-    private int writeTimeout;
-
-    public MailSenderFactory(ApplicationConfig applicationConfig) {
-        this.applicationConfig = applicationConfig;
-    }
+    private final MailjetConfig mailjetConfig;
+    private final MailConfig mailConfig;
 
     /**
      * Creates a JavaMailSender based on the provided email configuration.
@@ -75,7 +63,7 @@ public class MailSenderFactory {
      * @throws SpringOpsException with {@link HttpStatus#INTERNAL_SERVER_ERROR} if unable to decrypt the password.
      */
     private JavaMailSenderImpl createSmtpMailSender(SmtpConfiguration config) {
-        log.info("Creating SMTP JavaMailSender with configuration: {}", config);
+
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         mailSender.setHost(config.getHost());
         mailSender.setPort(config.getPort());
@@ -111,11 +99,11 @@ public class MailSenderFactory {
     private JavaMailSenderImpl createMailjetSender(MailjetConfiguration config) {
         log.info("Creating Mailjet JavaMailSender with configuration: {}", config);
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        int port = MailjetConstants.MAILJET_PORTS.get(config.getSecurityProtocol());
+        int port = mailjetConfig.getPorts().get(config.getSecurityProtocol());
 
-        mailSender.setHost(MailjetConstants.MAILJET_HOST);
+        mailSender.setHost(mailjetConfig.getHost());
         mailSender.setPort(port);
-        mailSender.setProtocol(MailjetConstants.PROTOCOL_SMTP);
+        mailSender.setProtocol(mailjetConfig.getProtocol());
 
         String apiKey;
         String apiSecret;
@@ -155,9 +143,9 @@ public class MailSenderFactory {
         configureSecurity(props, config.getSecurityProtocol(), mailSender.getPort());
 
         // Timeout settings
-        props.put("mail.smtp.connectiontimeout", connectionTimeout);
-        props.put("mail.smtp.timeout", timeout);
-        props.put("mail.smtp.writetimeout", writeTimeout);
+        props.put("mail.smtp.connectiontimeout", mailConfig.getConnectionTimeout());
+        props.put("mail.smtp.timeout", mailConfig.getTimeout());
+        props.put("mail.smtp.writetimeout", mailConfig.getWriteTimeout());
         log.info("Configured mail sender with host: {}, port: {}, protocol: {}, useAuth: {}",
                 mailSender.getHost(), mailSender.getPort(), mailSender.getProtocol(), useAuth);
         return mailSender;

@@ -40,18 +40,6 @@ public class MailjetService extends EmailService {
     }
 
     @Transactional
-    public void deleteById(String id) {
-        UUID uuid = UUID.fromString(id);
-        this.mailjetConfigurationRepository.deleteById(uuid);
-    }
-
-    @Transactional
-    public void deleteById(UUID id) {
-        this.mailjetConfigurationRepository.deleteById(id);
-    }
-
-
-    @Transactional
     public EmailConfigurationDto save(MailjetConfigurationRequest emailConfigurationRequest) {
         MailjetConfiguration mailjetConfiguration = mapper.fromRequest(emailConfigurationRequest);
         mailjetConfiguration.setCreatedAt(Instant.now());
