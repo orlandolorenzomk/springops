@@ -38,6 +38,8 @@ export class ApplicationFormComponent implements OnInit {
   }
 
   initializeForm(): void {
+    const memoryPattern = /^[0-9]+[mgMG]$/;
+
     this.form = this.fb.group({
       id: [null],
       name: ['', Validators.required],
@@ -45,7 +47,9 @@ export class ApplicationFormComponent implements OnInit {
       description: [''],
       gitProjectHttpsUrl: ['', Validators.required],
       javaSystemVersionId: [null, Validators.required],
-      mvnSystemVersionId: [null, Validators.required]
+      mvnSystemVersionId: [null, Validators.required],
+      javaMinimumMemory: ['', Validators.pattern(memoryPattern)],
+      javaMaximumMemory: ['', Validators.pattern(memoryPattern)]
     });
   }
 
@@ -57,20 +61,34 @@ export class ApplicationFormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.form.valid) {
-      const applicationDto = this.form.value as ApplicationDto;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
-      if (this.mode === 'create') {
-        this.applicationService.save(applicationDto).subscribe(
-          () => this.dialogRef.close(true),
-          error => console.error('Error creating application', error)
-        );
-      } else {
-        this.applicationService.update(applicationDto.id, applicationDto).subscribe(
-          () => this.dialogRef.close(true),
-          error => console.error('Error updating application', error)
-        );
-      }
+    const dto = this.form.value as ApplicationDto;
+
+    // Provide defaults if empty
+    dto.javaMinimumMemory = dto.javaMinimumMemory?.trim() || '512m';
+    dto.javaMaximumMemory = dto.javaMaximumMemory?.trim() || '1024m';
+
+    // Double-check format
+    const memPattern = /^[0-9]+[mMgG]$/;
+    if (!memPattern.test(dto.javaMinimumMemory) || !memPattern.test(dto.javaMaximumMemory)) {
+      console.error('Memory format invalid');
+      return;
+    }
+
+    if (this.mode === 'create') {
+      this.applicationService.save(dto).subscribe(
+        () => this.dialogRef.close(true),
+        error => console.error('Error creating application', error)
+      );
+    } else {
+      this.applicationService.update(dto.id, dto).subscribe(
+        () => this.dialogRef.close(true),
+        error => console.error('Error updating application', error)
+      );
     }
   }
 

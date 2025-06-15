@@ -19,4 +19,6 @@ export interface ApplicationDto {
   javaSystemVersionId: number | null;
   gitProjectHttpsUrl: string;
   port: number;
+  javaMinimumMemory?: string;
+  javaMaximumMemory?: string;
 }

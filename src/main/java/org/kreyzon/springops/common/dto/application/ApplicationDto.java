@@ -25,8 +25,16 @@ public class ApplicationDto implements Serializable {
     Integer javaSystemVersionId;
     String gitProjectHttpsUrl;
     Integer port;
+    String javaMinimumMemory;
+    String javaMaximumMemory;
 
 
+    /**
+     * Converts an {@link Application} entity to an {@link ApplicationDto}.
+     *
+     * @param application the application entity to convert
+     * @return the converted ApplicationDto
+     */
     public static ApplicationDto fromEntity(Application application) {
         return new ApplicationDto(
                 application.getId(),
@@ -37,10 +45,18 @@ public class ApplicationDto implements Serializable {
                 application.getMvnSystemVersion() != null ? application.getMvnSystemVersion().getId() : null,
                 application.getJavaSystemVersion() != null ? application.getJavaSystemVersion().getId() : null,
                 application.getGitProjectHttpsUrl(),
-                application.getPort() != null ? application.getPort() : 0
+                application.getPort() != null ? application.getPort() : 0,
+                application.getJavaMinimumMemory() != null ? application.getJavaMinimumMemory() : "512m",
+                application.getJavaMaximumMemory() != null ? application.getJavaMaximumMemory() : "1024m"
         );
     }
 
+    /**
+     * Converts an {@link ApplicationDto} to an {@link Application} entity.
+     *
+     * @param applicationDto the application DTO to convert
+     * @return the converted Application entity
+     */
     public static Application toEntity(ApplicationDto applicationDto) {
         return Application.builder()
                 .id(applicationDto.getId())
@@ -50,6 +66,8 @@ public class ApplicationDto implements Serializable {
                 .createdAt(applicationDto.getCreatedAt())
                 .gitProjectHttpsUrl(applicationDto.getGitProjectHttpsUrl())
                 .port(applicationDto.getPort())
+                .javaMinimumMemory(applicationDto.getJavaMinimumMemory())
+                .javaMaximumMemory(applicationDto.getJavaMaximumMemory())
                 .build();
     }
 }
