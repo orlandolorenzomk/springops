@@ -76,4 +76,9 @@ export class DeploymentService {
     });
   }
 
+  updateDeploymentNotes(id: number, value: string) {
+    return this.http.patch(this.apiUrl + `/${id}/notes`, null, {
+      params: { value }
+    });
+  }
 }

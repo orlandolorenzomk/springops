@@ -193,9 +193,11 @@ public class ApplicationService {
 
         String sourceDirectory = rootDirectory + "/" + applicationConfig.getDirectorySource();
         String backupDirectory = rootDirectory + "/" + applicationConfig.getDirectoryBackups();
+        String logsDirectory = rootDirectory + "/" + applicationConfig.getDirectoryApplicationLogs();
 
         createDirectory(sourceDirectory);
         createDirectory(backupDirectory);
+        createDirectory(logsDirectory);
     }
 
     /**

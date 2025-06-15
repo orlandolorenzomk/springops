@@ -96,12 +96,23 @@
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef>Actions</th>
         <td mat-cell *matCellDef="let d">
-          <button mat-icon-button (click)="rollbackDeployment(d)">
-            <mat-icon>undo</mat-icon>
+          <button mat-icon-button [matMenuTriggerFor]="menu">
+            <mat-icon>more_vert</mat-icon>
           </button>
-          <button mat-icon-button (click)="downloadLogFile(d.logsPath)" [disabled]="!d.logsPath">
-            <mat-icon>download</mat-icon>
-          </button>
+          <mat-menu #menu="matMenu">
+            <button mat-menu-item class="danger-action" (click)="rollbackDeployment(d)">
+              <mat-icon>undo</mat-icon>
+              <span>Rollback</span>
+            </button>
+            <button mat-menu-item (click)="downloadLogFile(d.logsPath)" [disabled]="!d.logsPath">
+              <mat-icon>download</mat-icon>
+              <span>Download Logs</span>
+            </button>
+            <button mat-menu-item (click)="openNotesDialog(d)">
+              <mat-icon>note</mat-icon>
+              <span>Notes</span>
+            </button>
+          </mat-menu>
         </td>
       </ng-container>
 

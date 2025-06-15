@@ -3,7 +3,8 @@ JAVA_PATH=$1
 SOURCE_DIR=$2
 JAR_NAME=$3
 PORT=$4
-ENV_VARS=$5
+shift 4
+ENV_VARS="$@"
 
 EXIT_CODE=0
 OUTPUT=""
@@ -34,7 +35,6 @@ function finish() {
       message: $message,
       data: $data
     }')
-
   echo "springops-result=${JSON}"
   exit "$EXIT_CODE"
 }
@@ -50,8 +50,34 @@ if [ ! -f "$JAR_PATH" ]; then
   fail 1 "Jar file $JAR_NAME not found in $SOURCE_DIR" ""
 fi
 
-COMMAND="$ENV_VARS $JAVA_PATH/java -jar $JAR_PATH --server.port=$PORT"
-nohup bash -c "$COMMAND" > "$SOURCE_DIR/app.log" 2>&1 &
+JAR_DIR=$(dirname "$JAR_PATH")
+
+# Logs directory next to source
+LOGS_BASE_DIR="$SOURCE_DIR/../logs"
+mkdir -p "$LOGS_BASE_DIR"
+
+ENV_FILE="$JAR_DIR/.env"
+LOG_FILE="$LOGS_BASE_DIR/app.log"
+
+echo -n "" > "$ENV_FILE"
+echo "---- Starting application ----" > "$LOG_FILE"
+
+# Write and export env vars
+for var in "$@"; do
+  echo "$var" >> "$ENV_FILE"
+done
+
+while IFS= read -r line || [[ -n "$line" ]]; do
+  [[ "$line" =~ ^# || -z "$line" ]] && continue
+  export "$line"
+  echo "Exported: $line" >> "$LOG_FILE"
+done < "$ENV_FILE"
+
+COMMAND="\"$JAVA_PATH/java\" -jar \"$JAR_PATH\" --server.port=$PORT"
+echo "Executing command: $COMMAND" >> "$LOG_FILE"
+
+# Run application
+nohup bash -c "exec $COMMAND" >> "$LOG_FILE" 2>&1 &
 
 PID=$!
 sleep 2
@@ -59,8 +85,9 @@ sleep 2
 if ps -p $PID > /dev/null; then
   MESSAGE="Application started successfully"
   DATA="[\"$JAR_NAME\", $PID]"
+  echo "Application started with PID $PID" >> "$LOG_FILE"
 else
-  fail 1 "Application failed to start" "$(cat "$SOURCE_DIR/app.log")"
+  fail 1 "Application failed to start" "$(cat "$LOG_FILE")"
 fi
 
 finish

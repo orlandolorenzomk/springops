@@ -56,6 +56,7 @@ import { ViewLogsDialogComponent } from './dialogs/view-logs-dialog/view-logs-di
 import { MatListModule } from '@angular/material/list';
 import { FootbarComponent } from './components/footbar/footbar.component';
 import {MatProgressBar} from "@angular/material/progress-bar";
+import { NotesDialogComponent } from './dialogs/notes-dialog/notes-dialog.component';
 
 @NgModule({
   declarations: [
@@ -75,7 +76,8 @@ import {MatProgressBar} from "@angular/material/progress-bar";
     DeploymentsListComponent,
     ManageEnvDialogComponent,
     ViewLogsDialogComponent,
-    FootbarComponent
+    FootbarComponent,
+    NotesDialogComponent
   ],
     imports: [
         BrowserModule,

@@ -159,7 +159,7 @@ public class DeploymentService {
      */
     public Deployment findLatestByApplicationId(Integer applicationId) {
         return deploymentRepository.findByCreatedAtDesc(applicationId)
-                .orElseThrow(() -> new SpringOpsException("No running deployments found for application with ID '" + applicationId + "'", HttpStatus.NOT_FOUND));
+                .orElse(null);
     }
 
     /**
@@ -252,5 +252,25 @@ public class DeploymentService {
             log.error("Failed to read log file: {}", filename, e);
             throw new RuntimeException("Error reading log file", e);
         }
+    }
+
+    /**
+     * Updates the notes for a specific deployment.
+     *
+     * @param deploymentId the ID of the deployment to update
+     * @param notes        the new notes to set for the deployment
+     * @return the updated DeploymentDto representing the deployment with updated notes
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the deployment with the given ID does not exist
+     */
+    public DeploymentDto updateNotes(Integer deploymentId, String notes) {
+        log.info("Updating notes for deployment with ID: {}", deploymentId);
+        Deployment deployment = deploymentRepository.findById(deploymentId)
+                .orElseThrow(() -> new SpringOpsException("Deployment with ID '" + deploymentId + "' does not exist", HttpStatus.NOT_FOUND));
+
+        deployment.setNotes(notes);
+        deploymentRepository.save(deployment);
+
+        log.info("Updated notes for deployment with ID: {}", deploymentId);
+        return DeploymentDto.fromEntity(deployment);
     }
 }

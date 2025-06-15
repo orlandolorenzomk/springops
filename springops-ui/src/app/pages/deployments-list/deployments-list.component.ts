@@ -7,6 +7,7 @@ import { DeployDialogComponent } from '../../dialogs/deploy-dialog/deploy-dialog
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { PageEvent } from '@angular/material/paginator';
 import {ActivatedRoute, Router} from "@angular/router";
+import {NotesDialogComponent} from "../../dialogs/notes-dialog/notes-dialog.component";
 
 @Component({
   selector: 'app-deployments-list',
@@ -248,4 +249,20 @@ export class DeploymentsListComponent implements OnInit {
     });
   }
 
+  openNotesDialog(deployment: DeploymentDto): void {
+    const dialogRef = this.dialog.open(NotesDialogComponent, {
+      width: '500px',
+      data: { notes: deployment.notes || '' }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result !== null) {
+        const updatedDeployment = { ...deployment, notes: result };
+        this.deploymentService.updateDeploymentNotes(updatedDeployment.id!, result).subscribe({
+          next: () => this.loadDeployments(),
+          error: (err: any) => console.error('Failed to update notes', err)
+        });
+      }
+    });
+  }
 }

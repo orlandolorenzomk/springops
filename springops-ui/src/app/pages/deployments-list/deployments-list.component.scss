@@ -165,4 +165,12 @@
     width: 100%;
     margin-bottom: 12px;
   }
+
+  .danger-action {
+    color: #d32f2f;
+
+    mat-icon {
+      color: #d32f2f;
+    }
+  }
 }

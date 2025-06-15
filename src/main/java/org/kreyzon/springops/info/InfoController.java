@@ -9,11 +9,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.io.FileReader;
 
+/**
+ * Controller to provide application information such as group ID, artifact ID, and version.
+ * This information is read from the `pom.xml` file of the application.
+ *
+ * @author Lorenzo Orlando
+ * @email orlandolorenzo@kreyzon.com
+ */
 @RestController
 @RequestMapping("/info")
 @Slf4j
 public class InfoController {
 
+    /**
+     * Retrieves application information from the `pom.xml` file.
+     *
+     * @return InfoDto containing group ID, artifact ID, and version of the application.
+     */
     @GetMapping
     public InfoDto getInfo() {
         try (FileReader reader = new FileReader("pom.xml")) {
