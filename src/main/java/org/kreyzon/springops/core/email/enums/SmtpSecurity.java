@@ -12,7 +12,8 @@ import org.springframework.http.HttpStatus;
 public enum SmtpSecurity {
     STARTTLS("STARTTLS"),
     NONE("NONE"),
-    SSL("SSL");
+    SSL("SSL"),
+    TLS("TLS");
 
     private final String value;
 

@@ -1,0 +1,54 @@
+server:
+  port: ${PORT}
+  servlet:
+    context-path: /kreyzon/springops/api
+
+spring:
+  application:
+    name: springops
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: false
+  flyway:
+    enabled: true
+    url: ${DB_URL}
+    user: ${DB_USER}
+    password: ${DB_PASSWORD}
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+logging:
+  level:
+    root: INFO
+    org:
+      flywaydb: DEBUG
+jwt:
+  secret: ${JWT_SECRET} # Secret key for JWT signing
+  expiration: ${JWT_EXPIRATION} # JWT expiration time in seconds
+  header: Authorization
+  prefix: Bearer
+
+application:
+  secret: ${APP_SECRET} # Secret key for data encryption
+  algorithm: ${APP_ALGORITHM:AES} # Encryption algorithm
+  git-token: ${APP_GIT_TOKEN} # Git personal access token for repository access
+  standard-admin-username: ${APP_STANDARD_ADMIN_USERNAME:admin}
+  standard-admin-email: ${APP_STANDARD_ADMIN_EMAIL:springops@kreyzon.com}
+  standard-admin-password-length: ${APP_STANDARD_ADMIN_PASSWORD_LENGTH:8}
+  root-directory-name: ${APP_ROOT_DIRECTORY_NAME:springops}
+  directory-applications: ${APP_DIRECTORY_APPLICATIONS:applications}
+  directory-source: ${APP_DIRECTORY_SOURCE:source}
+  directory-backups: ${APP_DIRECTORY_BACKUPS:backups}
+  maximum-env-files-per-application: ${APP_MAXIMUM_ENV_FILES_PER_APPLICATION:599}
+  display-process-logs: ${APP_DISPLAY_PROCESS_LOGS:true}
+  display-exception-stack-traces: ${APP_DISPLAY_EXCEPTION_STACK_TRACES:true}
+  directory-application-logs: ${APP_DIRECTORY_APPLICATION_LOGS:logs}

@@ -7,8 +7,8 @@ import org.kreyzon.springops.common.utils.EncryptionUtils;
 import org.kreyzon.springops.config.ApplicationConfig;
 import org.kreyzon.springops.core.email.constants.MailjetConstants;
 import org.kreyzon.springops.core.email.entity.EmailConfiguration;
-import org.kreyzon.springops.core.email.entity.MailjetConfig;
-import org.kreyzon.springops.core.email.entity.SmtpConfig;
+import org.kreyzon.springops.core.email.entity.MailjetConfiguration;
+import org.kreyzon.springops.core.email.entity.SmtpConfiguration;
 import org.kreyzon.springops.core.email.enums.SmtpSecurity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -26,10 +26,9 @@ import java.util.Properties;
  */
 @Component
 @Slf4j
-public class EmailServiceFactory {
+public class MailSenderFactory {
 
     private final ApplicationConfig applicationConfig;
-
 
     @Value("${mail.smtp.connectiontimeout:5000}")
     private int connectionTimeout;
@@ -40,7 +39,7 @@ public class EmailServiceFactory {
     @Value("${mail.smtp.writetimeout:5000}")
     private int writeTimeout;
 
-    public EmailServiceFactory(ApplicationConfig applicationConfig) {
+    public MailSenderFactory(ApplicationConfig applicationConfig) {
         this.applicationConfig = applicationConfig;
     }
 
@@ -56,10 +55,10 @@ public class EmailServiceFactory {
             log.info("Email configuration is null, cannot create JavaMailSender");
             throw new SpringOpsException("Email configuration cannot be null", HttpStatus.BAD_REQUEST);
         }
-        if (config instanceof SmtpConfig) {
-            return createSmtpMailSender((SmtpConfig) config);
-        } else if (config instanceof MailjetConfig) {
-            return createMailjetSender((MailjetConfig) config);
+        if (config instanceof SmtpConfiguration) {
+            return createSmtpMailSender((SmtpConfiguration) config);
+        } else if (config instanceof MailjetConfiguration) {
+            return createMailjetSender((MailjetConfiguration) config);
         }
         throw new SpringOpsException("Unsupported email configuration type", HttpStatus.BAD_REQUEST);
     }
@@ -72,7 +71,7 @@ public class EmailServiceFactory {
      * @throws SpringOpsException with {@link HttpStatus#BAD_REQUEST} if authentication is enabled but username or password is missing.
      * @throws SpringOpsException with {@link HttpStatus#INTERNAL_SERVER_ERROR} if unable to decrypt the password.
      */
-    private JavaMailSenderImpl createSmtpMailSender(SmtpConfig config) {
+    private JavaMailSenderImpl createSmtpMailSender(SmtpConfiguration config) {
         log.info("Creating SMTP JavaMailSender with configuration: {}", config);
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         mailSender.setHost(config.getHost());
@@ -106,7 +105,7 @@ public class EmailServiceFactory {
      * @throws SpringOpsException with {@link HttpStatus#INTERNAL_SERVER_ERROR} if unable to decrypt API credentials.
      * @return Configured JavaMailSenderImpl
      */
-    private JavaMailSenderImpl createMailjetSender(MailjetConfig config) {
+    private JavaMailSenderImpl createMailjetSender(MailjetConfiguration config) {
         log.info("Creating Mailjet JavaMailSender with configuration: {}", config);
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         int port = MailjetConstants.MAILJET_PORTS.get(config.getSecurityProtocol());
@@ -165,7 +164,7 @@ public class EmailServiceFactory {
      * Configures security settings based on the specified SMTP security protocol.
      *
      * @param props            JavaMail properties
-     * @param securityProtocol Security protocol (SSL, STARTTLS, NONE)
+     * @param securityProtocol Security protocol (SSL,TLS, STARTTLS, NONE)
      * @param port             SMTP port
      */
     private void configureSecurity(Properties props, SmtpSecurity securityProtocol, int port) {
@@ -181,6 +180,7 @@ public class EmailServiceFactory {
                 props.put("mail.smtp.socketFactory.port", port);
                 props.put("mail.smtp.ssl.trust", "*");
                 break;
+            case TLS:
             case STARTTLS:
                 props.put("mail.smtp.starttls.enable", true);
                 props.put("mail.smtp.starttls.required", true);

@@ -3,6 +3,7 @@ package org.kreyzon.springops.core.email.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.kreyzon.springops.core.email.enums.EmailProvider;
 import org.kreyzon.springops.core.email.enums.SmtpSecurity;
 
 import java.time.Instant;
@@ -11,13 +12,14 @@ import java.util.UUID;
 /**
  * Abstract class representing the base configuration for email services.
  * This class is extended by specific email configuration implementations.
+ * Inheritance is managed using the JOINED strategy,
  * @author Domenico Ferraro
  */
 @Getter
 @Setter
 @Entity
 @Table(name = "email_configuration")
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@Inheritance(strategy = InheritanceType.JOINED)
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
@@ -25,7 +27,7 @@ import java.util.UUID;
 public abstract class EmailConfiguration {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false)
     private UUID id;
 
@@ -47,5 +49,9 @@ public abstract class EmailConfiguration {
 
     @Column(name = "use_debug", nullable = false)
     private Boolean useDebug;
+
+    @Column(name = "email_provider", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private EmailProvider emailProvider;
 }
 

@@ -2,25 +2,37 @@ package org.kreyzon.springops.core.email.service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.common.dto.email.Attachment;
 import org.kreyzon.springops.common.dto.email.MailDto;
+import org.kreyzon.springops.common.exception.SpringOpsException;
+import org.kreyzon.springops.core.email.dto.EmailConfigurationDto;
+import org.kreyzon.springops.core.email.entity.EmailConfiguration;
+import org.kreyzon.springops.core.email.mapper.EmailConfigurationMapper;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Component;
 
 import java.util.Base64;
 
+/**
+ * Abstract service for sending emails.
+ * Provides a method to send emails with attachments and CC recipients.
+ * Handles MIME message creation and sending via JavaMailSender.
+ *
+ * @author Domenico Ferraro
+ */
 @Slf4j
+@Component
+@RequiredArgsConstructor
 public abstract class EmailService {
 
-    private final JavaMailSenderImpl javaMailSender;
+    protected final EmailConfigurationMapper mapper;
 
-    EmailService(JavaMailSenderImpl javaMailSender) {
-        this.javaMailSender = javaMailSender;
-    }
-
-    public void sendEmail(MailDto mailDto) {
+     public void sendEmail(MailDto mailDto, JavaMailSenderImpl javaMailSender) {
         log.info("Sending email to: {}", mailDto.getReceiver());
         log.info("Subject: {}", mailDto.getSubject());
         log.info("Body: {}", mailDto.getBody());
@@ -35,7 +47,7 @@ public abstract class EmailService {
             helper.setTo(mailDto.getReceiver());
             helper.setSubject(mailDto.getSubject());
             helper.setText(mailDto.getBody(), true); // true indicates HTML content
-            helper.setFrom("orlandolorenzo@kreyzon.com");
+            helper.setFrom("springops_test@kreyzon.com");
 
             // Add CC recipients if any
             if (mailDto.getCc() != null && !mailDto.getCc().isEmpty()) {
@@ -67,35 +79,23 @@ public abstract class EmailService {
             log.info("Email sent successfully to: {}", mailDto.getReceiver());
         } catch (MessagingException e) {
             log.error("Failed to send email to: {}", mailDto.getReceiver(), e);
-            throw new RuntimeException("Failed to send email", e);
+            throw new SpringOpsException("Failed to send email", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     private String getFileExtension(String mimeType) {
-        String extension;
-        switch (mimeType) {
-            case "application/pdf":
-                extension = "pdf";
-                break;
-            case "image/png":
-                extension = "png";
-                break;
-            case "image/jpeg":
-                extension = "jpg";
-                break;
-            case "text/plain":
-                extension = "txt";
-                break;
-            case "application/msword":
-                extension = "doc";
-                break;
-            case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-                extension = "docx";
-                break;
-            default:
-                extension = "bin"; // Default to a generic binary file
-                break;
-        }
-        return extension;
+        return switch (mimeType) {
+            case "application/pdf" -> "pdf";
+            case "image/png" -> "png";
+            case "image/jpeg" -> "jpg";
+            case "text/plain" -> "txt";
+            case "application/msword" -> "doc";
+            case "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> "docx";
+            default -> "bin"; // Default to a generic binary file
+        };
+    }
+
+    EmailConfigurationDto toDto(EmailConfiguration emailConfiguration) {
+        return mapper.toDto(emailConfiguration);
     }
 }

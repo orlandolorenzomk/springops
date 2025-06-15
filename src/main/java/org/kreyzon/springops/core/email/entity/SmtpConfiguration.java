@@ -1,10 +1,11 @@
 package org.kreyzon.springops.core.email.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.kreyzon.springops.core.email.enums.SmtpSecurity;
+import org.kreyzon.springops.core.email.dto.SmtpConfigurationDto;
+import org.kreyzon.springops.core.email.enums.EmailProvider;
+import org.kreyzon.springops.core.email.request.SmtpConfigurationRequest;
 
 /**
  * Entity representing the configuration for SMTP email service.
@@ -13,10 +14,14 @@ import org.kreyzon.springops.core.email.enums.SmtpSecurity;
  */
 @Entity
 @Table(name = "smtp_config")
+@PrimaryKeyJoinColumn(name = "config_id")
 @Getter
+@Setter
 @SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
 @ToString(exclude = {"description", "password"}, callSuper = true)
-public class SmtpConfig extends EmailConfiguration {
+public class SmtpConfiguration extends EmailConfiguration {
 
     @Column(name = "host", nullable = false)
     private String host;
@@ -35,5 +40,11 @@ public class SmtpConfig extends EmailConfiguration {
 
     @Column(name = "password")
     private String password;
+
+    @PrePersist
+    @PreUpdate
+    private void prePersist() {
+        setEmailProvider(EmailProvider.SMTP);
+    }
 
 }

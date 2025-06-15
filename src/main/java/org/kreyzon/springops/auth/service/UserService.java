@@ -65,7 +65,14 @@ public class UserService implements UserDetailsService {
      */
     public UserDto create(UserDto userDto) {
         log.info("Creating new user: {}", userDto.getUsername());
-        // TODO Check if user already exists by email or username
+
+        if(userRepository.existsByEmail(userDto.getEmail())) {
+            throw new SpringOpsException("Email already exists: " + userDto.getEmail(), HttpStatus.CONFLICT);
+        }
+
+        if(userRepository.existsByUsername(userDto.getUsername())) {
+            throw new SpringOpsException("Username already exists: " + userDto.getUsername(), HttpStatus.CONFLICT);
+        }
         User user = User.builder()
                 .id(UUID.randomUUID())
                 .username(userDto.getUsername())
