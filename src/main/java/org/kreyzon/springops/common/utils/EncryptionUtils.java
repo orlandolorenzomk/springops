@@ -29,7 +29,7 @@ public class EncryptionUtils {
      */
     public static String encrypt(String plainText, String hexSecret, String algorithm) throws Exception {
         if(StringUtils.isBlank(plainText)) {
-            log.warn("Plain text is empty or null, returning as is.");
+            log.warn("Plain text is empty or null, unable to encrypt returning as is.");
             return plainText; // Return the plain text if it's empty or null
         }
         byte[] secretBytes = hexStringToByteArray(hexSecret);
@@ -53,6 +53,10 @@ public class EncryptionUtils {
      * @throws SpringOpsException with {@link HttpStatus#BAD_REQUEST} if decryption fails due to an invalid key length.
      */
     public static String decrypt(String encryptedText, String hexSecret, String algorithm) throws Exception {
+        if (StringUtils.isBlank(encryptedText)) {
+            log.warn("Encrypted text is empty or null, unable to decrypt returning as is.");
+            return encryptedText; // Return the encrypted text if it's empty or null
+        }
         byte[] secretBytes = hexStringToByteArray(hexSecret);
         if (secretBytes.length != 32) { // Validate 256-bit key length
             throw new SpringOpsException("Invalid AES key length: " + secretBytes.length, HttpStatus.BAD_REQUEST);

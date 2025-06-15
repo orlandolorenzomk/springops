@@ -549,4 +549,32 @@ class EmailControllerTest {
         JavaMailSender mailSender = mailSenderFactory.createJavaMailSender(smtpConfig);
         smtpService.sendEmail(mailDto, (JavaMailSenderImpl) mailSender);
     }
+
+    @Test
+    @Order(16)
+    @DisplayName("Should delete SMTP configuration by ID")
+    void shouldDeleteSmtpConfigurationById() throws Exception {
+        mockMvc.perform(delete(BASE_URL + "/" + smtpConfigId)
+                        .header("Authorization", "Bearer " + BEARER_TOKEN))
+                .andExpect(status().isOk());
+
+        // Verify deletion
+        mockMvc.perform(get(BASE_URL + "/" + smtpConfigId)
+                        .header("Authorization", "Bearer " + BEARER_TOKEN))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @Order(17)
+    @DisplayName("Should delete Mailjet configuration by ID")
+    void shouldDeleteMailjetConfigurationById() throws Exception {
+        mockMvc.perform(delete(BASE_URL + "/" + mailjetConfigId)
+                        .header("Authorization", "Bearer " + BEARER_TOKEN))
+                .andExpect(status().isOk());
+
+        // Verify deletion
+        mockMvc.perform(get(BASE_URL + "/" + mailjetConfigId)
+                        .header("Authorization", "Bearer " + BEARER_TOKEN))
+                .andExpect(status().isNotFound());
+    }
 }

@@ -1,6 +1,7 @@
 package org.kreyzon.springops.core.email.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.core.email.dto.EmailConfigurationDto;
 import org.kreyzon.springops.core.email.entity.EmailConfiguration;
@@ -26,6 +27,7 @@ import java.util.UUID;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmailServiceBridge {
 
     private final SmtpService smtpService;
@@ -49,6 +51,25 @@ public class EmailServiceBridge {
         } else {
             throw new SpringOpsException("Unsupported email configuration type", HttpStatus.BAD_REQUEST);
         }
+    }
+
+    /**
+     * Deletes an email configuration by its identifier.
+     * Checks if the configuration exists before attempting to delete it.
+     *
+     * @param id The identifier of the email configuration to delete
+     * @return true if the deletion was successful
+     *
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the configuration is not found
+     */
+    public boolean deleteById(UUID id) {
+        boolean exists = emailConfigurationRepository.existsById(id);
+        if (!exists) {
+            log.info("Email configuration not found by id: {}", id);
+            throw new SpringOpsException("Email configuration not found by id: "+id, HttpStatus.NOT_FOUND);
+        }
+        emailConfigurationRepository.deleteById(id);
+        return true;
     }
 
     /**

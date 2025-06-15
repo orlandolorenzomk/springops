@@ -11,6 +11,7 @@ import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.core.email.dto.EmailConfigurationDto;
 import org.kreyzon.springops.core.email.entity.EmailConfiguration;
 import org.kreyzon.springops.core.email.mapper.EmailConfigurationMapper;
+import org.kreyzon.springops.core.email.utils.EmailUtils;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
@@ -81,7 +82,7 @@ public abstract class EmailService {
                             continue;
                         }
 
-                        String fileName = "attachment." + getFileExtension(attachment.getFileType());
+                        String fileName = "attachment." + EmailUtils.getFileExtension(attachment.getFileType());
                         helper.addAttachment(fileName, new ByteArrayResource(decodedBytes));
                     } catch (SpringOpsException e) {
                         log.error("Invalid Base64 for attachment: {}", attachment.getFileName(), e);
@@ -96,19 +97,6 @@ public abstract class EmailService {
             log.error("Failed to send email to: {}", mailDto.getReceiver(), e);
             throw new SpringOpsException("Failed to send email", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
-
-    // TODO Export in a class called EmailUtils
-    private String getFileExtension(String mimeType) {
-        return switch (mimeType) {
-            case "application/pdf" -> "pdf";
-            case "image/png" -> "png";
-            case "image/jpeg" -> "jpg";
-            case "text/plain" -> "txt";
-            case "application/msword" -> "doc";
-            case "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> "docx";
-            default -> "bin"; // Default to a generic binary file
-        };
     }
 
     EmailConfigurationDto toDto(EmailConfiguration emailConfiguration) {

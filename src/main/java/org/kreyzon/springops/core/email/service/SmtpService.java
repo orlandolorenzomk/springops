@@ -35,23 +35,14 @@ public class SmtpService extends EmailService {
     }
 
     public SmtpConfiguration findById(UUID id) {
+        log.info("Retrieving SMTP configuration with ID: {}", id);
         return this.smtpConfigurationRepository.findById(id)
                 .orElseThrow(() -> new SpringOpsException("SMTP configuration not found", HttpStatus.NOT_FOUND));
     }
 
     @Transactional
-    public void deleteById(String id) {
-        UUID uuid = UUID.fromString(id);
-        this.smtpConfigurationRepository.deleteById(uuid);
-    }
-
-    @Transactional
-    public void deleteById(UUID id) {
-        this.smtpConfigurationRepository.deleteById(id);
-    }
-
-    @Transactional
     public EmailConfigurationDto save(SmtpConfigurationRequest emailConfigurationRequest) {
+        log.info("Saving new SMTP configuration: {}", emailConfigurationRequest);
        this.validateAuthOrThrow(emailConfigurationRequest);
         SmtpConfiguration smtpConfiguration = mapper.fromRequest(emailConfigurationRequest);
         smtpConfiguration.setCreatedAt(Instant.now());
@@ -70,6 +61,7 @@ public class SmtpService extends EmailService {
      */
     @Transactional
     public EmailConfigurationDto update(SmtpConfigurationRequest emailConfigurationRequest, EmailConfiguration existingConfig) {
+        log.info("Updating SMTP configuration with ID: {}", existingConfig.getId());
         this.validateAuthOrThrow(emailConfigurationRequest);
         SmtpConfiguration smtpConfig = mapper.fromRequest(emailConfigurationRequest);
         smtpConfig.setId(existingConfig.getId());

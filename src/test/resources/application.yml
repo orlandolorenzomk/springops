@@ -52,3 +52,18 @@ application:
   display-process-logs: ${APP_DISPLAY_PROCESS_LOGS:true}
   display-exception-stack-traces: ${APP_DISPLAY_EXCEPTION_STACK_TRACES:true}
   directory-application-logs: ${APP_DIRECTORY_APPLICATION_LOGS:logs}
+
+mailjet:
+  host: ${MAILJET_HOST:in-v3.mailjet.com}
+  protocol: ${MAILJET_PROTOCOL:smtp}
+  ports:
+    STARTTLS: ${MAILJET_PORT_STARTTLS:587}
+    SSL: ${MAILJET_PORT_SSL:465}
+    TLS: ${MAILJET_PORT_TLS:587}
+    NONE: ${MAILJET_PORT_NONE:25}
+
+mail:
+  smtp:
+    connection-timeout: ${MAIL_SMTP_CONNECTION_TIMEOUT:5000}
+    timeout: ${MAIL_SMTP_TIMEOUT:10000}
+    write-timeout: ${MAIL_SMTP_WRITE_TIMEOUT:5000}
