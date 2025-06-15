@@ -11,7 +11,7 @@ import java.util.Map;
  * @author Domenico Ferraro
  */
 public class MailjetConstants {
-    public static String MAILJET_HOST = "in-v3.mailjet.com";
+    public static String MAILJET_HOST = "in-v3.mailjet.com"; // TODO Put in application.yml
     public static Map<SmtpSecurity, Integer> MAILJET_PORTS = Map.of(
         SmtpSecurity.STARTTLS, 587,
         SmtpSecurity.SSL, 465,
@@ -19,7 +19,4 @@ public class MailjetConstants {
     );
 
     public static String PROTOCOL_SMTP = "smtp";
-
-
-
 }

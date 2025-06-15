@@ -21,7 +21,6 @@ import org.kreyzon.springops.core.email.request.MailjetConfigurationRequest;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(callSuper = true, exclude = {"apiKey", "apiSecret"})
 public class MailjetConfiguration extends EmailConfiguration {
 
     @Column(name = "api_key", nullable = false)

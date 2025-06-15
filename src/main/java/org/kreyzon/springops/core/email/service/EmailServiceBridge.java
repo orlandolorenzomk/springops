@@ -41,7 +41,6 @@ public class EmailServiceBridge {
      *
      * @throws SpringOpsException with {@link HttpStatus#BAD_REQUEST} if the request type is unsupported
      */
-    @Transactional
     public EmailConfigurationDto save(EmailConfigurationRequest request) {
         if (request instanceof SmtpConfigurationRequest smtpConfig) {
             return smtpService.save(smtpConfig);
@@ -111,7 +110,6 @@ public class EmailServiceBridge {
      * @throws SpringOpsException with {@link HttpStatus#BAD_REQUEST} if the migration is not supported
      *
      */
-    @Transactional
     private EmailConfigurationDto migrateConfiguration(EmailConfigurationRequest request, EmailConfiguration existingConfig) {
         this.emailConfigurationRepository.delete(existingConfig);
         this.emailConfigurationRepository.flush();

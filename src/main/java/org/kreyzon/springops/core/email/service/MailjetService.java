@@ -66,8 +66,4 @@ public class MailjetService extends EmailService {
         mailjetConfig.setUpdatedAt(Instant.now());
         return mapper.toDto(mailjetConfigurationRepository.save(mailjetConfig));
     }
-
-
-
-
 }

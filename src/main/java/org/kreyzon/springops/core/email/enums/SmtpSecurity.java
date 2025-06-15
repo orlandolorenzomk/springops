@@ -1,5 +1,6 @@
 package org.kreyzon.springops.core.email.enums;
 
+import lombok.Getter;
 import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.springframework.http.HttpStatus;
 
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
  *
  * @author Domenico Ferraro
  */
+@Getter
 public enum SmtpSecurity {
     STARTTLS("STARTTLS"),
     NONE("NONE"),
@@ -19,9 +21,6 @@ public enum SmtpSecurity {
 
     SmtpSecurity(String value) {
         this.value = value;
-    }
-    public String getValue() {
-        return value;
     }
 
     public static SmtpSecurity fromValue(String value) {

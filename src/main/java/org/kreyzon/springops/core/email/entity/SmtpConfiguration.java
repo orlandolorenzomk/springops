@@ -20,7 +20,6 @@ import org.kreyzon.springops.core.email.request.SmtpConfigurationRequest;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = {"description", "password"}, callSuper = true)
 public class SmtpConfiguration extends EmailConfiguration {
 
     @Column(name = "host", nullable = false)

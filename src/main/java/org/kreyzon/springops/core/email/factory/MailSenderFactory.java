@@ -30,12 +30,15 @@ public class MailSenderFactory {
 
     private final ApplicationConfig applicationConfig;
 
+    // TODO put in a class with @ConfigurationProperties
     @Value("${mail.smtp.connectiontimeout:5000}")
     private int connectionTimeout;
 
+    // TODO put in a class with @ConfigurationProperties
     @Value("${mail.smtp.timeout:5000}")
     private int timeout;
 
+    // TODO put in a class with @ConfigurationProperties
     @Value("${mail.smtp.writetimeout:5000}")
     private int writeTimeout;
 
@@ -52,7 +55,7 @@ public class MailSenderFactory {
      */
     public JavaMailSender createJavaMailSender(EmailConfiguration config) {
         if (config == null) {
-            log.info("Email configuration is null, cannot create JavaMailSender");
+            log.error("Email configuration is null, cannot create JavaMailSender");
             throw new SpringOpsException("Email configuration cannot be null", HttpStatus.BAD_REQUEST);
         }
         if (config instanceof SmtpConfiguration) {

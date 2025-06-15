@@ -23,7 +23,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-@ToString(exclude = {"description"})
 public abstract class EmailConfiguration {
 
     @Id
