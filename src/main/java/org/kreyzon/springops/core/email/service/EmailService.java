@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.kreyzon.springops.SpringOps;
 import org.kreyzon.springops.common.dto.email.Attachment;
 import org.kreyzon.springops.common.dto.email.MailDto;
 import org.kreyzon.springops.common.exception.SpringOpsException;
@@ -12,8 +13,11 @@ import org.kreyzon.springops.core.email.entity.EmailConfiguration;
 import org.kreyzon.springops.core.email.mapper.EmailConfigurationMapper;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
 import java.util.Base64;
@@ -32,6 +36,17 @@ public abstract class EmailService {
 
     protected final EmailConfigurationMapper mapper;
 
+    /**
+     * Sends an email using the provided MailDto and JavaMailSender.
+     * This method constructs a MIME message, sets the recipient, subject, body, and any attachments.
+     *
+     * @param mailDto the MailDto containing email details such as receiver, subject, body, attachments, and CC recipients.
+     * @param javaMailSender the JavaMailSenderImpl instance used to send the email.
+     */
+    @Retryable(
+            value = { SpringOpsException.class, MailException.class },
+            maxAttempts = 5,
+            backoff = @Backoff(delay = 5000))
      public void sendEmail(MailDto mailDto, JavaMailSenderImpl javaMailSender) {
         log.info("Sending email to: {}", mailDto.getReceiver());
         log.info("Subject: {}", mailDto.getSubject());
@@ -68,7 +83,7 @@ public abstract class EmailService {
 
                         String fileName = "attachment." + getFileExtension(attachment.getFileType());
                         helper.addAttachment(fileName, new ByteArrayResource(decodedBytes));
-                    } catch (IllegalArgumentException e) {
+                    } catch (SpringOpsException e) {
                         log.error("Invalid Base64 for attachment: {}", attachment.getFileName(), e);
                     }
                 }
@@ -83,6 +98,7 @@ public abstract class EmailService {
         }
     }
 
+    // TODO Export in a class called EmailUtils
     private String getFileExtension(String mimeType) {
         return switch (mimeType) {
             case "application/pdf" -> "pdf";

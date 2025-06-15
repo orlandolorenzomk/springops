@@ -3,6 +3,7 @@ package org.kreyzon.springops;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.retry.annotation.EnableRetry;
 
 /**
  * The entry point of the SpringOps application.
@@ -12,6 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @email orlandolorenzo@kreyzon.com
  */
 @SpringBootApplication
+@EnableRetry
 @Slf4j
 public class SpringOps {
 
