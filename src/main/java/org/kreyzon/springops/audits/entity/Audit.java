@@ -7,6 +7,9 @@ import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.kreyzon.springops.auth.model.User;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.time.Instant;
 import java.util.Map;
@@ -47,4 +50,35 @@ public class Audit {
     @Column(name = "details")
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<String, Object> details;
+
+
+    /**
+     * Builds a dynamic specification for searching audits.
+     *
+     * @param userId the user ID to filter by (optional)
+     * @param action the action to filter by (optional)
+     * @param from   the start timestamp to filter by (optional)
+     * @param to     the end timestamp to filter by (optional)
+     * @return a Specification object for querying audits
+     */
+    public static Specification<Audit> buildSpecification(Integer userId, String action, Instant from, Instant to) {
+        return (root, query, criteriaBuilder) -> {
+            var predicates = criteriaBuilder.conjunction();
+
+            if (userId != null) {
+                predicates.getExpressions().add(criteriaBuilder.equal(root.get("user").get("id"), userId));
+            }
+            if (action != null && !action.isBlank()) {
+                predicates.getExpressions().add(criteriaBuilder.equal(root.get("action"), action));
+            }
+            if (from != null) {
+                predicates.getExpressions().add(criteriaBuilder.greaterThanOrEqualTo(root.get("timestamp"), from));
+            }
+            if (to != null) {
+                predicates.getExpressions().add(criteriaBuilder.lessThanOrEqualTo(root.get("timestamp"), to));
+            }
+
+            return predicates;
+        };
+    }
 }

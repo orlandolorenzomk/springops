@@ -8,7 +8,7 @@ import org.kreyzon.springops.common.dto.system_version.SystemVersionDto;
 import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.common.utils.PortUtils;
 import org.kreyzon.springops.config.ApplicationConfig;
-import org.kreyzon.springops.config.Audit;
+import org.kreyzon.springops.config.annotations.Audit;
 import org.kreyzon.springops.core.application.entity.Application;
 import org.kreyzon.springops.core.application.repository.ApplicationRepository;
 import org.kreyzon.springops.core.deployment.service.DeploymentManagerService;
@@ -18,7 +18,6 @@ import org.kreyzon.springops.setup.service.SetupService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import javax.swing.*;
 import java.util.List;
 import java.util.Locale;
 

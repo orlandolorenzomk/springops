@@ -10,6 +10,7 @@ import {authGuard} from "./guards/auth.guard";
 import {ApplicationListComponent} from "./pages/application-list/application-list.component";
 import {SystemVersionListComponent} from "./pages/system-version-list/system-version-list.component";
 import {DeploymentsListComponent} from "./pages/deployments-list/deployments-list.component";
+import {AuditComponent} from "./pages/audit/audit.component";
 
 const routes: Routes = [
   {
@@ -35,6 +36,11 @@ const routes: Routes = [
   {
     path: 'deployments',
     component: DeploymentsListComponent,
+    canActivate: [authGuard, SetupGuard]
+  },
+  {
+    path: 'audits',
+    component: AuditComponent,
     canActivate: [authGuard, SetupGuard]
   },
   {

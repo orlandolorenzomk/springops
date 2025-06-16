@@ -60,6 +60,7 @@ import { NotesDialogComponent } from './dialogs/notes-dialog/notes-dialog.compon
 import {MatAutocomplete, MatAutocompleteTrigger} from "@angular/material/autocomplete";
 import { StatsDialogComponent } from './dialogs/stats-dialog/stats-dialog.component';
 import {LineChartModule} from "@swimlane/ngx-charts";
+import { AuditComponent } from './pages/audit/audit.component';
 
 @NgModule({
   declarations: [
@@ -81,7 +82,8 @@ import {LineChartModule} from "@swimlane/ngx-charts";
     ViewLogsDialogComponent,
     FootbarComponent,
     NotesDialogComponent,
-    StatsDialogComponent
+    StatsDialogComponent,
+    AuditComponent
   ],
   imports: [
     BrowserModule,

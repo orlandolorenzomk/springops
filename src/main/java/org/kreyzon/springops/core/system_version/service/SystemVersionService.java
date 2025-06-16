@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.common.dto.system_version.SystemVersionDto;
 import org.kreyzon.springops.common.exception.SpringOpsException;
-import org.kreyzon.springops.config.Audit;
+import org.kreyzon.springops.config.annotations.Audit;
 import org.kreyzon.springops.core.system_version.entity.SystemVersion;
 import org.kreyzon.springops.core.system_version.repository.SystemVersionRepository;
 import org.springframework.http.HttpStatus;

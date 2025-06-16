@@ -9,7 +9,7 @@ import org.kreyzon.springops.common.enums.DeploymentStatus;
 import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.common.utils.DeploymentUtils;
 import org.kreyzon.springops.config.ApplicationConfig;
-import org.kreyzon.springops.config.Audit;
+import org.kreyzon.springops.config.annotations.Audit;
 import org.kreyzon.springops.core.application.entity.Application;
 import org.kreyzon.springops.core.application.service.ApplicationLookupService;
 import org.kreyzon.springops.core.deployment.entity.Deployment;
@@ -83,7 +83,6 @@ public class DeploymentService {
      * @param deploymentDto the DeploymentDto representing the deployment to save
      * @return the DeploymentDto representing the saved deployment
      */
-    @Audit
     public DeploymentDto save(DeploymentDto deploymentDto) {
         Deployment deployment = DeploymentDto.toEntity(deploymentDto);
         Application application = applicationLookupService.findEntityById(deploymentDto.getApplicationId());
@@ -98,7 +97,6 @@ public class DeploymentService {
      * @return the DeploymentDto representing the updated deployment
      * @throws SpringOpsException if the deployment with the given ID does not exist
      */
-    @Audit
     public DeploymentDto update(DeploymentDto deploymentDto) {
         if (!deploymentRepository.existsById(deploymentDto.getId())) {
             throw new SpringOpsException("Deployment with ID '" + deploymentDto.getId() + "' does not exist", HttpStatus.NOT_FOUND);

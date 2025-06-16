@@ -23,6 +23,7 @@ public class AuditDto implements Serializable {
     String action;
     Instant timestamp;
     Map<String, Object> details;
+    String user;
 
     /**
      * Converts an Audit entity to an AuditDto.
@@ -35,7 +36,8 @@ public class AuditDto implements Serializable {
                 audit.getId(),
                 audit.getAction(),
                 audit.getTimestamp(),
-                audit.getDetails()
+                audit.getDetails(),
+                audit.getUser() != null ? audit.getUser().getUsername() : null
         );
     }
 

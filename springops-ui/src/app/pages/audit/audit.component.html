@@ -1,0 +1,76 @@
+<div class="container">
+  <div class="header">
+    <h2>
+      <mat-icon color="primary">manage_search</mat-icon>
+      &nbsp;Audit Logs
+    </h2>
+  </div>
+
+<!--  <div class="filter-bar">-->
+<!--    <mat-form-field appearance="outline">-->
+<!--      <mat-label>Action</mat-label>-->
+<!--      <input matInput [(ngModel)]="filter.action" (ngModelChange)="onFilterChange()" placeholder="e.g. createUser">-->
+<!--    </mat-form-field>-->
+
+<!--    <mat-form-field appearance="outline">-->
+<!--      <mat-label>User</mat-label>-->
+<!--      <input matInput [(ngModel)]="filter.userId" (ngModelChange)="onFilterChange()" placeholder="User ID">-->
+<!--    </mat-form-field>-->
+
+<!--    <mat-form-field appearance="outline">-->
+<!--      <mat-label>From</mat-label>-->
+<!--      <input matInput [matDatepicker]="fromPicker" [(ngModel)]="filter.from" (dateChange)="onFilterChange()">-->
+<!--      <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>-->
+<!--      <mat-datepicker #fromPicker></mat-datepicker>-->
+<!--    </mat-form-field>-->
+
+<!--    <mat-form-field appearance="outline">-->
+<!--      <mat-label>To</mat-label>-->
+<!--      <input matInput [matDatepicker]="toPicker" [(ngModel)]="filter.to" (dateChange)="onFilterChange()">-->
+<!--      <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>-->
+<!--      <mat-datepicker #toPicker></mat-datepicker>-->
+<!--    </mat-form-field>-->
+<!--  </div>-->
+
+  <div class="table-container">
+    <table mat-table [dataSource]="audits" class="mat-elevation-z8">
+
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef>#ID</th>
+        <td mat-cell *matCellDef="let audit">{{ audit.id }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="action">
+        <th mat-header-cell *matHeaderCellDef>Action</th>
+        <td mat-cell *matCellDef="let audit">{{ audit.action }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="timestamp">
+        <th mat-header-cell *matHeaderCellDef>Timestamp</th>
+        <td mat-cell *matCellDef="let audit">{{ audit.timestamp | date:'medium' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="user">
+        <th mat-header-cell *matHeaderCellDef>User</th>
+        <td mat-cell *matCellDef="let audit">{{ audit.user }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <mat-paginator
+      [length]="totalElements"
+      [pageSize]="size"
+      [pageSizeOptions]="[5, 10, 20]"
+      (page)="onPageChange($event)">
+    </mat-paginator>
+  </div>
+
+  <div class="global-spinner-overlay" *ngIf="loading">
+    <div class="spinner-content">
+      <mat-progress-spinner mode="indeterminate" diameter="60" color="primary"></mat-progress-spinner>
+      <p>Loading audit logs...</p>
+    </div>
+  </div>
+</div>

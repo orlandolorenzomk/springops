@@ -6,7 +6,6 @@ import org.kreyzon.springops.auth.model.User;
 import org.kreyzon.springops.auth.util.JwtUtil;
 import org.kreyzon.springops.common.dto.auth.AuthenticationResponseDto;
 import org.kreyzon.springops.common.exception.SpringOpsException;
-import org.kreyzon.springops.config.Audit;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

@@ -1,8 +1,7 @@
 package org.kreyzon.springops.core.email.service;
 
-import org.kreyzon.springops.config.Audit;
+import org.kreyzon.springops.config.annotations.Audit;
 import org.kreyzon.springops.core.email.dto.EmailConfigurationDto;
-import org.kreyzon.springops.core.email.dto.MailjetConfigurationDto;
 import org.kreyzon.springops.core.email.entity.EmailConfiguration;
 import org.kreyzon.springops.core.email.mapper.EmailConfigurationMapper;
 import org.kreyzon.springops.core.email.entity.MailjetConfiguration;

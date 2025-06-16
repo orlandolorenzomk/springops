@@ -6,7 +6,7 @@ import org.kreyzon.springops.auth.model.User;
 import org.kreyzon.springops.auth.repository.UserRepository;
 import org.kreyzon.springops.common.dto.auth.UserDto;
 import org.kreyzon.springops.common.exception.SpringOpsException;
-import org.kreyzon.springops.config.Audit;
+import org.kreyzon.springops.config.annotations.Audit;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;

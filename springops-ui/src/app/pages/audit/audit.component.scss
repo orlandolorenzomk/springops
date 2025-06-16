@@ -1,0 +1,93 @@
+@use '@angular/material' as mat;
+
+.container {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    width: 100%;
+    max-width: 1200px;
+    margin-bottom: 16px;
+
+    h2 {
+      margin: 0;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button {
+      padding: 4px 12px;
+    }
+  }
+
+  .table-container {
+    overflow-x: auto;
+    width: 100%;
+    max-width: 1200px;
+
+    table {
+      width: 100%;
+      font-size: 13px;
+
+      th, td {
+        padding: 6px 12px !important;
+        vertical-align: middle;
+        white-space: nowrap;
+      }
+
+      .mat-column-details {
+        white-space: normal;
+        max-width: 300px;
+        word-break: break-word;
+      }
+    }
+  }
+
+  .global-spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .spinner-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+
+      p {
+        font-size: 14px;
+        color: #333;
+      }
+    }
+  }
+
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    width: 100%;
+    max-width: 1200px;
+    margin-bottom: 16px;
+
+    mat-form-field {
+      flex: 1;
+      min-width: 180px;
+    }
+  }
+
+}

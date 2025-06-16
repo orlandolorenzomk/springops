@@ -15,7 +15,7 @@ import org.kreyzon.springops.common.utils.EncryptionUtils;
 import org.kreyzon.springops.common.utils.GitUtils;
 import org.kreyzon.springops.common.utils.PortUtils;
 import org.kreyzon.springops.config.ApplicationConfig;
-import org.kreyzon.springops.config.Audit;
+import org.kreyzon.springops.config.annotations.Audit;
 import org.kreyzon.springops.core.application.entity.Application;
 import org.kreyzon.springops.core.application.service.ApplicationLookupService;
 import org.kreyzon.springops.core.application_env.service.ApplicationEnvService;

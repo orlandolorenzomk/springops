@@ -3,7 +3,6 @@ package org.kreyzon.springops.core.application_stats.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.common.dto.application_stats.ApplicationStatsDto;
-import org.kreyzon.springops.config.Audit;
 import org.kreyzon.springops.core.application.entity.Application;
 import org.kreyzon.springops.core.application.service.ApplicationLookupService;
 import org.kreyzon.springops.core.application_stats.entity.ApplicationStats;

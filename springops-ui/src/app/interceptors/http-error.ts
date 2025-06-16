@@ -46,7 +46,7 @@ export class HttpErrorInterceptor implements HttpInterceptor {
   }
 
   private showError(message: string): void {
-    this.snackBar.open(`❌ ${message}`, 'Close', {
+    this.snackBar.open(`${message}`, 'Close', {
       duration: 5000,
       horizontalPosition: 'right',
       verticalPosition: 'top',
