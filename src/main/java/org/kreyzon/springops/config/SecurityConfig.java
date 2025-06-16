@@ -33,7 +33,7 @@ public class SecurityConfig {
         "/setup/initialize-secret-key",
         "/setup/initialize-git-ssh-key",
         "/authentication",
-        "/users/create", //TODO: Should it be public?
+        "/users/create",
 
     };
 
