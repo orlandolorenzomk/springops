@@ -130,23 +130,6 @@ class ApplicationServiceTest {
 
         assertThrows(SpringOpsException.class, () -> applicationService.save(dto));
     }
-    @Test
-    void update_shouldThrowIfAppIsRunning() {
-        ApplicationDto dto = validDto();
-
-        // Mock valid SystemVersionDto objects
-        mockVersionSystems();
-
-        Application existing = new Application();
-        existing.setId(1);
-        existing.setName("MyApp");
-
-        when(applicationRepository.findById(1)).thenReturn(Optional.of(existing));
-        when(applicationRepository.existsById(1)).thenReturn(true);
-        when(deploymentManagerService.getDeploymentStatus(1)).thenReturn(new DeploymentStatusDto(true));
-
-        assertThrows(SpringOpsException.class, () -> applicationService.update(1, dto));
-    }
 
     @Test
     void update_shouldThrowIfNameExistsForAnotherApp() {
@@ -201,5 +184,67 @@ class ApplicationServiceTest {
 
         ApplicationDto result = applicationService.save(dto);
         assertEquals(1, result.getId());
+    }
+
+    @Test
+    void update_shouldUpdateSuccessfully() {
+        ApplicationDto dto = createValidDto(1, "MyApp");
+        Application existing = ApplicationDto.toEntity(dto);
+        existing.setId(1);
+        existing.setName("OldApp");
+
+        when(systemVersionService.findById(1)).thenReturn(new SystemVersionDto(1, "java", "17", "/java", Instant.now(), "Java"));
+        when(applicationRepository.findById(1)).thenReturn(Optional.of(existing));
+        when(deploymentManagerService.getDeploymentStatus(1)).thenReturn(new DeploymentStatusDto(false));
+        when(applicationRepository.existsByName("MyApp")).thenReturn(false);
+        when(applicationRepository.existsById(1)).thenReturn(true);
+        when(applicationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        ApplicationDto result = applicationService.update(1, dto);
+
+        assertEquals("MyApp", result.getName());
+        verify(applicationRepository).save(any());
+    }
+
+    @Test
+    void update_shouldThrowIfNameExistsAndDifferentApp() {
+        ApplicationDto dto = createValidDto(2, "DuplicateName");
+        Application existing = ApplicationDto.toEntity(dto);
+        existing.setId(1);
+        existing.setName("OtherName");
+
+        when(systemVersionService.findById(any())).thenReturn(new SystemVersionDto(1, "java", "17", "/java", Instant.now(), "Java"));
+        when(applicationRepository.findById(1)).thenReturn(Optional.of(existing));
+        when(deploymentManagerService.getDeploymentStatus(1)).thenReturn(new DeploymentStatusDto(false));
+        when(applicationRepository.existsByName("DuplicateName")).thenReturn(true);
+        when(applicationRepository.existsById(1)).thenReturn(true);
+
+        assertThrows(SpringOpsException.class, () -> applicationService.update(1, dto));
+    }
+
+    @Test
+    void update_shouldThrowIfIdDoesNotExist() {
+        ApplicationDto dto = createValidDto(1, "MyApp");
+
+        when(systemVersionService.findById(any())).thenReturn(new SystemVersionDto(1, "java", "17", "/java", Instant.now(), "Java"));
+        when(applicationRepository.findById(1)).thenReturn(Optional.empty());
+
+        assertThrows(SpringOpsException.class, () -> applicationService.update(1, dto));
+    }
+
+    private ApplicationDto createValidDto(int id, String name) {
+        return new ApplicationDto(
+                id,
+                name,
+                null,
+                "A test app",
+                Instant.now(),
+                1,
+                1,
+                "https://github.com/test/app",
+                8080,
+                "512m",
+                "1024m"
+        );
     }
 }
