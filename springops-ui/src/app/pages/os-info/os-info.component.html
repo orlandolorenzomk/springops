@@ -1,36 +1,68 @@
-<div class="os-info-container">
-  <div class="header">
-    <h1>System Information</h1>
-    <button mat-raised-button color="primary" (click)="refresh()" [disabled]="isLoading">
-      <mat-icon>refresh</mat-icon>
+<div class="system-dashboard">
+  <div class="dashboard-header">
+    <h1>System Overview</h1>
+    <button class="refresh-btn" (click)="refresh()">
+      <span class="refresh-icon">⟳</span>
       Refresh
     </button>
   </div>
 
-  <div class="content">
-    <div *ngIf="isLoading" class="loading-spinner">
-      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-      <p>Gathering system information...</p>
+  <div class="system-stats">
+    <!-- Host Info Card -->
+    <div class="stat-card">
+      <div class="stat-icon">🖥️</div>
+      <div class="stat-details">
+        <h3>Hostname</h3>
+        <p>{{ systemInfo.hostname || 'Unknown' }}</p>
+      </div>
     </div>
 
-    <div *ngIf="error" class="error-message">
-      <mat-icon color="warn">error_outline</mat-icon>
-      <p>{{ error }}</p>
-      <button mat-stroked-button color="warn" (click)="refresh()">
-        <mat-icon>refresh</mat-icon>
-        Retry
-      </button>
+    <!-- OS Info Card -->
+    <div class="stat-card">
+      <div class="stat-icon">💻</div>
+      <div class="stat-details">
+        <h3>Operating System</h3>
+        <p>{{ systemInfo.operatingSystem || 'Unknown' }}</p>
+      </div>
     </div>
 
-    <div *ngIf="!isLoading && !error" class="info-grid">
-      <mat-card *ngFor="let item of formattedInfo" class="info-card">
-        <mat-card-header>
-          <mat-card-title>{{ item.key }}</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <p>{{ item.value || 'N/A' }}</p>
-        </mat-card-content>
-      </mat-card>
+    <!-- Memory Card -->
+    <div class="stat-card">
+      <div class="stat-icon">🧠</div>
+      <div class="stat-details">
+        <h3>Memory</h3>
+        <p *ngIf="systemInfo.memoryTotal !== 'Unavailable'">
+          {{ systemInfo.memoryTotal }} total
+          <span *ngIf="systemInfo.memoryAvailable !== 'Unavailable'">
+            ({{ systemInfo.memoryAvailable }} available)
+          </span>
+        </p>
+        <p *ngIf="systemInfo.memoryTotal === 'Unavailable'">Unavailable</p>
+      </div>
+    </div>
+
+    <!-- Disk Card -->
+    <div class="stat-card">
+      <div class="stat-icon">💾</div>
+      <div class="stat-details">
+        <h3>Disk</h3>
+        <p *ngIf="systemInfo.diskTotal !== 'Unavailable'">
+          {{ systemInfo.diskTotal }} total
+          <span *ngIf="systemInfo.diskFree !== 'Unavailable'">
+            ({{ systemInfo.diskFree }} free)
+          </span>
+        </p>
+        <p *ngIf="systemInfo.diskTotal === 'Unavailable'">Unavailable</p>
+      </div>
+    </div>
+
+    <!-- Network Card -->
+    <div class="stat-card">
+      <div class="stat-icon">🌐</div>
+      <div class="stat-details">
+        <h3>IP Address</h3>
+        <p>{{ systemInfo.ipAddress || 'Unknown' }}</p>
+      </div>
     </div>
   </div>
 </div>

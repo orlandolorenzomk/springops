@@ -4,6 +4,9 @@
 export interface OsInfo {
   hostname: string;
   operatingSystem: string;
+  memoryAvailable: string;
+  diskTotal: string;
+  diskFree: string;
   kernelVersion: string;
   architecture: string;
   uptime: string;
