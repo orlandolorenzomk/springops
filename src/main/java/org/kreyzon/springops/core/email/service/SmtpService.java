@@ -4,6 +4,7 @@ import io.micrometer.common.util.StringUtils;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.common.exception.SpringOpsException;
+import org.kreyzon.springops.config.Audit;
 import org.kreyzon.springops.core.email.dto.EmailConfigurationDto;
 import org.kreyzon.springops.core.email.entity.EmailConfiguration;
 import org.kreyzon.springops.core.email.mapper.EmailConfigurationMapper;
@@ -40,6 +41,7 @@ public class SmtpService extends EmailService {
                 .orElseThrow(() -> new SpringOpsException("SMTP configuration not found", HttpStatus.NOT_FOUND));
     }
 
+    @Audit
     @Transactional
     public EmailConfigurationDto save(SmtpConfigurationRequest emailConfigurationRequest) {
         log.info("Saving new SMTP configuration: {}", emailConfigurationRequest);
@@ -59,6 +61,7 @@ public class SmtpService extends EmailService {
      * @param existingConfig the existing SMTP configuration to update
      * @return the updated email configuration DTO
      */
+    @Audit
     @Transactional
     public EmailConfigurationDto update(SmtpConfigurationRequest emailConfigurationRequest, EmailConfiguration existingConfig) {
         log.info("Updating SMTP configuration with ID: {}", existingConfig.getId());

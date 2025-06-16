@@ -1,5 +1,6 @@
 package org.kreyzon.springops.core.email.service;
 
+import org.kreyzon.springops.config.Audit;
 import org.kreyzon.springops.core.email.dto.EmailConfigurationDto;
 import org.kreyzon.springops.core.email.dto.MailjetConfigurationDto;
 import org.kreyzon.springops.core.email.entity.EmailConfiguration;
@@ -40,6 +41,7 @@ public class MailjetService extends EmailService {
     }
 
     @Transactional
+    @Audit
     public EmailConfigurationDto save(MailjetConfigurationRequest emailConfigurationRequest) {
         MailjetConfiguration mailjetConfiguration = mapper.fromRequest(emailConfigurationRequest);
         mailjetConfiguration.setCreatedAt(Instant.now());
@@ -47,6 +49,7 @@ public class MailjetService extends EmailService {
     }
 
     @Transactional
+    @Audit
     public EmailConfigurationDto update(MailjetConfigurationRequest emailConfigurationRequest, EmailConfiguration existingConfig) {
         MailjetConfiguration mailjetConfig = mapper.fromRequest(emailConfigurationRequest);
         mailjetConfig.setId(existingConfig.getId());

@@ -8,6 +8,7 @@ import org.kreyzon.springops.common.dto.system_version.SystemVersionDto;
 import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.common.utils.PortUtils;
 import org.kreyzon.springops.config.ApplicationConfig;
+import org.kreyzon.springops.config.Audit;
 import org.kreyzon.springops.core.application.entity.Application;
 import org.kreyzon.springops.core.application.repository.ApplicationRepository;
 import org.kreyzon.springops.core.deployment.service.DeploymentManagerService;
@@ -74,6 +75,7 @@ public class ApplicationService {
      * @return the saved ApplicationDto
      * @throws SpringOpsException with {@link HttpStatus#CONFLICT} if an Application with the same name already exists
      */
+    @Audit
     public ApplicationDto save(ApplicationDto applicationDto) {
         SystemVersionDto mvnSystemVersion = systemVersionService.findById(applicationDto.getMvnSystemVersionId());
         SystemVersion systemVersion = SystemVersionDto.toEntity(mvnSystemVersion);
@@ -115,6 +117,7 @@ public class ApplicationService {
      * @throws SpringOpsException with {@link HttpStatus#CONFLICT} if the Application is currently running and cannot be updated
      * @return the updated ApplicationDto
      */
+    @Audit
     public ApplicationDto update(Integer id, ApplicationDto applicationDto) {
         SystemVersionDto mvnSystemVersion = systemVersionService.findById(applicationDto.getMvnSystemVersionId());
         SystemVersion systemVersion = SystemVersionDto.toEntity(mvnSystemVersion);
@@ -170,6 +173,7 @@ public class ApplicationService {
      * @throws SpringOpsException with {@link HttpStatus#CONFLICT} if the Application is currently running and cannot be deleted
      * @param id the ID of the Application to delete
      */
+    @Audit
     public void deleteById(Integer id) {
         if (!applicationRepository.existsById(id)) {
             log.warn("Application with ID '{}' does not exist", id);

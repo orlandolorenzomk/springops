@@ -6,6 +6,7 @@ import org.kreyzon.springops.auth.model.User;
 import org.kreyzon.springops.auth.repository.UserRepository;
 import org.kreyzon.springops.common.dto.auth.UserDto;
 import org.kreyzon.springops.common.exception.SpringOpsException;
+import org.kreyzon.springops.config.Audit;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -63,6 +64,7 @@ public class UserService implements UserDetailsService {
      * @param userDto the {@link UserDto} containing user details.
      * @return a {@link UserDto} representing the created user.
      */
+    @Audit
     public UserDto create(UserDto userDto) {
         log.info("Creating new user: {}", userDto.getUsername());
 
@@ -94,6 +96,7 @@ public class UserService implements UserDetailsService {
      * @return a {@link UserDto} representing the updated user.
      * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the user is not found.
      */
+    @Audit
     public UserDto update(UUID userId, UserDto userDto) {
         log.info("Updating user with ID: {}", userId);
         // TODO Check if user already exists by email or username and their value it's different than userDto.getEmail() and userDto.getUsername()
@@ -118,6 +121,7 @@ public class UserService implements UserDetailsService {
      * @param userId the unique ID of the user to delete.
      * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the user is not found.
      */
+    @Audit
     public void delete(UUID userId) {
         log.info("Deleting user with ID: {}", userId);
         if (!userRepository.existsById(userId)) {

@@ -10,6 +10,7 @@ import { DeployDialogComponent } from '../../dialogs/deploy-dialog/deploy-dialog
 import {ManageEnvDialogComponent} from "../../dialogs/manage-env-dialog/manage-env-dialog.component";
 import { Router } from '@angular/router';
 import {ViewLogsDialogComponent} from "../../dialogs/view-logs-dialog/view-logs-dialog.component";
+import {StatsDialogComponent} from "../../dialogs/stats-dialog/stats-dialog.component";
 
 @Component({
   selector: 'app-application-list',
@@ -211,6 +212,25 @@ export class ApplicationListComponent implements OnInit {
     this.dialog.open(ViewLogsDialogComponent, {
       width: '600px',
       data: appId
+    });
+  }
+
+  openStatsDialog(appId: number): void {
+    const dialogRef = this.dialog.open(StatsDialogComponent, {
+      width: '1500px',
+      height: '800px',
+      data: {
+        applicationId: appId,
+        startTimestamp: '',  // user-entered ISO‑8601
+        endTimestamp: ''     // user-entered ISO‑8601
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Optionally refresh if needed
+        console.log('Stats dialog closed:', result);
+      }
     });
   }
 }

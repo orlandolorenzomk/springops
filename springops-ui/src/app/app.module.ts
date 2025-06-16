@@ -58,6 +58,8 @@ import { FootbarComponent } from './components/footbar/footbar.component';
 import {MatProgressBar} from "@angular/material/progress-bar";
 import { NotesDialogComponent } from './dialogs/notes-dialog/notes-dialog.component';
 import {MatAutocomplete, MatAutocompleteTrigger} from "@angular/material/autocomplete";
+import { StatsDialogComponent } from './dialogs/stats-dialog/stats-dialog.component';
+import {LineChartModule} from "@swimlane/ngx-charts";
 
 @NgModule({
   declarations: [
@@ -78,7 +80,8 @@ import {MatAutocomplete, MatAutocompleteTrigger} from "@angular/material/autocom
     ManageEnvDialogComponent,
     ViewLogsDialogComponent,
     FootbarComponent,
-    NotesDialogComponent
+    NotesDialogComponent,
+    StatsDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -134,6 +137,7 @@ import {MatAutocomplete, MatAutocompleteTrigger} from "@angular/material/autocom
     MatProgressBar,
     MatAutocompleteTrigger,
     MatAutocomplete,
+    LineChartModule,
   ],
   providers: [
     provideClientHydration(),

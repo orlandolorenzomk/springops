@@ -6,6 +6,7 @@ import org.kreyzon.springops.common.dto.application_env.ApplicationEnvDto;
 import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.common.utils.EncryptionUtils;
 import org.kreyzon.springops.config.ApplicationConfig;
+import org.kreyzon.springops.config.Audit;
 import org.kreyzon.springops.core.application.entity.Application;
 import org.kreyzon.springops.core.application.service.ApplicationLookupService;
 import org.kreyzon.springops.core.application_env.entity.ApplicationEnv;
@@ -66,6 +67,7 @@ public class ApplicationEnvService {
      * @throws SpringOpsException with {@link HttpStatus#FORBIDDEN} if the maximum number of environment variables exceeds the limit
      * @throws SpringOpsException with {@link HttpStatus#INTERNAL_SERVER_ERROR} if an error occurs during saving
      */
+    @Audit
     public List<ApplicationEnvDto> save(Integer applicationId, List<ApplicationEnvDto> applicationEnvDtoList) {
         log.info("Saving environment variables");
 
@@ -110,6 +112,7 @@ public class ApplicationEnvService {
      *
      * @return a list of ApplicationEnvDto
      */
+    @Audit
     public ApplicationEnvDto delete(Integer id) {
         log.info("Deleting ApplicationEnv with ID: {}", id);
         ApplicationEnvDto applicationEnvDto = findById(id);

@@ -1,0 +1,38 @@
+<h1 mat-dialog-title>Application Stats</h1>
+
+<div mat-dialog-content class="stats-content">
+
+  <div class="date-row">
+    <mat-form-field appearance="fill" class="date-field">
+      <mat-label>Start Date/Time</mat-label>
+      <input matInput [matDatepicker]="dp1" [(ngModel)]="start" placeholder="YYYY-MM-DD" />
+      <mat-datepicker-toggle matSuffix [for]="dp1"></mat-datepicker-toggle>
+      <mat-datepicker #dp1></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="date-field">
+      <mat-label>End Date/Time</mat-label>
+      <input matInput [matDatepicker]="dp2" [(ngModel)]="end" placeholder="YYYY-MM-DD" />
+      <mat-datepicker-toggle matSuffix [for]="dp2"></mat-datepicker-toggle>
+      <mat-datepicker #dp2></mat-datepicker>
+    </mat-form-field>
+
+    <button mat-raised-button color="primary" (click)="loadStats()" class="load-button">
+      <mat-icon>refresh</mat-icon> Load Stats
+    </button>
+  </div>
+
+  <ngx-charts-line-chart
+    *ngIf="stats?.length"
+    [results]="chartData"
+    [xAxis]="true"
+    [yAxis]="true"
+    [legend]="false"
+    [showXAxisLabel]="true"
+    [showYAxisLabel]="true"
+    xAxisLabel="Time"
+    yAxisLabel="Value"
+    [autoScale]="true"
+    class="stats-chart">
+  </ngx-charts-line-chart>
+</div>

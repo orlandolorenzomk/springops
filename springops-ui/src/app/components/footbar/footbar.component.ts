@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { InfoService } from '../../services/info.service';
-import {InfoDto} from "../../models/info.module";
+import {InfoDto} from "../../models/info.model";
 
 @Component({
   selector: 'app-footbar',

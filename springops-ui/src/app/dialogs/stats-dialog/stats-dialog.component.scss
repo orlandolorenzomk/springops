@@ -1,0 +1,25 @@
+.stats-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.date-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.date-field {
+  flex: 1;
+}
+
+.load-button {
+  height: 56px;
+}
+
+.stats-chart {
+  margin-top: 16px;
+  width: 100%;
+  height: 350px;
+}

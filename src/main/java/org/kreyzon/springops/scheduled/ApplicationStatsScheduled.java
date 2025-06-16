@@ -39,7 +39,7 @@ public class ApplicationStatsScheduled {
      * It retrieves active deployments, fetches their CPU and memory usage,
      * and saves the statistics in the database.
      */
-    @Scheduled(fixedRate = 120000)
+    @Scheduled(fixedRate = 60000)
     public void updateApplicationStatus() {
         log.info("Updating application status...");
 

@@ -15,6 +15,7 @@ import org.kreyzon.springops.common.utils.EncryptionUtils;
 import org.kreyzon.springops.common.utils.GitUtils;
 import org.kreyzon.springops.common.utils.PortUtils;
 import org.kreyzon.springops.config.ApplicationConfig;
+import org.kreyzon.springops.config.Audit;
 import org.kreyzon.springops.core.application.entity.Application;
 import org.kreyzon.springops.core.application.service.ApplicationLookupService;
 import org.kreyzon.springops.core.application_env.service.ApplicationEnvService;
@@ -97,6 +98,7 @@ public class DeploymentManagerService {
      * @param pid the process ID of the deployment to kill
      * @return true if the process was successfully killed, false otherwise
      */
+    @Audit
     public boolean killDeploymentProcess(Integer pid) {
         if (pid == null) {
             log.warn("PID is null, nothing to kill.");
@@ -138,6 +140,7 @@ public class DeploymentManagerService {
      *  *         - Error decrypting environment variables ({@link HttpStatus#INTERNAL_SERVER_ERROR}).
      * @return a DeploymentResultDto containing the results of the deployment process
      */
+    @Audit
     @Transactional
     public List<CommandResultDto> manageDeployment(Integer applicationId, String branchName, DeploymentType deploymentType, Integer port) throws GitAPIException {
         Application application = validateAndPrepareDeployment(applicationId);

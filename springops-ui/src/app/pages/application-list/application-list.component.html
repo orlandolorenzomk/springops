@@ -132,6 +132,12 @@
             <span>View Logs</span>
           </button>
 
+          <!-- View Stats Action -->
+          <button mat-menu-item (click)="openStatsDialog(element.id)">
+            <mat-icon color="primary">insert_chart</mat-icon>
+            <span>View Stats</span>
+          </button>
+
           <!-- Delete Action -->
           <button mat-menu-item (click)="deleteApplication(element.id)">
             <mat-icon color="warn">delete</mat-icon>
@@ -140,6 +146,7 @@
                                   diameter="20"
                                   mode="indeterminate"></mat-progress-spinner>
           </button>
+
         </mat-menu>
       </td>
       </ng-container>

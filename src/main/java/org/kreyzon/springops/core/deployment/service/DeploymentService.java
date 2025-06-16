@@ -9,6 +9,7 @@ import org.kreyzon.springops.common.enums.DeploymentStatus;
 import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.common.utils.DeploymentUtils;
 import org.kreyzon.springops.config.ApplicationConfig;
+import org.kreyzon.springops.config.Audit;
 import org.kreyzon.springops.core.application.entity.Application;
 import org.kreyzon.springops.core.application.service.ApplicationLookupService;
 import org.kreyzon.springops.core.deployment.entity.Deployment;
@@ -82,6 +83,7 @@ public class DeploymentService {
      * @param deploymentDto the DeploymentDto representing the deployment to save
      * @return the DeploymentDto representing the saved deployment
      */
+    @Audit
     public DeploymentDto save(DeploymentDto deploymentDto) {
         Deployment deployment = DeploymentDto.toEntity(deploymentDto);
         Application application = applicationLookupService.findEntityById(deploymentDto.getApplicationId());
@@ -96,6 +98,7 @@ public class DeploymentService {
      * @return the DeploymentDto representing the updated deployment
      * @throws SpringOpsException if the deployment with the given ID does not exist
      */
+    @Audit
     public DeploymentDto update(DeploymentDto deploymentDto) {
         if (!deploymentRepository.existsById(deploymentDto.getId())) {
             throw new SpringOpsException("Deployment with ID '" + deploymentDto.getId() + "' does not exist", HttpStatus.NOT_FOUND);
@@ -120,6 +123,7 @@ public class DeploymentService {
      * @param id the ID of the deployment to delete
      * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the deployment with the given ID does not exist
      */
+    @Audit
     public void deleteById(Integer id) {
         if (!deploymentRepository.existsById(id)) {
             throw new SpringOpsException("Deployment with ID '" + id + "' does not exist", HttpStatus.NOT_FOUND);
@@ -237,6 +241,7 @@ public class DeploymentService {
      * @param filename      the name of the log file to be downloaded
      * @return byte array containing the contents of the log file
      */
+    @Audit
     public byte[] downloadLogFile(String filename) {
         log.info("Downloading log file '{}'", filename);
 
@@ -263,6 +268,7 @@ public class DeploymentService {
      * @return the updated DeploymentDto representing the deployment with updated notes
      * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the deployment with the given ID does not exist
      */
+    @Audit
     public DeploymentDto updateNotes(Integer deploymentId, String notes) {
         log.info("Updating notes for deployment with ID: {}", deploymentId);
         Deployment deployment = deploymentRepository.findById(deploymentId)

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.common.dto.system_version.SystemVersionDto;
 import org.kreyzon.springops.common.exception.SpringOpsException;
+import org.kreyzon.springops.config.Audit;
 import org.kreyzon.springops.core.system_version.entity.SystemVersion;
 import org.kreyzon.springops.core.system_version.repository.SystemVersionRepository;
 import org.springframework.http.HttpStatus;
@@ -65,6 +66,7 @@ public class SystemVersionService {
      * @throws SpringOpsException with {@link HttpStatus#CONFLICT} if a system version with the same name already exists
      * @return the saved {@link SystemVersionDto}
      */
+    @Audit
     public SystemVersionDto save(SystemVersionDto systemVersionDto) {
         log.info("Saving system version: {}", systemVersionDto);
 
@@ -91,6 +93,7 @@ public class SystemVersionService {
      * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if no system version is found with the given ID
      * @throws SpringOpsException with {@link HttpStatus#CONFLICT} if another system version with the same name exists
      */
+    @Audit
     public SystemVersionDto update(Integer id, SystemVersionDto systemVersionDto) {
         log.info("Updating system version with ID: {}", id);
         SystemVersion existingEntity = systemVersionRepository.findById(id)
@@ -121,6 +124,7 @@ public class SystemVersionService {
      * @param id the ID of the system version to delete
      * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if no system version is found with the given ID
      */
+    @Audit
     public void delete(Integer id) {
         log.info("Deleting system version with ID: {}", id);
         if (!systemVersionRepository.existsById(id)) {
