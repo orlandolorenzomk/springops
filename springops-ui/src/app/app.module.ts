@@ -18,7 +18,7 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {MatError, MatFormField, MatHint, MatLabel} from "@angular/material/form-field";
 import {MatInput} from "@angular/material/input";
 import {NgOptimizedImage} from "@angular/common";
-import {MatCard, MatCardActions, MatCardContent, MatCardTitle} from "@angular/material/card";
+import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle} from "@angular/material/card";
 import { ApplicationListComponent } from './pages/application-list/application-list.component';
 import {
   MatCell,
@@ -61,6 +61,7 @@ import {MatAutocomplete, MatAutocompleteTrigger} from "@angular/material/autocom
 import { StatsDialogComponent } from './dialogs/stats-dialog/stats-dialog.component';
 import {LineChartModule} from "@swimlane/ngx-charts";
 import { AuditComponent } from './pages/audit/audit.component';
+import { OsInfoComponent } from './pages/os-info/os-info.component';
 
 @NgModule({
   declarations: [
@@ -83,7 +84,8 @@ import { AuditComponent } from './pages/audit/audit.component';
     FootbarComponent,
     NotesDialogComponent,
     StatsDialogComponent,
-    AuditComponent
+    AuditComponent,
+    OsInfoComponent
   ],
   imports: [
     BrowserModule,
@@ -140,6 +142,7 @@ import { AuditComponent } from './pages/audit/audit.component';
     MatAutocompleteTrigger,
     MatAutocomplete,
     LineChartModule,
+    MatCardHeader,
   ],
   providers: [
     provideClientHydration(),

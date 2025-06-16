@@ -1,0 +1,36 @@
+<div class="os-info-container">
+  <div class="header">
+    <h1>System Information</h1>
+    <button mat-raised-button color="primary" (click)="refresh()" [disabled]="isLoading">
+      <mat-icon>refresh</mat-icon>
+      Refresh
+    </button>
+  </div>
+
+  <div class="content">
+    <div *ngIf="isLoading" class="loading-spinner">
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+      <p>Gathering system information...</p>
+    </div>
+
+    <div *ngIf="error" class="error-message">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <p>{{ error }}</p>
+      <button mat-stroked-button color="warn" (click)="refresh()">
+        <mat-icon>refresh</mat-icon>
+        Retry
+      </button>
+    </div>
+
+    <div *ngIf="!isLoading && !error" class="info-grid">
+      <mat-card *ngFor="let item of formattedInfo" class="info-card">
+        <mat-card-header>
+          <mat-card-title>{{ item.key }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p>{{ item.value || 'N/A' }}</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

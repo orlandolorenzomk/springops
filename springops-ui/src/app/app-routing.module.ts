@@ -11,6 +11,7 @@ import {ApplicationListComponent} from "./pages/application-list/application-lis
 import {SystemVersionListComponent} from "./pages/system-version-list/system-version-list.component";
 import {DeploymentsListComponent} from "./pages/deployments-list/deployments-list.component";
 import {AuditComponent} from "./pages/audit/audit.component";
+import {OsInfoComponent} from "./pages/os-info/os-info.component";
 
 const routes: Routes = [
   {
@@ -41,6 +42,11 @@ const routes: Routes = [
   {
     path: 'audits',
     component: AuditComponent,
+    canActivate: [authGuard, SetupGuard]
+  },
+  {
+    path: 'os-info',
+    component: OsInfoComponent,
     canActivate: [authGuard, SetupGuard]
   },
   {
