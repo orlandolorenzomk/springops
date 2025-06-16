@@ -8,6 +8,7 @@ import org.kreyzon.springops.common.dto.auth.UserDto;
 import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.config.Audit;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -100,9 +101,23 @@ public class UserService implements UserDetailsService {
     public UserDto update(UUID userId, UserDto userDto) {
         log.info("Updating user with ID: {}", userId);
         // TODO Check if user already exists by email or username and their value it's different than userDto.getEmail() and userDto.getUsername()
+        if(userRepository.existsByEmail(userDto.getEmail())){
+            log.info("Email already exists: {}", userDto.getEmail());
+            throw new SpringOpsException("Email already exists: " + userDto.getEmail(), HttpStatus.CONFLICT);
+        }
+        if(userRepository.existsByUsername(userDto.getUsername())){
+            log.info("Username already exists: {}", userDto.getUsername());
+            throw new SpringOpsException("Username already exists: " + userDto.getUsername(), HttpStatus.CONFLICT);
+        }
 
         User existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new SpringOpsException("User not found with ID: " + userId, HttpStatus.NOT_FOUND));
+
+        // Check if the authenticated user is the same as the user being updated
+        if (!isUserAuthorized(existingUser.getEmail())) {
+            log.warn("Unauthorized attempt to update user with ID: {}", userId);
+            throw new SpringOpsException("You are not authorized to update this user.", HttpStatus.FORBIDDEN);
+        }
 
         existingUser.setUsername(userDto.getUsername());
         existingUser.setEmail(userDto.getEmail());
@@ -124,9 +139,15 @@ public class UserService implements UserDetailsService {
     @Audit
     public void delete(UUID userId) {
         log.info("Deleting user with ID: {}", userId);
-        if (!userRepository.existsById(userId)) {
-            throw new SpringOpsException("User not found", HttpStatus.NOT_FOUND);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new SpringOpsException("User not found with ID: " + userId, HttpStatus.NOT_FOUND));
+
+        // Check if the authenticated user is the same as the user being deleted
+        if (!isUserAuthorized(user.getEmail())) {
+            log.warn("Unauthorized attempt to delete user with ID: {}", userId);
+            throw new SpringOpsException("You are not authorized to delete this user.", HttpStatus.FORBIDDEN);
         }
+
         userRepository.deleteById(userId);
         log.info("User deleted with ID: {}", userId);
     }
@@ -161,5 +182,20 @@ public class UserService implements UserDetailsService {
                 .credentialsExpired(false)
                 .disabled(false)
                 .build();
+    }
+
+    /**
+     * Check if the authenticated user is the same as the user being accessed.
+     *
+     * @param username
+     * @return true if the authenticated user is the same as the user being
+     *         accessed, false otherwise
+     * @author Domenico Ferraro
+     */
+    private boolean isUserAuthorized(String username) {
+        log.info("Checking if user is authenticated: {}", username);
+        String authenticatedUsername = ((UserDetails) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal()).getUsername();
+        return authenticatedUsername.equals(username);
     }
 }

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 import org.kreyzon.springops.auth.model.User;
 
 import java.io.Serializable;
@@ -26,12 +27,13 @@ import java.util.UUID;
 @Value
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Jacksonized
 public class UserDto implements Serializable {
 
     /**
      * Unique identifier for the user.
      */
-    @NotNull
+//    @NotNull during creation, this field can be null
     UUID id;
 
     /**
@@ -60,13 +62,13 @@ public class UserDto implements Serializable {
     /**
      * Timestamp indicating when the user was created.
      */
-    @NotNull
+   // @NotNull during creation, this field can be null
     Instant createdAt;
 
     /**
      * Timestamp indicating the last time the user was updated.
      */
-    @NotNull
+//    @NotNull during creation, this field can be null
     Instant updatedAt;
 
     /**
