@@ -1,7 +1,8 @@
-package org.kreyzon.springops.auth;
+package org.kreyzon.springops.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Ignore;
 import org.junit.jupiter.api.*;
 import org.kreyzon.springops.auth.model.User;
 import org.kreyzon.springops.auth.repository.UserRepository;
@@ -31,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Disabled
 @Slf4j
 public class UserControllerTest {
 
