@@ -1,13 +1,22 @@
 @use '@angular/material' as mat;
 
 .navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000; // ensure it stays above other elements
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 2rem;
   height: 120px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  background: linear-gradient(135deg, mat.get-color-from-palette(mat.$indigo-palette, 500) 0%, mat.get-color-from-palette(mat.$blue-palette, 500) 100%);
+  background: linear-gradient(
+      135deg,
+      mat.get-color-from-palette(mat.$indigo-palette, 500) 0%,
+      mat.get-color-from-palette(mat.$blue-palette, 500) 100%
+  );
 
   .brand-section {
     display: flex;

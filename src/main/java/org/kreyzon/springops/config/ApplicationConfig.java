@@ -90,4 +90,9 @@ public class ApplicationConfig {
      * Directory where application logs are stored.
      */
     private String directoryApplicationLogs;
+
+    /**
+     * Directory where system version files are stored (Java, Maven).
+     */
+    private String directorySystemVersions;
 }

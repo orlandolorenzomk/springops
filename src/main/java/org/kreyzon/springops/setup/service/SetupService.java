@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 
 /**
  * Service class for handling setup-related operations.
@@ -71,7 +70,7 @@ public class SetupService {
      * @param environment the environment (e.g., development, production).
      * @return {@code true} if the initialization was successful, {@code false} otherwise.
      */
-    public Boolean initializeSystemInfo( String ipAddress, String serverName, String environment) {
+    public Boolean initializeSystemInfo(String ipAddress, String serverName, String environment) {
         log.info("Initializing system information with IP: {}, Server Name: {}, Environment: {}", ipAddress, serverName, environment);
 
         Setup setup = getSetup();
@@ -82,6 +81,24 @@ public class SetupService {
 
         log.info("System information initialized successfully.");
         return true;
+    }
+
+    /**
+     * Initializes the system information with IP address and server name.
+     * This method is a simplified version that does not include the environment.
+     *
+     * @param ipAddress  the IP address of the server.
+     * @param serverName the name of the server.
+     */
+    public void initializeSystemInfo(String ipAddress, String serverName) {
+        log.info("Initializing system information with IP: {}, Server Name: {}", ipAddress, serverName);
+
+        Setup setup = getSetup();
+        setup.setIpAddress(ipAddress);
+        setup.setServerName(serverName);
+        setupRepository.save(setup);
+
+        log.info("System information initialized successfully.");
     }
 
     /**
@@ -181,6 +198,15 @@ public class SetupService {
         } catch (IOException e) {
             log.error("Failed to create application logs subdirectory: {}", applicationLogsSubdirectoryPath, e);
             throw new SpringOpsException("Failed to create application logs subdirectory.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        Path systemVersionsSubdirectoryPath = Path.of(rootDirectoryPath, applicationConfig.getDirectorySystemVersions());
+        try {
+            Files.createDirectories(systemVersionsSubdirectoryPath);
+            log.info("System versions subdirectory created successfully: {}", systemVersionsSubdirectoryPath);
+        } catch (IOException e) {
+            log.error("Failed to create system versions subdirectory: {}", systemVersionsSubdirectoryPath, e);
+            throw new SpringOpsException("Failed to create system versions subdirectory.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         setup.setFilesRoot(filePath);
