@@ -6,11 +6,12 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { NotfoundComponent } from './pages/notfound/notfound.component';
 import { SetupGuard } from './guards/setup.guard';
 import { LoginComponent } from './pages/auth/login/login.component';
-import {authGuard} from "./guards/auth.guard";
-import {ApplicationListComponent} from "./pages/application-list/application-list.component";
-import {SystemVersionListComponent} from "./pages/system-version-list/system-version-list.component";
-import {DeploymentsListComponent} from "./pages/deployments-list/deployments-list.component";
-import {AuditComponent} from "./pages/audit/audit.component";
+import { authGuard } from "./guards/auth.guard";
+import { ApplicationListComponent } from "./pages/application-list/application-list.component";
+import { SystemVersionListComponent } from "./pages/system-version-list/system-version-list.component";
+import { DeploymentsListComponent } from "./pages/deployments-list/deployments-list.component";
+import { AuditComponent } from "./pages/audit/audit.component";
+import { UserManagementComponent } from './pages/user-management/user-management.component';
 
 const routes: Routes = [
   {
@@ -42,6 +43,11 @@ const routes: Routes = [
     path: 'audits',
     component: AuditComponent,
     canActivate: [authGuard, SetupGuard]
+  },
+  {
+    path: 'users',
+    component: UserManagementComponent,
+    // canActivate: [authGuard, SetupGuard] TODO: add guards
   },
   {
     path: 'setup',

@@ -1,0 +1,70 @@
+@use '@angular/material' as mat;
+
+.container {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 120px);
+}
+
+
+  
+
+.button-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+
+  .search-bar {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40%;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    @include mat.form-field-density(-7);
+
+    input::placeholder {
+      color: #aaa;
+    }
+  }
+}
+
+.users-table th,
+.users-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.users-table tr {
+  transition: background-color 0.3s ease;
+  &:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #f5f5f5;
+  }
+}
+
+.users-table th {
+  background-color: mat.get-color-from-palette(mat.$indigo-palette, 500);
+  text-align: left;
+  color: white;
+}
+
+
+.searchbar-container {
+  background-color: #e4e1ec;
+  padding-top: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+// Table inside the dialog content
+.users-table {
+  position: relative;
+  box-shadow: none;
+  height: 80%;
+  border-radius: 0.5% !important;
+}

@@ -16,7 +16,7 @@ import {MatAnchor, MatButton, MatIconButton} from "@angular/material/button";
 import { LoginComponent } from './pages/auth/login/login.component';
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {MatError, MatFormField, MatHint, MatLabel} from "@angular/material/form-field";
-import {MatInput} from "@angular/material/input";
+import {MatInput, MatInputModule} from "@angular/material/input";
 import {NgOptimizedImage} from "@angular/common";
 import {MatCard, MatCardActions, MatCardContent, MatCardTitle} from "@angular/material/card";
 import { ApplicationListComponent } from './pages/application-list/application-list.component';
@@ -27,7 +27,8 @@ import {
   MatHeaderCell,
   MatHeaderCellDef,
   MatHeaderRow, MatHeaderRowDef, MatRow, MatRowDef,
-  MatTable
+  MatTable,
+  MatTableModule
 } from "@angular/material/table";
 import { ApplicationFormComponent } from './pages/application-form/application-form.component';
 import {MatDialogActions, MatDialogClose, MatDialogContent, MatDialogTitle} from "@angular/material/dialog";
@@ -61,6 +62,9 @@ import {MatAutocomplete, MatAutocompleteTrigger} from "@angular/material/autocom
 import { StatsDialogComponent } from './dialogs/stats-dialog/stats-dialog.component';
 import {LineChartModule} from "@swimlane/ngx-charts";
 import { AuditComponent } from './pages/audit/audit.component';
+import { UserManagementComponent } from './pages/user-management/user-management.component';
+import {  MatSortModule } from '@angular/material/sort';
+import { StickyShadowDirective } from './directives/scroll-shadow.directive';
 
 @NgModule({
   declarations: [
@@ -83,7 +87,9 @@ import { AuditComponent } from './pages/audit/audit.component';
     FootbarComponent,
     NotesDialogComponent,
     StatsDialogComponent,
-    AuditComponent
+    AuditComponent,
+    UserManagementComponent,
+    StickyShadowDirective
   ],
   imports: [
     BrowserModule,
@@ -140,6 +146,11 @@ import { AuditComponent } from './pages/audit/audit.component';
     MatAutocompleteTrigger,
     MatAutocomplete,
     LineChartModule,
+    MatTableModule,
+    MatInputModule,
+    MatSortModule,
+
+
   ],
   providers: [
     provideClientHydration(),
