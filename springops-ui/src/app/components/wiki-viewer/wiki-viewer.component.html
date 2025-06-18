@@ -1,0 +1,65 @@
+<mat-card class="wiki-container">
+  <mat-card-header class="wiki-header">
+    <mat-card-title class="wiki-title">
+      <span class="title-icon">📚</span>
+      <span>Wiki Knowledge Base</span>
+    </mat-card-title>
+    <mat-card-subtitle class="wiki-subtitle">Select a document to view</mat-card-subtitle>
+  </mat-card-header>
+
+  <div class="divider"></div>
+
+  <mat-card-content class="wiki-content">
+    <div class="file-list-container">
+      <div class="search-container">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search documents</mat-label>
+          <input matInput (keyup)="filterFiles($event)" placeholder="Type to filter...">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <mat-selection-list class="file-list" #fileList>
+        <mat-list-option *ngFor="let file of filteredFiles"
+                         (click)="loadFile(file)"
+                         [class.selected]="selectedFile === file">
+          <div class="file-option">
+            <span class="file-icon">📄</span>
+            <span class="file-name">{{ file }}</span>
+          </div>
+        </mat-list-option>
+      </mat-selection-list>
+    </div>
+
+    <div class="content-divider"></div>
+
+    <div class="markdown-container" *ngIf="markdown; else emptyState">
+      <div class="markdown-header">
+        <h2 class="document-title">{{ selectedFile }}</h2>
+        <button mat-icon-button class="refresh-button" (click)="refreshContent()" matTooltip="Refresh content">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+      <div class="markdown-content">
+        <markdown [data]="markdown"></markdown>
+      </div>
+    </div>
+
+    <ng-template #emptyState>
+      <div class="empty-state">
+        <div class="empty-illustration">📂</div>
+        <h3>No document selected</h3>
+        <p>Select a document from the list to view its content</p>
+      </div>
+    </ng-template>
+  </mat-card-content>
+
+  <mat-card-actions class="wiki-footer" *ngIf="selectedFile">
+    <button mat-stroked-button class="footer-button" (click)="downloadFile()">
+      <mat-icon>download</mat-icon> Download
+    </button>
+    <button mat-stroked-button class="footer-button" (click)="printFile()">
+      <mat-icon>print</mat-icon> Print
+    </button>
+  </mat-card-actions>
+</mat-card>
