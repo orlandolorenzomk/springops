@@ -45,4 +45,17 @@ This README provides direct download links for various versions of **Java** and 
 Example for Java:
 
 ```bash
-curl -L -O https://download.ora
+curl -L -O https://download.oracle.com/java/17/archive/jdk-17.0.12_linux-x64_bin.tar.gz
+tar -xzf jdk-17.0.12_linux-x64_bin.tar.gz
+```
+
+Example for Maven:
+```bash
+curl -L -O https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz
+tar -xzf apache-maven-3.9.6-bin.tar.gz
+---
+
+## ✅ Notes
+Oracle downloads do not require login for archived .tar.gz distributions.
+
+Always verify SHA256 checksums when downloading from official sources.

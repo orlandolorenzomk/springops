@@ -18,7 +18,14 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {MatError, MatFormField, MatHint, MatLabel} from "@angular/material/form-field";
 import {MatInput} from "@angular/material/input";
 import {NgOptimizedImage} from "@angular/common";
-import {MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle} from "@angular/material/card";
+import {
+  MatCard,
+  MatCardActions,
+  MatCardContent,
+  MatCardHeader,
+  MatCardSubtitle,
+  MatCardTitle
+} from "@angular/material/card";
 import { ApplicationListComponent } from './pages/application-list/application-list.component';
 import {
   MatCell,
@@ -47,7 +54,7 @@ import {
   MatDatepickerModule,
   MatDatepickerToggle
 } from "@angular/material/datepicker";
-import {MatNativeDateModule} from "@angular/material/core";
+import {MatLine, MatNativeDateModule} from "@angular/material/core";
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import {MatChip, MatChipListbox} from "@angular/material/chips";
 import { ManageEnvDialogComponent } from './dialogs/manage-env-dialog/manage-env-dialog.component';
@@ -62,6 +69,9 @@ import { StatsDialogComponent } from './dialogs/stats-dialog/stats-dialog.compon
 import {LineChartModule} from "@swimlane/ngx-charts";
 import { AuditComponent } from './pages/audit/audit.component';
 import { OsInfoComponent } from './pages/os-info/os-info.component';
+import { WikiViewerComponent } from './components/wiki-viewer/wiki-viewer.component';
+import {MarkdownModule} from "ngx-markdown";
+import {MatTooltip} from "@angular/material/tooltip";
 
 @NgModule({
   declarations: [
@@ -85,9 +95,11 @@ import { OsInfoComponent } from './pages/os-info/os-info.component';
     NotesDialogComponent,
     StatsDialogComponent,
     AuditComponent,
-    OsInfoComponent
+    OsInfoComponent,
+    WikiViewerComponent
   ],
   imports: [
+    MarkdownModule.forRoot(),
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
@@ -143,6 +155,9 @@ import { OsInfoComponent } from './pages/os-info/os-info.component';
     MatAutocomplete,
     LineChartModule,
     MatCardHeader,
+    MatLine,
+    MatTooltip,
+    MatCardSubtitle
   ],
   providers: [
     provideClientHydration(),

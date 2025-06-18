@@ -12,6 +12,7 @@ import {SystemVersionListComponent} from "./pages/system-version-list/system-ver
 import {DeploymentsListComponent} from "./pages/deployments-list/deployments-list.component";
 import {AuditComponent} from "./pages/audit/audit.component";
 import {OsInfoComponent} from "./pages/os-info/os-info.component";
+import {WikiViewerComponent} from "./components/wiki-viewer/wiki-viewer.component";
 
 const routes: Routes = [
   {
@@ -47,6 +48,11 @@ const routes: Routes = [
   {
     path: 'os-info',
     component: OsInfoComponent,
+    canActivate: [authGuard, SetupGuard]
+  },
+  {
+    path: 'wiki',
+    component: WikiViewerComponent,
     canActivate: [authGuard, SetupGuard]
   },
   {
