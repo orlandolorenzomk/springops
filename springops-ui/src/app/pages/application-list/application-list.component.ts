@@ -11,6 +11,11 @@ import {ManageEnvDialogComponent} from "../../dialogs/manage-env-dialog/manage-e
 import { Router } from '@angular/router';
 import {ViewLogsDialogComponent} from "../../dialogs/view-logs-dialog/view-logs-dialog.component";
 import {StatsDialogComponent} from "../../dialogs/stats-dialog/stats-dialog.component";
+import {
+  ManageDependenciesDialogComponent
+} from "../../dialogs/manage-dependencies-dialog/manage-dependencies-dialog.component";
+import {error} from "@angular/compiler-cli/src/transformers/util";
+import {forkJoin} from "rxjs";
 
 @Component({
   selector: 'app-application-list',
@@ -231,6 +236,36 @@ export class ApplicationListComponent implements OnInit {
         // Optionally refresh if needed
         console.log('Stats dialog closed:', result);
       }
+    });
+  }
+
+  openManageDependenciesDialog(applicationId: number): void {
+    this.applicationService.findAll().subscribe(applications => {
+      const filteredApps = applications.filter(app => app.id !== applicationId);
+
+      this.applicationService.getDependencies(applicationId).subscribe(currentDependencies => {
+        const dialogRef = this.dialog.open(ManageDependenciesDialogComponent, {
+          width: '800px',
+          height: '600px',
+          data: {
+            applications: filteredApps,
+            currentDependencies: currentDependencies
+          }
+        });
+
+        dialogRef.afterClosed().subscribe((selectedDependencies: number[] | undefined) => {
+          if (selectedDependencies) {
+            this.applicationService.updateDependencies(applicationId, selectedDependencies).subscribe({
+              next: deps => {
+                console.log('Dependencies updated:', deps);
+              },
+              error: err => {
+                console.error('Error updating dependencies:', err);
+              }
+            });
+          }
+        });
+      });
     });
   }
 }

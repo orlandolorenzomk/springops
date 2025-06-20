@@ -8,6 +8,7 @@ import org.hibernate.annotations.Fetch;
 import org.kreyzon.springops.core.system_version.entity.SystemVersion;
 
 import java.time.Instant;
+import java.util.Set;
 
 /**
  * Represents an application entity in the system.
@@ -63,4 +64,12 @@ public class Application {
 
     @Column(name = "java_maximum_memory")
     private String javaMaximumMemory;
+
+    @ManyToMany
+    @JoinTable(
+            name = "application_dependencies",
+            joinColumns = @JoinColumn(name = "application_id"),
+            inverseJoinColumns = @JoinColumn(name = "depends_on_application_id")
+    )
+    private Set<Application> dependencies;
 }

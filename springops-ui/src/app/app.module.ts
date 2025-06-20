@@ -72,6 +72,7 @@ import { OsInfoComponent } from './pages/os-info/os-info.component';
 import { WikiViewerComponent } from './components/wiki-viewer/wiki-viewer.component';
 import {MarkdownModule} from "ngx-markdown";
 import {MatTooltip} from "@angular/material/tooltip";
+import { ManageDependenciesDialogComponent } from './dialogs/manage-dependencies-dialog/manage-dependencies-dialog.component';
 
 @NgModule({
   declarations: [
@@ -96,7 +97,8 @@ import {MatTooltip} from "@angular/material/tooltip";
     StatsDialogComponent,
     AuditComponent,
     OsInfoComponent,
-    WikiViewerComponent
+    WikiViewerComponent,
+    ManageDependenciesDialogComponent
   ],
   imports: [
     MarkdownModule.forRoot(),

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Application, ApplicationDto } from '../models/application.model';
+import { ApplicationDto } from '../models/application.model';
 import {environment} from "../../environments/environment";
 
 @Injectable({
@@ -30,5 +30,15 @@ export class ApplicationService {
 
   deleteById(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  updateDependencies(applicationId: number, dependenciesId: number[]): Observable<number[]> {
+    const params = dependenciesId.map(id => `dependenciesId=${id}`).join('&');
+    return this.http.post<number[]>(`${this.apiUrl}/${applicationId}/dependencies?${params}`, {});
+  }
+
+
+  getDependencies(applicationId: number): Observable<number[]> {
+    return this.http.get<number[]>(`${this.apiUrl}/${applicationId}/dependencies`);
   }
 }

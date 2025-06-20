@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents the controller layer for managing Application entities.
@@ -82,5 +83,30 @@ public class ApplicationController {
     public ResponseEntity<Void> deleteById(@PathVariable Integer id) {
         applicationService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Runs an Application by its ID.
+     *
+     * @param applicationId the ID of the Application to run
+     * @return a ResponseEntity containing the ApplicationRunDto with run details
+     */
+    @PostMapping("/{applicationId}/dependencies")
+    public ResponseEntity<Set<Integer>> updateDependencies(@PathVariable Integer applicationId,
+                                                           @RequestParam(required = false) Set<Integer> dependenciesId) {
+        Set<Integer> dependencies = applicationService.updateDependencies(applicationId, dependenciesId);
+        return ResponseEntity.ok(dependencies);
+    }
+
+    /**
+     * Fetches the dependencies of an Application by its ID.
+     *
+     * @param applicationId the ID of the Application to fetch dependencies for
+     * @return a ResponseEntity containing a set of dependent Application IDs
+     */
+    @GetMapping("/{applicationId}/dependencies")
+    public ResponseEntity<Set<Integer>> getDependencies(@PathVariable Integer applicationId) {
+        Set<Integer> dependencies = applicationService.findDependentApplications(applicationId);
+        return ResponseEntity.ok(dependencies);
     }
 }

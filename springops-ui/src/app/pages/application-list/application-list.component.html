@@ -100,6 +100,11 @@
                                   mode="indeterminate"></mat-progress-spinner>
           </button>
 
+          <button mat-menu-item (click)="openManageDependenciesDialog(element.id)">
+            <mat-icon>link</mat-icon>
+            <span>Manage Dependencies</span>
+          </button>
+
           <!-- Deploy Action -->
           <button mat-menu-item (click)="openDeployDialog(element.id, element.gitProjectHttpsUrl)">
             <mat-icon color="accent">cloud_upload</mat-icon>

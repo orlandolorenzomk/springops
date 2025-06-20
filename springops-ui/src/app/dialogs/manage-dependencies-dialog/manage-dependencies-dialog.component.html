@@ -1,0 +1,12 @@
+<h2 mat-dialog-title>Manage Dependencies</h2>
+<mat-dialog-content>
+  <mat-selection-list [(ngModel)]="selectedIds">
+    <mat-list-option *ngFor="let app of data.applications" [value]="app.id">
+      {{ app.name }} (ID: {{ app.id }})
+    </mat-list-option>
+  </mat-selection-list>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="confirm()">Save</button>
+</mat-dialog-actions>

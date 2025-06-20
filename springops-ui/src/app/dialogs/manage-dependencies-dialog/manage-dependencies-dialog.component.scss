@@ -1,0 +1,136 @@
+.dependency-dialog-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  background: #3f51b5;
+  color: white;
+  padding: 16px 24px;
+  margin: -24px -24px 16px -24px;
+
+  .header-icon {
+    margin-right: 12px;
+  }
+
+  .subtitle {
+    margin-left: auto;
+    font-size: 14px;
+    opacity: 0.8;
+  }
+}
+
+.dialog-content {
+  flex: 1;
+  min-width: 500px;
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+
+  .search-control {
+    padding: 0 0 16px 0;
+
+    mat-form-field {
+      width: 100%;
+    }
+  }
+}
+
+.dependency-list-container {
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.dependency-list {
+  padding: 0;
+  overflow-y: auto;
+  max-height: calc(60vh - 100px);
+
+  .mat-list-option {
+    height: auto;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f5f5f5;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .app-option {
+      display: flex;
+      align-items: center;
+      width: 100%;
+
+      .app-icon {
+        margin-right: 16px;
+      }
+
+      .app-info {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+
+        .app-name {
+          font-weight: 500;
+          margin-bottom: 4px;
+        }
+
+        .app-meta {
+          display: flex;
+          font-size: 12px;
+          color: #757575;
+
+          .app-id {
+            margin-right: 12px;
+          }
+        }
+      }
+    }
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #757575;
+
+  .empty-icon {
+    font-size: 48px;
+    height: 48px;
+    width: 48px;
+    margin-bottom: 16px;
+  }
+
+  button {
+    margin-top: 16px;
+  }
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 0;
+  margin: 0 -24px -24px -24px;
+  border-top: 1px solid #e0e0e0;
+
+  button {
+    margin-left: 8px;
+    display: flex;
+    align-items: center;
+
+    mat-icon {
+      margin-right: 8px;
+      font-size: 18px;
+      height: 18px;
+      width: 18px;
+    }
+  }
+}

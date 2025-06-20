@@ -27,7 +27,7 @@ export class ManageEnvDialogComponent implements OnInit {
         this.fb.group({
           id: [env.id],
           name: [env.name, Validators.required],
-          value: ['********'], // obfuscated in UI
+          value: ['ENCRYPTED DATA'], // obfuscated in UI
           encrypted: [true],
           originalValue: [env.value]
         })

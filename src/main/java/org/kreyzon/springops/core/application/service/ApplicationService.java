@@ -1,5 +1,6 @@
 package org.kreyzon.springops.core.application.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.common.dto.application.ApplicationDto;
@@ -18,8 +19,11 @@ import org.kreyzon.springops.setup.service.SetupService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Represents the service layer for managing Application entities.
@@ -245,5 +249,65 @@ public class ApplicationService {
         return applicationRepository
                 .findById(applicationId)
                 .orElseThrow(() -> new SpringOpsException("Application with ID '" + applicationId + "' does not exist", HttpStatus.NOT_FOUND));
+    }
+
+    /**
+     * Updates the dependencies of an Application.
+     *
+     * @param appId the ID of the Application to update
+     * @param dependsOnAppIds a set of IDs representing the Applications that this Application depends on
+     * @return a set of IDs representing the updated dependencies
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the Application with the given ID does not exist
+     */
+    @Transactional
+    @Audit
+    public Set<Integer> updateDependencies(Integer appId, Set<Integer> dependsOnAppIds) {
+        log.info("Updating dependencies for Application with ID '{}'", appId);
+        Application app = applicationRepository.findById(appId)
+                .orElseThrow(() -> {
+                    log.warn("Application with ID '{}' does not exist", appId);
+                    return new SpringOpsException("Application with ID '" + appId + "' does not exist", HttpStatus.NOT_FOUND);
+                });
+
+        app.getDependencies().clear();
+        applicationRepository.saveAndFlush(app);
+
+        if (dependsOnAppIds == null || dependsOnAppIds.isEmpty()) {
+            log.warn("No dependencies provided for Application with ID '{}'", appId);
+            return Set.of();
+        }
+
+        Set<Application> dependencies = new HashSet<>(applicationRepository.findAllById(dependsOnAppIds));
+        app.setDependencies(dependencies);
+        applicationRepository.save(app);
+
+        log.info("Updated dependencies for Application with ID '{}'", appId);
+        return app.getDependencies().stream()
+                .map(Application::getId)
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Finds all dependent Applications for a given Application ID.
+     *
+     * @param appId the ID of the Application to find dependencies for
+     * @return a set of IDs representing the dependent Applications
+     * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the Application with the given ID does not exist
+     */
+    public Set<Integer> findDependentApplications(Integer appId) {
+        log.info("Finding dependent applications for Application with ID '{}'", appId);
+
+        if (!applicationRepository.existsById(appId)) {
+            log.warn("Application with ID '{}' does not exist", appId);
+            throw new SpringOpsException("Application with ID '" + appId + "' does not exist", HttpStatus.NOT_FOUND);
+        }
+
+        Application app = applicationRepository.findById(appId).orElseThrow();
+        Set<Application> dependencies = app.getDependencies();
+
+        log.info("Found {} dependent applications for Application with ID '{}'", dependencies.size(), appId);
+        return dependencies.stream()
+                .map(Application::getId)
+                .collect(Collectors.toSet());
     }
 }

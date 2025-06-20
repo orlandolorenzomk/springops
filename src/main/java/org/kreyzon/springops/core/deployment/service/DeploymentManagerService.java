@@ -32,6 +32,7 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -145,10 +146,26 @@ public class DeploymentManagerService {
     public List<CommandResultDto> manageDeployment(Integer applicationId, String branchName, DeploymentType deploymentType, Integer port) throws GitAPIException {
         log.info("Starting deployment for application ID: {}, branch: {}, deployment type: {}, port: {}", applicationId, branchName, deploymentType, port);
 
-        long startTime = System.currentTimeMillis();
-
         Application application = validateAndPrepareDeployment(applicationId);
         logDeploymentStart(application, branchName);
+
+        Set<Application> dependencies = application.getDependencies();
+        List<DeploymentDto> runningDeployments = deploymentService.findActiveRunningDeployments();
+
+        List<String> notRunningDependencies = dependencies.stream()
+                .filter(dep -> runningDeployments.stream().noneMatch(d -> d.getApplicationId().equals(dep.getId())))
+                .map(Application::getName)
+                .toList();
+
+        if (!notRunningDependencies.isEmpty()) {
+            log.warn("Cannot deploy application '{}' because these dependencies are not running: {}", application.getName(), notRunningDependencies);
+            throw new SpringOpsException(
+                    "Cannot deploy because dependencies are not running: " + String.join(", ", notRunningDependencies),
+                    HttpStatus.CONFLICT
+            );
+        }
+
+        long startTime = System.currentTimeMillis();
 
         Integer portForDeployment = port != null ? port : application.getPort();
 
