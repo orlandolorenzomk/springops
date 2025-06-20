@@ -222,8 +222,8 @@ export class ApplicationListComponent implements OnInit {
 
   openStatsDialog(appId: number): void {
     const dialogRef = this.dialog.open(StatsDialogComponent, {
-      width: '1500px',
-      height: '800px',
+      width: '1600px',
+      height: '1000px',
       data: {
         applicationId: appId,
         startTimestamp: '',  // user-entered ISO‑8601

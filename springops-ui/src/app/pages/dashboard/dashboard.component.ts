@@ -4,6 +4,7 @@ import { DashboardService } from '../../services/dashboard.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {ApplicationFormComponent} from "../application-form/application-form.component";
 import {MatDialog} from "@angular/material/dialog";
+import {UserFormComponent} from "../user-form/user-form.component";
 
 @Component({
   selector: 'app-dashboard',
@@ -39,7 +40,7 @@ export class DashboardComponent implements OnInit {
         this.stats = data;
         this.loading = false;
       },
-      error: (err) => {
+      error: () => {
         this.loading = false;
         this.snackBar.open('Failed to load dashboard stats', 'Close', {
           duration: 4000,
@@ -63,6 +64,11 @@ export class DashboardComponent implements OnInit {
   }
 
   openNewUserDialog() {
-
+    this.dialog.open(UserFormComponent, {
+      width: '600px',
+      autoFocus: false,
+      disableClose: true,
+      data: { user: null }
+    })
   }
 }

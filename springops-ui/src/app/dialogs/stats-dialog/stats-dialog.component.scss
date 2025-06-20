@@ -4,22 +4,18 @@
   gap: 24px;
 }
 
-.date-row {
+.info-banner {
   display: flex;
   align-items: center;
-  gap: 16px;
-}
-
-.date-field {
-  flex: 1;
-}
-
-.load-button {
-  height: 56px;
+  gap: 12px;
+  background-color: #fff3e0;
+  color: #5d4037;
+  padding: 12px;
+  border-left: 4px solid #f57c00;
+  font-weight: 500;
 }
 
 .stats-chart {
-  margin-top: 16px;
   width: 100%;
-  height: 350px;
+  height: 400px;
 }
