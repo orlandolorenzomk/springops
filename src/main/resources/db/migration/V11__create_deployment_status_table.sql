@@ -1,5 +1,7 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp"; -- Needed for UUID generation
+
 CREATE TABLE deployment_status (
-   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
    deployment_id SERIAL NOT NULL,
    status VARCHAR(20) NOT NULL CHECK (status IN ('SUCCESS', 'FAILURE', 'NOT_RUN')),
    message TEXT,
@@ -9,6 +11,6 @@ CREATE TABLE deployment_status (
 
    CONSTRAINT fk_deployment
        FOREIGN KEY (deployment_id)
-       REFERENCES deployments (id)
-       ON DELETE CASCADE
+           REFERENCES deployments (id)
+           ON DELETE CASCADE
 );
