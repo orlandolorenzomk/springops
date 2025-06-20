@@ -8,6 +8,7 @@ import org.kreyzon.springops.common.dto.auth.UserDto;
 import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.config.ApplicationConfig;
 import org.kreyzon.springops.config.annotations.Audit;
+import org.kreyzon.springops.config.annotations.SensibleAudit;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -67,7 +68,7 @@ public class UserService implements UserDetailsService {
      * @param userDto the {@link UserDto} containing user details.
      * @return a {@link UserDto} representing the created user.
      */
-    @Audit
+    @SensibleAudit
     public UserDto create(UserDto userDto) {
         log.info("Creating new user: {}", userDto.getUsername());
 
@@ -99,7 +100,7 @@ public class UserService implements UserDetailsService {
      * @return a {@link UserDto} representing the updated user.
      * @throws SpringOpsException with {@link HttpStatus#NOT_FOUND} if the user is not found.
      */
-    @Audit
+    @SensibleAudit
     public UserDto update(UUID userId, UserDto userDto) {
         log.info("Updating user with ID: {}", userId);
 

@@ -12,6 +12,10 @@ export interface AuditDto {
   user: string;
 }
 
+export interface AuditStatusDto {
+  status: string;
+  description: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -25,24 +29,25 @@ export class AuditService {
     return this.http.get<AuditDto>(`${this.baseUrl}/${auditId}`);
   }
 
-  searchAudits(
-    userId?: number,
-    action?: string,
-    from?: string,
-    to?: string,
+  searchAuditsPost(
+    filter: {
+      userId?: string;
+      action?: string;
+      from?: string;
+      to?: string;
+    },
     page: number = 0,
     size: number = 10
   ): Observable<Page<AuditDto>> {
-    let params = new HttpParams()
+    const params = new HttpParams()
       .set('page', page)
       .set('size', size);
 
-    if (userId != null) params = params.set('userId', userId);
-    if (action) params = params.set('action', encodeURIComponent(action));
-    console.log('Search Audits Params:', params.toString());
-    if (from) params = params.set('from', from);
-    if (to) params = params.set('to', to);
+    return this.http.post<Page<AuditDto>>(`${this.baseUrl}/search`, filter, { params });
+  }
 
-    return this.http.get<Page<AuditDto>>(this.baseUrl, { params });
+
+  getAvailableStatuses(): Observable<AuditStatusDto[]> {
+    return this.http.get<AuditStatusDto[]>(`${this.baseUrl}/statuses`);
   }
 }

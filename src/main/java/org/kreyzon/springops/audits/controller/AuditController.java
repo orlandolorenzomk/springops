@@ -5,12 +5,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.audits.entity.Audit;
 import org.kreyzon.springops.audits.service.AuditService;
 import org.kreyzon.springops.common.dto.audits.AuditDto;
+import org.kreyzon.springops.common.dto.audits.AuditFilterDto;
+import org.kreyzon.springops.common.dto.audits.AuditStatusDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.util.List;
 
 /**
  * REST controller for managing audit operations.
@@ -34,33 +38,47 @@ public class AuditController {
      * @return the audit record as an AuditDto
      */
     @GetMapping("/{auditId}")
-    public AuditDto findById(@PathVariable Integer auditId) {
+    public ResponseEntity<AuditDto> findById(@PathVariable Integer auditId) {
         log.debug("Received request to retrieve audit with ID: {}", auditId);
-        return auditService.findById(auditId);
+        AuditDto audit = auditService.findById(auditId);
+        return ResponseEntity.ok(audit);
     }
 
     /**
-     * Searches for audits based on dynamic criteria with pagination.
+     * Searches for audits based on the provided filter criteria.
      *
-     * @param userId   the user ID to filter by (optional)
-     * @param action   the action to filter by (optional)
-     * @param from     the start timestamp to filter by (optional)
-     * @param to       the end timestamp to filter by (optional)
-     * @param page     the page number for pagination (default: 0)
-     * @param size     the page size for pagination (default: 10)
-     * @return a paginated list of audits matching the criteria
+     * @param filterDto the filter criteria for searching audits
+     * @param page      the page number to retrieve (default is 0)
+     * @param size      the number of records per page (default is 10)
+     * @return a paginated list of AuditDto matching the filter criteria
      */
-    @GetMapping
-    public Page<AuditDto> searchAudits(
-            @RequestParam(required = false) Integer userId,
-            @RequestParam(required = false) String action,
-            @RequestParam(required = false) Instant from,
-            @RequestParam(required = false) Instant to,
+    @PostMapping("/search")
+    public ResponseEntity<Page<AuditDto>> searchAudits(
+            @RequestBody AuditFilterDto filterDto,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        log.debug("Received request to search audits with criteria: userId={}, action={}, from={}, to={}, page={}, size={}",
-                userId, action, from, to, page, size);
+
         Pageable pageable = PageRequest.of(page, size);
-        return auditService.searchAudits(userId, action, from, to, pageable);
+        Page<AuditDto> audits = auditService.searchAudits(
+                filterDto.getUserId(),
+                filterDto.getAction(),
+                filterDto.getFrom(),
+                filterDto.getTo(),
+                pageable
+        );
+        return ResponseEntity.ok(audits);
+    }
+
+
+    /**
+     * Retrieves a list of audits older than one month.
+     *
+     * @return a list of AuditDto representing audits older than one month
+     */
+    @GetMapping("/statuses")
+    public ResponseEntity<List<AuditStatusDto>> getAvailableStatuses() {
+        log.debug("Received request to retrieve available audit statuses");
+        List<AuditStatusDto> statuses = auditService.getUniqueAuditStatuses();
+        return ResponseEntity.ok(statuses);
     }
 }

@@ -3,7 +3,9 @@ package org.kreyzon.springops.audits.repository;
 import org.kreyzon.springops.audits.entity.Audit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -19,10 +21,21 @@ import java.util.List;
 @Repository
 public interface AuditRepository extends JpaRepository<Audit, Integer>, JpaSpecificationExecutor<Audit> {
     /**
-     * Finds all audits older than one month using a native SQL query.
+     * Deletes all audits older than the specified number of months.
      *
-     * @return a list of Audit entities that are older than one month
+     * @param months number of months
      */
-    @Query(value = "SELECT * FROM audits a WHERE a.timestamp < CURRENT_DATE - INTERVAL '1 month'", nativeQuery = true)
-    List<Audit> findOlderThanOneMonthAudits();
+    @Modifying
+    @Query(value = "DELETE FROM audits WHERE timestamp < CURRENT_DATE - CAST(:months || ' months' AS INTERVAL)", nativeQuery = true)
+    void deleteOlderThanNMonths(@Param("months") Integer months);
+
+
+    /**
+     * Finds all distinct actions from the Audit table.
+     *
+     * @return a list of distinct action strings
+     */
+    @Query("SELECT DISTINCT a.action FROM Audit a")
+    List<String> findDistinctActions();
+
 }

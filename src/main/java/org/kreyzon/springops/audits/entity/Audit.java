@@ -1,6 +1,7 @@
 package org.kreyzon.springops.audits.entity;
 
 import jakarta.persistence.*;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -12,7 +13,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Represents an audit record in the system.
@@ -61,24 +65,24 @@ public class Audit {
      * @param to     the end timestamp to filter by (optional)
      * @return a Specification object for querying audits
      */
-    public static Specification<Audit> buildSpecification(Integer userId, String action, Instant from, Instant to) {
+    public static Specification<Audit> buildSpecification(UUID userId, String action, Instant from, Instant to) {
         return (root, query, criteriaBuilder) -> {
-            var predicates = criteriaBuilder.conjunction();
+            List<Predicate> conditions = new ArrayList<>();
 
             if (userId != null) {
-                predicates.getExpressions().add(criteriaBuilder.equal(root.get("user").get("id"), userId));
+                conditions.add(criteriaBuilder.equal(root.get("user").get("id"), userId));
             }
             if (action != null && !action.isBlank()) {
-                predicates.getExpressions().add(criteriaBuilder.equal(root.get("action"), action));
+                conditions.add(criteriaBuilder.equal(root.get("action"), action));
             }
             if (from != null) {
-                predicates.getExpressions().add(criteriaBuilder.greaterThanOrEqualTo(root.get("timestamp"), from));
+                conditions.add(criteriaBuilder.greaterThanOrEqualTo(root.get("timestamp"), from));
             }
             if (to != null) {
-                predicates.getExpressions().add(criteriaBuilder.lessThanOrEqualTo(root.get("timestamp"), to));
+                conditions.add(criteriaBuilder.lessThanOrEqualTo(root.get("timestamp"), to));
             }
 
-            return predicates;
+            return criteriaBuilder.and(conditions.toArray(new Predicate[0]));
         };
     }
 }

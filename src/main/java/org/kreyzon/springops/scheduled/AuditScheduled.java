@@ -30,7 +30,8 @@ public class AuditScheduled {
         log.info("Starting scheduled task to delete audits older than one month");
 
         try {
-            auditService.deleteAuditsOlderThanAMonth();
+            Integer months = 12;
+            auditService.deleteAuditsOlderThanNMonths(12);
             log.info("Successfully deleted audits older than one month");
         } catch (Exception e) {
             log.error("Error occurred while deleting audits older than one month", e);
