@@ -25,11 +25,12 @@ import org.kreyzon.springops.setup.service.SetupService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -527,12 +528,25 @@ public class DeploymentManagerService {
      */
     private CommandResultDto executeCommand(DeploymentContextDto context, String scriptName, String... args) throws IOException, InterruptedException {
         log.info("Executing script: {} with {} arguments", scriptName, args.length);
-        String scriptPath = Objects.requireNonNull(getClass().getClassLoader().getResource("scripts/" + scriptName)).getPath();
 
-        log.info("Command to be executed: /bin/bash {} {}", scriptPath, String.join(" ", args));
+        InputStream scriptStream = getClass().getClassLoader().getResourceAsStream("scripts/" + scriptName);
+        if (scriptStream == null) {
+            throw new IOException("Script not found in resources/scripts/: " + scriptName);
+        }
 
-        String command = String.format("/bin/bash %s %s", scriptPath, String.join(" ", args));
-        ProcessBuilder processBuilder = new ProcessBuilder("/bin/bash", "-c", command);
+        File tempScript = File.createTempFile("springops-script-", ".sh");
+        tempScript.deleteOnExit();
+        Files.copy(scriptStream, tempScript.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        tempScript.setExecutable(true);
+
+        List<String> command = new ArrayList<>();
+        command.add("/bin/bash");
+        command.add(tempScript.getAbsolutePath());
+        command.addAll(List.of(args));
+
+        log.info("Command to be executed: {}", String.join(" ", command));
+
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
         Process process = processBuilder.start();
 
         List<String> outputLines;
@@ -549,7 +563,6 @@ public class DeploymentManagerService {
             log.debug("Output from script {}:\n{}", scriptName, rawOutput);
         }
 
-        // Find index of the line containing springops-result=
         int startIndex = -1;
         for (int i = 0; i < outputLines.size(); i++) {
             if (outputLines.get(i).startsWith("springops-result=")) {
@@ -569,11 +582,9 @@ public class DeploymentManagerService {
                     .build();
         }
 
-        // Join all lines starting from the springops-result line
         String joined = outputLines.subList(startIndex, outputLines.size()).stream()
                 .collect(Collectors.joining(System.lineSeparator()));
 
-        // Extract JSON part
         String json = joined.substring("springops-result=".length()).trim();
 
         try {
