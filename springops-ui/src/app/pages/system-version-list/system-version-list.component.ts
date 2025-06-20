@@ -26,7 +26,7 @@ export class SystemVersionListComponent implements OnInit {
   loadSystemVersions(): void {
     this.systemVersionService.findAll().subscribe(
       data => this.systemVersions = data,
-      error => console.error('Error fetching system versions', error)
+      error => console.error()
     );
   }
 
@@ -71,7 +71,7 @@ export class SystemVersionListComponent implements OnInit {
       if (confirmed) {
         this.systemVersionService.delete(id).subscribe(
           () => this.loadSystemVersions(),
-          error => console.error('Error deleting system version', error)
+          error => console.error()
         );
       }
     });

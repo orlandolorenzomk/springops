@@ -47,11 +47,11 @@ export class ApplicationListComponent implements OnInit {
         this.applications.forEach(app => {
           this.deploymentService.getDeploymentStatus(app.id).subscribe({
             next: status => this.applicationStatuses[app.id] = status,
-            error: err => console.error(`Error fetching status for app ${app.id}`, err)
+            error: err => console.error()
           });
         });
       },
-      error => console.error('Error fetching applications', error)
+      error => console.error()
     );
   }
 
@@ -99,7 +99,7 @@ export class ApplicationListComponent implements OnInit {
             this.loadApplications();
           },
           error: err => {
-            console.error('Error deleting application', err);
+            console.error();
             this.setLoading(id, 'delete', false);
           }
         });
@@ -145,7 +145,7 @@ export class ApplicationListComponent implements OnInit {
                 this.router.navigate(['/deployments'], { queryParams: { 'new-deploy': true } });
               },
               error: err => {
-                console.error('Deployment error', err);
+                console.error();
                 this.setLoading(appId, 'deploy', false);
                 this.globalLoading = false;
               }
@@ -180,7 +180,7 @@ export class ApplicationListComponent implements OnInit {
             this.loadApplications();
           },
           error: err => {
-            console.error('Kill process error', err);
+            console.error();
             this.setLoading(appId, 'kill', false);
           }
         });
@@ -260,7 +260,7 @@ export class ApplicationListComponent implements OnInit {
                 console.log('Dependencies updated:', deps);
               },
               error: err => {
-                console.error('Error updating dependencies:', err);
+                console.error();
               }
             });
           }

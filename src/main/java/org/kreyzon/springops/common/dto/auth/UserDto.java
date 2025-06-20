@@ -34,7 +34,6 @@ public class UserDto implements Serializable {
     /**
      * Unique identifier for the user.
      */
-//    @NotNull during creation, this field can be null
     UUID id;
 
     /**
@@ -54,7 +53,6 @@ public class UserDto implements Serializable {
     /**
      * Encrypted password of the user.
      */
-    @NotNull
     @Size(min = 8, max = 100)
     @Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
              message = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.")
@@ -63,13 +61,11 @@ public class UserDto implements Serializable {
     /**
      * Timestamp indicating when the user was created.
      */
-   // @NotNull during creation, this field can be null
     Instant createdAt;
 
     /**
      * Timestamp indicating the last time the user was updated.
      */
-//    @NotNull during creation, this field can be null
     Instant updatedAt;
 
     /**

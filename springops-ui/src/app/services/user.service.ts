@@ -1,4 +1,4 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
@@ -33,16 +33,4 @@ export class UserService {
   deleteUser(id: string): Observable<void> {
     return this.httpClient.delete<void>(`${this.API_URL}/${id}`);
   }
-
-  handleErrors(error: HttpErrorResponse): void {
-      console.error('An error occurred:', error);
-      this.snackBar.open(
-        error.status == 0 ? 'Connection to server lost' : error.error, 
-        'Dismiss', 
-        { 
-          duration: 3000, 
-          verticalPosition: 'top' 
-        }
-      );
-    }
 }

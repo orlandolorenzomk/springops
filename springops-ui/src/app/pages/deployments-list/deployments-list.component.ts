@@ -66,7 +66,7 @@ export class DeploymentsListComponent implements OnInit {
             setTimeout(() => this.blinkRow(this.deployments[0].id!), 0);
           }
         },
-        error: err => console.error('Failed to fetch deployments', err)
+        error: err => console.error()
       });
   }
 
@@ -87,7 +87,7 @@ export class DeploymentsListComponent implements OnInit {
     this.deployments.forEach(d => {
       this.deploymentService.getDeploymentStatus(d.applicationId).subscribe({
         next: status => this.deploymentStatuses[d.id!] = status,
-        error: err => console.error(`Status error for deployment ${d.id}`, err)
+        error: err => console.error()
       });
     });
   }
@@ -123,7 +123,7 @@ export class DeploymentsListComponent implements OnInit {
             this.loadDeployments();
           },
           error: err => {
-            console.error('Delete failed', err);
+            console.error();
             this.setLoading(id, 'delete', false);
           }
         });
@@ -171,7 +171,7 @@ export class DeploymentsListComponent implements OnInit {
               window.location.href = '/deployments?new-deploy=true';
             },
             error: err => {
-              console.error('Rollback failed', err);
+              console.error();
               if (hasRunningPid) this.setLoading(runningDeployment!.id!, 'kill', false);
               this.setLoading(targetDeployment.applicationId, 'deploy', false);
               this.isDeploying = false;
@@ -183,7 +183,7 @@ export class DeploymentsListComponent implements OnInit {
           this.deploymentService.killProcess(status.pid!).subscribe({
             next: () => doDeploy(),
             error: err => {
-              console.error('Kill failed', err);
+              console.error();
               this.setLoading(runningDeployment!.id!, 'kill', false);
               this.setLoading(targetDeployment.applicationId, 'deploy', false);
               this.isDeploying = false;
@@ -219,7 +219,7 @@ export class DeploymentsListComponent implements OnInit {
             this.loadDeployments();
           },
           error: err => {
-            console.error('Kill failed', err);
+            console.error();
             this.setLoading(deploymentId, 'kill', false);
           }
         });
@@ -243,7 +243,7 @@ export class DeploymentsListComponent implements OnInit {
         window.URL.revokeObjectURL(url);
       },
       error: err => {
-        console.error('Download failed', err);
+        console.error();
       }
     });
   }
@@ -259,7 +259,7 @@ export class DeploymentsListComponent implements OnInit {
         const updatedDeployment = { ...deployment, notes: result };
         this.deploymentService.updateDeploymentNotes(updatedDeployment.id!, result).subscribe({
           next: () => this.loadDeployments(),
-          error: (err: any) => console.error('Failed to update notes', err)
+          error: (err: any) => console.error()
         });
       }
     });

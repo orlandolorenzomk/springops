@@ -70,7 +70,7 @@
     <button mat-stroked-button color="basic" (click)="onCancel()">
         <mat-icon>cancel</mat-icon> Cancel
     </button>
-    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="form.invalid || form.get('confirmPassword')?.value !== form.get('password')?.value">
+    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="!isEditMode && (form.invalid || form.get('confirmPassword')?.value !== form.get('password')?.value)">
         <mat-icon>{{isEditMode ? 'person_add' : 'save'}}</mat-icon>
         {{!isEditMode ? 'Create User' : 'Update User'}}
     </button>

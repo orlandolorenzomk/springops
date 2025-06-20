@@ -6,6 +6,7 @@ import org.kreyzon.springops.auth.model.User;
 import org.kreyzon.springops.auth.repository.UserRepository;
 import org.kreyzon.springops.common.dto.auth.UserDto;
 import org.kreyzon.springops.common.exception.SpringOpsException;
+import org.kreyzon.springops.config.ApplicationConfig;
 import org.kreyzon.springops.config.annotations.Audit;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,6 +31,7 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ApplicationConfig applicationConfig;
 
     /**
      * Finds a user by their unique ID.
@@ -100,23 +102,18 @@ public class UserService implements UserDetailsService {
     @Audit
     public UserDto update(UUID userId, UserDto userDto) {
         log.info("Updating user with ID: {}", userId);
-        // TODO Check if user already exists by email or username and their value it's different than userDto.getEmail() and userDto.getUsername()
-        if(userRepository.existsByEmail(userDto.getEmail())){
-            log.info("Email already exists: {}", userDto.getEmail());
-            throw new SpringOpsException("Email already exists: " + userDto.getEmail(), HttpStatus.CONFLICT);
-        }
-        if(userRepository.existsByUsername(userDto.getUsername())){
-            log.info("Username already exists: {}", userDto.getUsername());
-            throw new SpringOpsException("Username already exists: " + userDto.getUsername(), HttpStatus.CONFLICT);
-        }
 
         User existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new SpringOpsException("User not found with ID: " + userId, HttpStatus.NOT_FOUND));
 
-        // Check if the authenticated user is the same as the user being updated
-        if (!isUserAuthorized(existingUser.getEmail())) {
-            log.warn("Unauthorized attempt to update user with ID: {}", userId);
-            throw new SpringOpsException("You are not authorized to update this user.", HttpStatus.FORBIDDEN);
+        if (userRepository.existsByEmail(userDto.getEmail()) && !existingUser.getEmail().equals(userDto.getEmail())) {
+            log.info("Email already exists: {}", userDto.getEmail());
+            throw new SpringOpsException("Email already exists: " + userDto.getEmail(), HttpStatus.CONFLICT);
+        }
+
+        if (userRepository.existsByUsername(userDto.getUsername()) && !existingUser.getUsername().equals(userDto.getUsername())) {
+            log.info("Username already exists: {}", userDto.getUsername());
+            throw new SpringOpsException("Username already exists: " + userDto.getUsername(), HttpStatus.CONFLICT);
         }
 
         existingUser.setUsername(userDto.getUsername());
@@ -142,10 +139,9 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new SpringOpsException("User not found with ID: " + userId, HttpStatus.NOT_FOUND));
 
-        // Check if the authenticated user is the same as the user being deleted
-        if (!isUserAuthorized(user.getEmail())) {
-            log.warn("Unauthorized attempt to delete user with ID: {}", userId);
-            throw new SpringOpsException("You are not authorized to delete this user.", HttpStatus.FORBIDDEN);
+        if (user.getUsername().equalsIgnoreCase(applicationConfig.getStandardAdminUsername())) {
+            log.warn("Attempt to delete the standard admin user: {}", user.getUsername());
+            throw new SpringOpsException("Cannot delete the standard admin user: " + user.getUsername(), HttpStatus.FORBIDDEN);
         }
 
         userRepository.deleteById(userId);
@@ -187,7 +183,7 @@ public class UserService implements UserDetailsService {
     /**
      * Check if the authenticated user is the same as the user being accessed.
      *
-     * @param username
+     * @param username the username of the user being accessed
      * @return true if the authenticated user is the same as the user being
      *         accessed, false otherwise
      * @author Domenico Ferraro

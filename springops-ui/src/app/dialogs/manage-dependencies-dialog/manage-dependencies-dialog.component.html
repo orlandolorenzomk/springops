@@ -1,11 +1,22 @@
 <h2 mat-dialog-title>Manage Dependencies</h2>
+
 <mat-dialog-content>
+
+  <mat-card class="dependency-warning-card">
+    <mat-icon color="warn">warning</mat-icon>
+    <span class="warning-text">
+      Select the applications this service depends on. These must be running before deployment.
+    </span>
+  </mat-card>
+
   <mat-selection-list [(ngModel)]="selectedIds">
     <mat-list-option *ngFor="let app of data.applications" [value]="app.id">
       {{ app.name }} (ID: {{ app.id }})
     </mat-list-option>
   </mat-selection-list>
+
 </mat-dialog-content>
+
 <mat-dialog-actions align="end">
   <button mat-button (click)="cancel()">Cancel</button>
   <button mat-raised-button color="primary" (click)="confirm()">Save</button>

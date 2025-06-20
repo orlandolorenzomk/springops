@@ -44,12 +44,12 @@ export class SystemVersionFormComponent implements OnInit {
       if (this.mode === 'create') {
         this.systemVersionService.save(systemVersionDto).subscribe(
           () => this.dialogRef.close(true),
-          error => console.error('Error creating system version', error)
+          error => console.error()
         );
       } else {
         this.systemVersionService.update(systemVersionDto.id, systemVersionDto).subscribe(
           () => this.dialogRef.close(true),
-          error => console.error('Error updating system version', error)
+          error => console.error()
         );
       }
     }

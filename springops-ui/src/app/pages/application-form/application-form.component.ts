@@ -75,19 +75,19 @@ export class ApplicationFormComponent implements OnInit {
     // Double-check format
     const memPattern = /^[0-9]+[mMgG]$/;
     if (!memPattern.test(dto.javaMinimumMemory) || !memPattern.test(dto.javaMaximumMemory)) {
-      console.error('Memory format invalid');
+      console.error();
       return;
     }
 
     if (this.mode === 'create') {
       this.applicationService.save(dto).subscribe(
         () => this.dialogRef.close(true),
-        error => console.error('Error creating application', error)
+        error => console.error()
       );
     } else {
       this.applicationService.update(dto.id, dto).subscribe(
         () => this.dialogRef.close(true),
-        error => console.error('Error updating application', error)
+        error => console.error()
       );
     }
   }

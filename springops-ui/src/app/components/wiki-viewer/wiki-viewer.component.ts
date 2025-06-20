@@ -34,7 +34,7 @@ export class WikiViewerComponent implements OnInit {
       error: err => {
         this.errorMessage = 'Failed to load file list';
         this.isLoading = false;
-        console.error(err);
+        console.error();
       }
     });
   }
@@ -55,7 +55,7 @@ export class WikiViewerComponent implements OnInit {
         this.errorMessage = `Failed to load ${name}`;
         this.markdown = '';
         this.isLoading = false;
-        console.error(err);
+        console.error();
       }
     });
   }

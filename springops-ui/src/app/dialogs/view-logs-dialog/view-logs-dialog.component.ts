@@ -26,7 +26,7 @@ export class ViewLogsDialogComponent implements OnInit {
       },
       error: err => {
         this.error = 'Failed to load logs.';
-        console.error(err);
+        console.error();
         this.loading = false;
       }
     });
