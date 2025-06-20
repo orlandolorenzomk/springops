@@ -8,7 +8,11 @@ import org.apache.commons.exec.PumpStreamHandler;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -46,25 +50,19 @@ public class OsInfoService {
         return osInfoMap;
     }
 
-    /**
-     * Executes the shell script to retrieve OS information.
-     *
-     * @return The output of the script as a string.
-     * @throws IOException If an error occurs while executing the script or reading its output.
-     */
     private String executeScript(String scriptName) throws IOException {
-        String scriptPath;
-        try {
-            scriptPath = Objects.requireNonNull(
-                    getClass().getClassLoader().getResource("scripts/" + scriptName),
-                    "Script not found in resources/scripts/"
-            ).getFile();
-        } catch (NullPointerException e) {
+        InputStream scriptStream = getClass().getClassLoader().getResourceAsStream("scripts/" + scriptName);
+        if (scriptStream == null) {
             log.error("Script not found: {}", scriptName);
-            throw new IOException("Script not found in resources/scripts/: " + scriptName, e);
+            throw new IOException("Script not found in resources/scripts/: " + scriptName);
         }
 
-        CommandLine cmdLine = CommandLine.parse(scriptPath);
+        File tempScript = File.createTempFile("springops-script-", ".sh");
+        tempScript.deleteOnExit();
+        Files.copy(scriptStream, tempScript.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        tempScript.setExecutable(true);
+
+        CommandLine cmdLine = new CommandLine(tempScript.getAbsolutePath());
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream);
@@ -78,7 +76,6 @@ public class OsInfoService {
         }
 
         log.info("Script executed successfully: {}", scriptName);
-
         return outputStream.toString();
     }
 
