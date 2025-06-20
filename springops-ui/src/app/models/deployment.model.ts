@@ -39,4 +39,5 @@ export interface DeploymentDto {
   branch?: string;
   logsPath?: string;
   notes?: string;
+  timeTaken?: number; // in seconds
 }

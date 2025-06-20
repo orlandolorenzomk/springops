@@ -165,7 +165,7 @@ public class SystemVersionService {
         log.info("Validating system version: {}", systemVersionDto.getName());
 
         // 1. Check if path exists
-        Path path = Paths.get(systemVersionDto.getPath());
+        Path path = Paths.get(systemVersionDto.getPath().trim());
         if (!Files.exists(path)) {
             log.error("Path does not exist: {}", systemVersionDto.getPath());
             throw new SpringOpsException("Path does not exist: " + systemVersionDto.getPath(), HttpStatus.BAD_REQUEST);

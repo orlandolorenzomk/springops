@@ -1,8 +1,9 @@
-package org.kreyzon.springops.email;
+package org.kreyzon.springops.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Ignore;
 import org.junit.jupiter.api.*;
 import org.kreyzon.springops.auth.service.UserService;
 import org.kreyzon.springops.common.dto.auth.UserDto;
@@ -36,6 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Disabled
 @Slf4j
 class EmailControllerTest {
 

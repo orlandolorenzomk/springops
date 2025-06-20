@@ -67,4 +67,7 @@ public class Deployment {
 
     @Column(name = "notes")
     private String notes;
+
+    @Column(name = "time_taken")
+    private Integer timeTaken;
 }

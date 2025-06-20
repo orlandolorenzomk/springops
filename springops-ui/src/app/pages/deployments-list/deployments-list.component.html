@@ -67,6 +67,14 @@
         </td>
       </ng-container>
 
+      <!-- Time taken -->
+      <ng-container matColumnDef="timeTaken">
+        <th mat-header-cell *matHeaderCellDef>Time Taken</th>
+        <td mat-cell *matCellDef="let d">
+          <mat-icon class="icon-cell">timer</mat-icon> {{ d.timeTaken }} (s)
+        </td>
+      </ng-container>
+
       <ng-container matColumnDef="typeInfo">
         <th mat-header-cell *matHeaderCellDef>Type</th>
         <td mat-cell *matCellDef="let d">

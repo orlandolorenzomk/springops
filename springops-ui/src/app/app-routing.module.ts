@@ -6,11 +6,13 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { NotfoundComponent } from './pages/notfound/notfound.component';
 import { SetupGuard } from './guards/setup.guard';
 import { LoginComponent } from './pages/auth/login/login.component';
-import { authGuard } from "./guards/auth.guard";
-import { ApplicationListComponent } from "./pages/application-list/application-list.component";
-import { SystemVersionListComponent } from "./pages/system-version-list/system-version-list.component";
-import { DeploymentsListComponent } from "./pages/deployments-list/deployments-list.component";
-import { AuditComponent } from "./pages/audit/audit.component";
+import {authGuard} from "./guards/auth.guard";
+import {ApplicationListComponent} from "./pages/application-list/application-list.component";
+import {SystemVersionListComponent} from "./pages/system-version-list/system-version-list.component";
+import {DeploymentsListComponent} from "./pages/deployments-list/deployments-list.component";
+import {AuditComponent} from "./pages/audit/audit.component";
+import {OsInfoComponent} from "./pages/os-info/os-info.component";
+import {WikiViewerComponent} from "./components/wiki-viewer/wiki-viewer.component";
 import { UserManagementComponent } from './pages/user-management/user-management.component';
 
 const routes: Routes = [
@@ -48,6 +50,16 @@ const routes: Routes = [
     path: 'users',
     component: UserManagementComponent,
     // canActivate: [authGuard, SetupGuard] TODO: add guards
+  },
+  {
+    path: 'os-info',
+    component: OsInfoComponent,
+    canActivate: [authGuard, SetupGuard]
+  },
+  {
+    path: 'wiki',
+    component: WikiViewerComponent,
+    canActivate: [authGuard, SetupGuard]
   },
   {
     path: 'setup',

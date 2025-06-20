@@ -51,6 +51,7 @@ application:
   display-process-logs: ${APP_DISPLAY_PROCESS_LOGS:true}
   display-exception-stack-traces: ${APP_DISPLAY_EXCEPTION_STACK_TRACES:true}
   directory-application-logs: ${APP_DIRECTORY_APPLICATION_LOGS:logs}
+  directory-system-versions: ${APP_DIRECTORY_SYSTEM_VERSIONS:system-versions}
 
 mailjet:
   host: ${MAILJET_HOST:in-v3.mailjet.com}

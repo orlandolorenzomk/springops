@@ -3,7 +3,6 @@ import { DeploymentDto, DeploymentStatusDto } from '../../models/deployment.mode
 import { DeploymentService } from '../../services/deployment.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../dialogs/confirm-dialog/confirm-dialog.component';
-import { DeployDialogComponent } from '../../dialogs/deploy-dialog/deploy-dialog.component';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { PageEvent } from '@angular/material/paginator';
 import {ActivatedRoute, Router} from "@angular/router";
@@ -17,7 +16,7 @@ import {NotesDialogComponent} from "../../dialogs/notes-dialog/notes-dialog.comp
 export class DeploymentsListComponent implements OnInit {
   deployments: DeploymentDto[] = [];
   deploymentStatuses: { [id: number]: DeploymentStatusDto } = {};
-  displayedColumns: string[] = ['id', 'version', 'status', 'branch', 'createdAt', 'typeInfo', 'actions'];
+  displayedColumns: string[] = ['id', 'version', 'status', 'branch', 'createdAt', 'timeTaken', 'typeInfo', 'actions'];
   loadingActions: { [id: number]: { delete?: boolean; deploy?: boolean; kill?: boolean } } = {};
   isDeploying: boolean = false;
 

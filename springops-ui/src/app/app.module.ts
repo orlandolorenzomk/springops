@@ -18,7 +18,14 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {MatError, MatFormField, MatHint, MatLabel} from "@angular/material/form-field";
 import {MatInput, MatInputModule} from "@angular/material/input";
 import {NgOptimizedImage} from "@angular/common";
-import {MatCard, MatCardActions, MatCardContent, MatCardTitle} from "@angular/material/card";
+import {
+  MatCard,
+  MatCardActions,
+  MatCardContent,
+  MatCardHeader,
+  MatCardSubtitle,
+  MatCardTitle
+} from "@angular/material/card";
 import { ApplicationListComponent } from './pages/application-list/application-list.component';
 import {
   MatCell,
@@ -48,7 +55,7 @@ import {
   MatDatepickerModule,
   MatDatepickerToggle
 } from "@angular/material/datepicker";
-import {MatNativeDateModule} from "@angular/material/core";
+import {MatLine, MatNativeDateModule} from "@angular/material/core";
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import {MatChip, MatChipListbox} from "@angular/material/chips";
 import { ManageEnvDialogComponent } from './dialogs/manage-env-dialog/manage-env-dialog.component';
@@ -66,6 +73,10 @@ import { UserManagementComponent } from './pages/user-management/user-management
 import {  MatSortModule } from '@angular/material/sort';
 import { StickyShadowDirective } from './directives/scroll-shadow.directive';
 import { UserFormComponent } from './pages/user-form/user-form.component';
+import { OsInfoComponent } from './pages/os-info/os-info.component';
+import { WikiViewerComponent } from './components/wiki-viewer/wiki-viewer.component';
+import {MarkdownModule} from "ngx-markdown";
+import {MatTooltip} from "@angular/material/tooltip";
 
 @NgModule({
   declarations: [
@@ -91,9 +102,12 @@ import { UserFormComponent } from './pages/user-form/user-form.component';
     AuditComponent,
     UserManagementComponent,
     UserFormComponent,
-    StickyShadowDirective
+    StickyShadowDirective,
+    OsInfoComponent,
+    WikiViewerComponent
   ],
   imports: [
+    MarkdownModule.forRoot(),
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
@@ -151,8 +165,10 @@ import { UserFormComponent } from './pages/user-form/user-form.component';
     MatTableModule,
     MatInputModule,
     MatSortModule,
-
-
+    MatCardHeader,
+    MatLine,
+    MatTooltip,
+    MatCardSubtitle
   ],
   providers: [
     provideClientHydration(),

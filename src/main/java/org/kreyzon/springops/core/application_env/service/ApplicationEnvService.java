@@ -1,8 +1,10 @@
 package org.kreyzon.springops.core.application_env.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.common.dto.application_env.ApplicationEnvDto;
+import org.kreyzon.springops.common.exception.SkipEnvSaveException;
 import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.kreyzon.springops.common.utils.EncryptionUtils;
 import org.kreyzon.springops.config.ApplicationConfig;
@@ -17,6 +19,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Service class for managing application environment configurations.
@@ -68,44 +72,60 @@ public class ApplicationEnvService {
      * @throws SpringOpsException with {@link HttpStatus#FORBIDDEN} if the maximum number of environment variables exceeds the limit
      * @throws SpringOpsException with {@link HttpStatus#INTERNAL_SERVER_ERROR} if an error occurs during saving
      */
+    @Transactional
     @SensibleAudit
     public List<ApplicationEnvDto> save(Integer applicationId, List<ApplicationEnvDto> applicationEnvDtoList) {
         log.info("Saving environment variables");
 
         Application application = applicationLookupService.findEntityById(applicationId);
-        List<ApplicationEnv> existingEnvs = applicationEnvRepository.findByApplication(
-                application
-        );
+        List<ApplicationEnv> existingEnvs = applicationEnvRepository.findByApplication(application);
+
         if (existingEnvs.size() > applicationConfig.getMaximumEnvFilesPerApplication()) {
             log.error("Maximum environment variables limit exceeded for application: {}", application.getName());
             throw new SpringOpsException("Maximum environment variables limit exceeded for application: " + application.getName(), HttpStatus.FORBIDDEN);
         }
-        applicationEnvRepository.deleteAll(existingEnvs);
-        log.info("Deleted existing ApplicationEnvs for application: {}", application.getName());
 
         return applicationEnvDtoList.stream().map(applicationEnvDto -> {
             try {
-                ApplicationEnv entity = ApplicationEnv
-                        .builder()
-                        .name(applicationEnvDto.getName())
-                        .value(EncryptionUtils.encrypt(
-                                applicationEnvDto.getValue(),
-                                applicationConfig.getSecret(),
-                                applicationConfig.getAlgorithm()
-                        ))
+                String name = applicationEnvDto.getName();
+                String rawValue = applicationEnvDto.getValue();
+
+                String encryptedValue = EncryptionUtils.encrypt(
+                        rawValue,
+                        applicationConfig.getSecret(),
+                        applicationConfig.getAlgorithm()
+                );
+
+                Optional<ApplicationEnv> existing = existingEnvs.stream()
+                        .filter(env -> env.getName().equals(name))
+                        .findFirst();
+
+                if (existing.isPresent() && existing.get().getValue().equals(encryptedValue)) {
+                    log.info("Env '{}' with same encrypted value already exists. Skipping.", name);
+                    return null;
+                }
+
+                existing.ifPresent(env -> {
+                    log.info("Deleting old env '{}' with different value.", name);
+                    applicationEnvRepository.delete(env);
+                });
+
+                ApplicationEnv entity = ApplicationEnv.builder()
+                        .name(name)
+                        .value(encryptedValue)
                         .createdAt(Instant.now())
                         .application(application)
                         .build();
 
-                entity.setCreatedAt(Instant.now());
                 ApplicationEnv savedEntity = applicationEnvRepository.save(entity);
                 log.info("Saved ApplicationEnv: {}", savedEntity.getName());
                 return ApplicationEnvDto.fromEntity(savedEntity);
+
             } catch (Exception e) {
                 log.error("Error saving ApplicationEnv: {}", e.getMessage());
-                throw new SpringOpsException("Failed to save ApplicationEnv: " + applicationEnvDto.getName() + "\n "+e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new SpringOpsException("Failed to save ApplicationEnv: " + applicationEnvDto.getName() + "\n " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
             }
-        }).toList();
+        }).filter(Objects::nonNull).toList();
     }
 
     /**
