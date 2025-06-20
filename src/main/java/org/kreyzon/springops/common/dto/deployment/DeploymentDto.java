@@ -34,6 +34,7 @@ public class DeploymentDto implements Serializable {
     String logsPath;
     @Size(max = 500)
     String notes;
+    Integer timeTaken;
     /**
      * Constructs a DeploymentDto from a Deployment entity.
      *
@@ -51,7 +52,8 @@ public class DeploymentDto implements Serializable {
                 deployment.getApplication().getId(),
                 deployment.getBranch(),
                 deployment.getLogsPath(),
-                deployment.getNotes()
+                deployment.getNotes(),
+                deployment.getTimeTaken()
         );
     }
 
@@ -72,6 +74,7 @@ public class DeploymentDto implements Serializable {
                 .branch(deployment.getBranch())
                 .logsPath(deployment.getLogsPath())
                 .notes(deployment.getNotes())
+                .timeTaken(deployment.getTimeTaken())
                 .build();
     }
 }

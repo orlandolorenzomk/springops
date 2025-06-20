@@ -143,6 +143,10 @@ public class DeploymentManagerService {
     @Audit
     @Transactional
     public List<CommandResultDto> manageDeployment(Integer applicationId, String branchName, DeploymentType deploymentType, Integer port) throws GitAPIException {
+        log.info("Starting deployment for application ID: {}, branch: {}, deployment type: {}, port: {}", applicationId, branchName, deploymentType, port);
+
+        long startTime = System.currentTimeMillis();
+
         Application application = validateAndPrepareDeployment(applicationId);
         logDeploymentStart(application, branchName);
 
@@ -182,7 +186,9 @@ public class DeploymentManagerService {
             String jarName = commandResultDtos.get(1).getData().get(0).toString();
             Integer pid = commandResultDtos.get(2).getData().get(0) != null ? Integer.parseInt(commandResultDtos.get(2).getData().get(1).toString()) : null;
             String branch = commandResultDtos.get(0).getData().get(0) != null ? commandResultDtos.get(0).getData().get(0).toString() : "unknown";
-            handleSuccessfulDeployment(applicationId, status.get(), jarName, pid, branch, deploymentType, commandResultDtos);
+            long endTime = System.currentTimeMillis();
+            long timeTaken = (endTime - startTime) / 1000; // Convert milliseconds to seconds
+            handleSuccessfulDeployment(applicationId, status.get(), jarName, pid, branch, deploymentType, commandResultDtos, (int) timeTaken);
             return commandResultDtos;
         } catch (SpringOpsException e) {
             throw e; // Re-throw known exceptions
@@ -424,10 +430,10 @@ public class DeploymentManagerService {
      * @param deploymentType the type of deployment (e.g., ROLLBACK, LATEST)
      * @param finalResult   the final result of the deployment process
      */
-    private void handleSuccessfulDeployment(Integer applicationId, String status, String jarName, Integer pid, String branch, DeploymentType deploymentType, List<CommandResultDto> finalResult) {
+    private void handleSuccessfulDeployment(Integer applicationId, String status, String jarName, Integer pid, String branch, DeploymentType deploymentType, List<CommandResultDto> finalResult, Integer timeTaken) {
         if (status.equalsIgnoreCase(DeploymentStatus.SUCCEEDED.name())) {
             log.info("Deployment for application ID {} completed successfully", applicationId);
-            updateDeploymentRecords(applicationId, jarName, pid, branch, deploymentType, finalResult);
+            updateDeploymentRecords(applicationId, jarName, pid, branch, deploymentType, finalResult, timeTaken);
         } else {
             log.error("Deployment for application ID {} failed",
                     applicationId);
@@ -445,7 +451,7 @@ public class DeploymentManagerService {
      * @param deploymentType the type of deployment (e.g., ROLLBACK, LATEST)
      * @param finalResult   the final result of the deployment process
      */
-    public void updateDeploymentRecords(Integer applicationId, String jarName, Integer pid, String branch, DeploymentType deploymentType, List<CommandResultDto> finalResult) {
+    public void updateDeploymentRecords(Integer applicationId, String jarName, Integer pid, String branch, DeploymentType deploymentType, List<CommandResultDto> finalResult, Integer timeTaken) {
         Deployment latestDeployment = deploymentService.findLatestByApplicationId(applicationId);
         if (latestDeployment != null) {
             if (!deploymentType.equals(DeploymentType.ROLLBACK)) {
@@ -462,6 +468,7 @@ public class DeploymentManagerService {
                 .applicationId(applicationId)
                 .pid(pid)
                 .branch(branch)
+                .timeTaken(timeTaken)
                 .build();
         DeploymentDto result = deploymentService.save(newDeployment);
 
