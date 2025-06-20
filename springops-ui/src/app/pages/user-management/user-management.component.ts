@@ -7,6 +7,8 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { UserService } from '../../services/user.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpErrorResponse } from '@angular/common/http';
+import { UserFormComponent } from '../user-form/user-form.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-user-management',
@@ -26,7 +28,8 @@ export class UserManagementComponent implements OnInit {
 
   constructor(
     private userService: UserService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) { }
 
   ngOnInit(): void {
@@ -57,12 +60,23 @@ export class UserManagementComponent implements OnInit {
           this.isLoading = false;
         },
         error: (error: HttpErrorResponse) => {
-          this.handleErrors(error);
+          this.userService.handleErrors(error);
+          this.isLoading = false;
         }
       });
   }
 
-  openUserEditDialog(id?: string): void {
+  openUserEditDialog(user?: User): void {
+    const dialogRef = this.dialog.open(UserFormComponent, {
+      width: '1000px',
+      data: { user: user || null }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadUsers(); // Reload users after dialog is closed
+      }
+    });
   }
 
   deleteUser(id: string): void {
@@ -75,16 +89,11 @@ export class UserManagementComponent implements OnInit {
           this.snackBar.open('User deleted successfully', 'Dismiss', { duration: 3000 });
         },
         error: (error: HttpErrorResponse) => {
-         this.handleErrors(error);
+          this.userService.handleErrors(error);
+          this.isLoading = false;
         }
       });
     }
-  }
-
-  handleErrors(error: HttpErrorResponse): void {
-    console.error('An error occurred:', error);
-    this.snackBar.open(error.status == 0 ? 'Connection to server lost' : error.error, 'Dismiss', { duration: 3000 });
-    this.isLoading = false;
   }
 
   /**
@@ -105,145 +114,145 @@ export class UserManagementComponent implements OnInit {
     };
   }
 }
-  const PLACEHOLDER_USERS: User[] = [
-    {
-      id: '1',
-      username: 'john_doe',
-      email: 'john@example.com',
-      createdAt: new Date(2023, 0, 15),
-      updatedAt: new Date(2023, 3, 20)
-    },
-    {
-      id: '2',
-      username: 'jane_smith',
-      email: 'jane@example.com',
-      createdAt: new Date(2023, 1, 10),
-      updatedAt: new Date(2023, 3, 25)
-    },
-    {
-      id: '3',
-      username: 'bob_johnson',
-      email: 'bob@example.com',
-      createdAt: new Date(2023, 2, 5),
-      updatedAt: new Date(2023, 5, 12)
-    },
-    {
-      id: '4',
-      username: 'alice_williams',
-      email: 'alice@example.com',
-      createdAt: new Date(2023, 3, 20),
-      updatedAt: new Date(2023, 5, 15)
-    },
-    {
-      id: '5',
-      username: 'charlie_brown',
-      email: 'charlie@example.com',
-      createdAt: new Date(2023, 4, 8),
-      updatedAt: new Date(2023, 5, 18)
-    },
-    {
-      id: '6',
-      username: 'emma_davis',
-      email: 'emma@example.com',
-      createdAt: new Date(2023, 0, 22),
-      updatedAt: new Date(2023, 4, 10)
-    },
-    {
-      id: '7',
-      username: 'michael_taylor',
-      email: 'michael@example.com',
-      createdAt: new Date(2023, 1, 18),
-      updatedAt: new Date(2023, 6, 1)
-    },
-    {
-      id: '8',
-      username: 'sophia_miller',
-      email: 'sophia@example.com',
-      createdAt: new Date(2023, 2, 27),
-      updatedAt: new Date(2023, 4, 29)
-    },
-    {
-      id: '9',
-      username: 'daniel_wilson',
-      email: 'daniel@example.com',
-      createdAt: new Date(2023, 3, 12),
-      updatedAt: new Date(2023, 6, 8)
-    },
-    {
-      id: '10',
-      username: 'olivia_moore',
-      email: 'olivia@example.com',
-      createdAt: new Date(2023, 4, 19),
-      updatedAt: new Date(2023, 7, 2)
-    },
-    {
-      id: '11',
-      username: 'james_anderson',
-      email: 'james@example.com',
-      createdAt: new Date(2022, 11, 5),
-      updatedAt: new Date(2023, 5, 25)
-    },
-    {
-      id: '12',
-      username: 'ava_jackson',
-      email: 'ava@example.com',
-      createdAt: new Date(2023, 0, 30),
-      updatedAt: new Date(2023, 6, 12)
-    },
-    {
-      id: '13',
-      username: 'william_harris',
-      email: 'william@example.com',
-      createdAt: new Date(2023, 1, 24),
-      updatedAt: new Date(2023, 4, 15)
-    },
-    {
-      id: '14',
-      username: 'emily_martin',
-      email: 'emily@example.com',
-      createdAt: new Date(2022, 9, 17),
-      updatedAt: new Date(2023, 6, 20)
-    },
-    {
-      id: '15',
-      username: 'alexander_thompson',
-      email: 'alex@example.com',
-      createdAt: new Date(2023, 3, 8),
-      updatedAt: new Date(2023, 7, 5)
-    },
-    {
-      id: '16',
-      username: 'mia_robinson',
-      email: 'mia@example.com',
-      createdAt: new Date(2022, 8, 12),
-      updatedAt: new Date(2023, 2, 28)
-    },
-    {
-      id: '17',
-      username: 'ethan_clark',
-      email: 'ethan@example.com',
-      createdAt: new Date(2023, 2, 16),
-      updatedAt: new Date(2023, 5, 7)
-    },
-    {
-      id: '18',
-      username: 'isabella_rodriguez',
-      email: 'isabella@example.com',
-      createdAt: new Date(2022, 7, 25),
-      updatedAt: new Date(2023, 3, 14)
-    },
-    {
-      id: '19',
-      username: 'jacob_walker',
-      email: 'jacob@example.com',
-      createdAt: new Date(2023, 3, 30),
-      updatedAt: new Date(2023, 6, 29)
-    },
-    {
-      id: '20',
-      username: 'madison_lewis',
-      email: 'madison@example.com',
-      createdAt: new Date(2022, 10, 9),
-      updatedAt: new Date(2023, 4, 22)
-    }
-  ];
+const PLACEHOLDER_USERS: User[] = [
+  {
+    id: '1',
+    username: 'john_doe',
+    email: 'john@example.com',
+    createdAt: new Date(2023, 0, 15),
+    updatedAt: new Date(2023, 3, 20)
+  },
+  {
+    id: '2',
+    username: 'jane_smith',
+    email: 'jane@example.com',
+    createdAt: new Date(2023, 1, 10),
+    updatedAt: new Date(2023, 3, 25)
+  },
+  {
+    id: '3',
+    username: 'bob_johnson',
+    email: 'bob@example.com',
+    createdAt: new Date(2023, 2, 5),
+    updatedAt: new Date(2023, 5, 12)
+  },
+  {
+    id: '4',
+    username: 'alice_williams',
+    email: 'alice@example.com',
+    createdAt: new Date(2023, 3, 20),
+    updatedAt: new Date(2023, 5, 15)
+  },
+  {
+    id: '5',
+    username: 'charlie_brown',
+    email: 'charlie@example.com',
+    createdAt: new Date(2023, 4, 8),
+    updatedAt: new Date(2023, 5, 18)
+  },
+  {
+    id: '6',
+    username: 'emma_davis',
+    email: 'emma@example.com',
+    createdAt: new Date(2023, 0, 22),
+    updatedAt: new Date(2023, 4, 10)
+  },
+  {
+    id: '7',
+    username: 'michael_taylor',
+    email: 'michael@example.com',
+    createdAt: new Date(2023, 1, 18),
+    updatedAt: new Date(2023, 6, 1)
+  },
+  {
+    id: '8',
+    username: 'sophia_miller',
+    email: 'sophia@example.com',
+    createdAt: new Date(2023, 2, 27),
+    updatedAt: new Date(2023, 4, 29)
+  },
+  {
+    id: '9',
+    username: 'daniel_wilson',
+    email: 'daniel@example.com',
+    createdAt: new Date(2023, 3, 12),
+    updatedAt: new Date(2023, 6, 8)
+  },
+  {
+    id: '10',
+    username: 'olivia_moore',
+    email: 'olivia@example.com',
+    createdAt: new Date(2023, 4, 19),
+    updatedAt: new Date(2023, 7, 2)
+  },
+  {
+    id: '11',
+    username: 'james_anderson',
+    email: 'james@example.com',
+    createdAt: new Date(2022, 11, 5),
+    updatedAt: new Date(2023, 5, 25)
+  },
+  {
+    id: '12',
+    username: 'ava_jackson',
+    email: 'ava@example.com',
+    createdAt: new Date(2023, 0, 30),
+    updatedAt: new Date(2023, 6, 12)
+  },
+  {
+    id: '13',
+    username: 'william_harris',
+    email: 'william@example.com',
+    createdAt: new Date(2023, 1, 24),
+    updatedAt: new Date(2023, 4, 15)
+  },
+  {
+    id: '14',
+    username: 'emily_martin',
+    email: 'emily@example.com',
+    createdAt: new Date(2022, 9, 17),
+    updatedAt: new Date(2023, 6, 20)
+  },
+  {
+    id: '15',
+    username: 'alexander_thompson',
+    email: 'alex@example.com',
+    createdAt: new Date(2023, 3, 8),
+    updatedAt: new Date(2023, 7, 5)
+  },
+  {
+    id: '16',
+    username: 'mia_robinson',
+    email: 'mia@example.com',
+    createdAt: new Date(2022, 8, 12),
+    updatedAt: new Date(2023, 2, 28)
+  },
+  {
+    id: '17',
+    username: 'ethan_clark',
+    email: 'ethan@example.com',
+    createdAt: new Date(2023, 2, 16),
+    updatedAt: new Date(2023, 5, 7)
+  },
+  {
+    id: '18',
+    username: 'isabella_rodriguez',
+    email: 'isabella@example.com',
+    createdAt: new Date(2022, 7, 25),
+    updatedAt: new Date(2023, 3, 14)
+  },
+  {
+    id: '19',
+    username: 'jacob_walker',
+    email: 'jacob@example.com',
+    createdAt: new Date(2023, 3, 30),
+    updatedAt: new Date(2023, 6, 29)
+  },
+  {
+    id: '20',
+    username: 'madison_lewis',
+    email: 'madison@example.com',
+    createdAt: new Date(2022, 10, 9),
+    updatedAt: new Date(2023, 4, 22)
+  }
+];

@@ -65,6 +65,7 @@ import { AuditComponent } from './pages/audit/audit.component';
 import { UserManagementComponent } from './pages/user-management/user-management.component';
 import {  MatSortModule } from '@angular/material/sort';
 import { StickyShadowDirective } from './directives/scroll-shadow.directive';
+import { UserFormComponent } from './pages/user-form/user-form.component';
 
 @NgModule({
   declarations: [
@@ -89,6 +90,7 @@ import { StickyShadowDirective } from './directives/scroll-shadow.directive';
     StatsDialogComponent,
     AuditComponent,
     UserManagementComponent,
+    UserFormComponent,
     StickyShadowDirective
   ],
   imports: [

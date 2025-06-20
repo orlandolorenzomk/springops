@@ -1,8 +1,9 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
 import { User, UserCreationDto } from '../models/user.model';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,7 @@ import { User, UserCreationDto } from '../models/user.model';
 export class UserService {
   private readonly API_URL = environment.apiUrl + '/users';
 
-  constructor(private httpClient: HttpClient) {}
+  constructor(private httpClient: HttpClient, private snackBar: MatSnackBar) {}
 
 
    findAll(): Observable<User[]> {
@@ -32,4 +33,16 @@ export class UserService {
   deleteUser(id: string): Observable<void> {
     return this.httpClient.delete<void>(`${this.API_URL}/${id}`);
   }
+
+  handleErrors(error: HttpErrorResponse): void {
+      console.error('An error occurred:', error);
+      this.snackBar.open(
+        error.status == 0 ? 'Connection to server lost' : error.error, 
+        'Dismiss', 
+        { 
+          duration: 3000, 
+          verticalPosition: 'top' 
+        }
+      );
+    }
 }

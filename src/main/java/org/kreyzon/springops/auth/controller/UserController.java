@@ -3,6 +3,7 @@ package org.kreyzon.springops.auth.controller;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.kreyzon.springops.auth.service.UserService;
 import org.kreyzon.springops.common.dto.auth.UserDto;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ import java.util.UUID;
 @RequestMapping("/users")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*", allowedHeaders = "*") // Uncomment if CORS is needed
+@Slf4j
 public class UserController {
 
     private final UserService userService;
@@ -52,6 +54,7 @@ public class UserController {
 
     @PostMapping("/create")
     public ResponseEntity<UserDto> createUser(@RequestBody @Valid UserDto userDto) {
+        log.info("Creating user with username: {}", userDto); //TODO remove this log in production
         UserDto createdUser = userService.create(userDto);
         return ResponseEntity.ok(createdUser);
     }
