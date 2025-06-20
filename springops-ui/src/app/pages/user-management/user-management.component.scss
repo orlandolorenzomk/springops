@@ -1,0 +1,112 @@
+@use '@angular/material' as mat;
+
+.container {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .header {
+    display: flex;
+    gap: 3rem;
+    position: relative;
+    width: 100%;
+    max-width: 1200px;
+
+    .search-bar {
+      flex: 1;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      @include mat.form-field-density(-7);
+
+      input::placeholder {
+        color: #aaa;
+      }
+    }
+
+    h2 {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      font-size: 22px;
+      line-height: 1;
+      gap: 6px;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    button {
+      padding: 4px 12px;
+    }
+  }
+
+  .table-container {
+    overflow-x: auto;
+    width: 100%;
+    max-width: 1200px;
+
+    table {
+      width: 100%;
+      font-size: 13px;
+
+      th,
+      td {
+        padding: 6px 12px !important;
+        vertical-align: middle;
+      }
+
+      .mat-column-actions {
+        width: 100px;
+        text-align: center;
+      }
+    }
+  }
+
+  .icon-cell {
+    vertical-align: middle;
+    margin-right: 4px;
+    font-size: 18px;
+    color: #616161;
+  }
+
+  .mat-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    mat-icon {
+      margin-right: 8px;
+    }
+  }
+
+  .global-spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+
+    .spinner-content {
+      background: white;
+      padding: 24px;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      p {
+        margin-top: 16px;
+        margin-bottom: 0;
+      }
+    }
+  }
+}

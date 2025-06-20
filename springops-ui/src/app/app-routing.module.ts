@@ -13,6 +13,7 @@ import {DeploymentsListComponent} from "./pages/deployments-list/deployments-lis
 import {AuditComponent} from "./pages/audit/audit.component";
 import {OsInfoComponent} from "./pages/os-info/os-info.component";
 import {WikiViewerComponent} from "./components/wiki-viewer/wiki-viewer.component";
+import { UserManagementComponent } from './pages/user-management/user-management.component';
 
 const routes: Routes = [
   {
@@ -44,6 +45,11 @@ const routes: Routes = [
     path: 'audits',
     component: AuditComponent,
     canActivate: [authGuard, SetupGuard]
+  },
+  {
+    path: 'users',
+    component: UserManagementComponent,
+    // canActivate: [authGuard, SetupGuard] TODO: add guards
   },
   {
     path: 'os-info',

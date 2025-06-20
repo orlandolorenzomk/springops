@@ -1,0 +1,77 @@
+<h2 mat-dialog-title class="dialog-title">
+    {{!isEditMode ? 'Create New User' : 'Edit User'}}
+</h2>
+
+<mat-dialog-content class="dialog-content">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-container">
+        <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Username</mat-label>
+                <input matInput formControlName="username" required>
+                <mat-icon matSuffix>person</mat-icon>
+                <mat-error *ngIf="form.get('username')?.hasError('required')">
+                    Username is required
+                </mat-error>
+                <mat-hint class="text-muted">
+                    Must be 3-20 characters, letters, numbers, underscores or hyphens
+                </mat-hint>
+            </mat-form-field>
+        </div>
+
+        <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Email</mat-label>
+                <input matInput type="email" formControlName="email" required>
+                <mat-icon matSuffix>email</mat-icon>
+                <mat-error *ngIf="form.get('email')?.hasError('required')">
+                    Email is required
+                </mat-error>
+                <mat-error *ngIf="form.get('email')?.hasError('email')">
+                    Please enter a valid email address
+                </mat-error>
+            </mat-form-field>
+        </div>
+
+        <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Password</mat-label>
+                <input matInput type="password" formControlName="password" required>
+                <mat-error *ngIf="form.get('password')?.hasError('required')">
+                    Password is required
+                </mat-error>
+                <mat-error *ngIf="form.get('password')?.hasError('minlength')">
+                    Password must be at least 8 characters
+                </mat-error>
+                <mat-error *ngIf="form.get('password')?.hasError('invalidPassword')">
+                    Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.
+                </mat-error>
+                <mat-hint class="text-muted">
+                    Minimum 8 characters, at least one letter and one number
+                </mat-hint>
+            </mat-form-field>
+        </div>
+
+        <div class="form-row">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Confirm Password</mat-label>
+                <input matInput type="password" formControlName="confirmPassword" required>
+                <mat-error *ngIf="form.get('confirmPassword')?.hasError('required')">
+                    Please confirm your password
+                </mat-error>
+                <mat-hint *ngIf="form.get('confirmPassword')?.value && form.get('password')?.value !== form.get('confirmPassword')?.value" class="text-danger">
+                    Passwords do not match
+                </mat-hint>
+            </mat-form-field>
+        </div>
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+    <button mat-stroked-button color="basic" (click)="onCancel()">
+        <mat-icon>cancel</mat-icon> Cancel
+    </button>
+    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="form.invalid || form.get('confirmPassword')?.value !== form.get('password')?.value">
+        <mat-icon>{{isEditMode ? 'person_add' : 'save'}}</mat-icon>
+        {{!isEditMode ? 'Create User' : 'Update User'}}
+    </button>
+</mat-dialog-actions>
