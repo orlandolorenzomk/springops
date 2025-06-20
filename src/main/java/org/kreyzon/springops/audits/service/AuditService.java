@@ -70,19 +70,24 @@ public class AuditService {
      * @return the saved audit record
      */
     public AuditDto save(AuditDto auditDto) {
-        log.debug("Saving audit: {}", auditDto);
-        var entity = AuditDto.toEntity(auditDto);
-
         try {
-            String username = extractUsernameFromRequest();
-            User user = userService.findByEmail(username);
-            entity.setUser(user);
-        } catch (Exception e) {
-            log.warn("Unable to find user for audit entry: {}", e.getMessage());
-        }
+            log.debug("Saving audit: {}", auditDto);
+            var entity = AuditDto.toEntity(auditDto);
 
-        var savedEntity = auditRepository.save(entity);
-        return AuditDto.fromEntity(savedEntity);
+            try {
+                String username = extractUsernameFromRequest();
+                User user = userService.findByEmail(username);
+                entity.setUser(user);
+            } catch (Exception e) {
+                log.warn("Unable to find user for audit entry: {}", e.getMessage());
+            }
+
+            var savedEntity = auditRepository.save(entity);
+            return AuditDto.fromEntity(savedEntity);
+        } catch (Exception e) {
+            log.error("Failed to save audit entry: {}", e.getMessage());
+            return auditDto;
+        }
     }
 
     /**
