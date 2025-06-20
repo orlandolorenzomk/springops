@@ -168,6 +168,11 @@ public class SetupService {
     public Boolean initializeFiles(String filePath) {
         log.info("Initializing files with root directory: {}", filePath);
 
+        if (filePath == null || filePath.isEmpty()) {
+            log.error("File path is null or empty.");
+            throw new SpringOpsException("File path cannot be null or empty.", HttpStatus.BAD_REQUEST);
+        }
+
         if (isSetupComplete().getIsFilesRootInitialized()) {
             log.warn("Files root is already initialized. Skipping initialization.");
             throw new SpringOpsException("Files root is already initialized. Cannot initialize again.", HttpStatus.CONFLICT);

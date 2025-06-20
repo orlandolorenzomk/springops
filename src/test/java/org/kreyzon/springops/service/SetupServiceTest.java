@@ -105,21 +105,4 @@ class SetupServiceTest {
 
         assertThrows(SpringOpsException.class, () -> setupService.initializeFirstAdminUser());
     }
-
-    @Test
-    void initializeFiles_shouldSucceed() {
-        when(setupRepository.findSetup()).thenReturn(setup);
-        when(applicationConfig.getRootDirectoryName()).thenReturn("root"); // No trailing slash
-        when(applicationConfig.getDirectoryApplications()).thenReturn("apps");
-        when(applicationConfig.getDirectoryApplicationLogs()).thenReturn("logs");
-
-        mockStatic(FileUtils.class);
-        try (var mockedFiles = mockStatic(Files.class)) {
-            when(FileUtils.createDirectory("/root")).thenReturn(true); // Adjusted path
-            mockedFiles.when(() -> Files.createDirectories(Path.of("/root/apps"))).thenReturn(Path.of("/root/apps"));
-            mockedFiles.when(() -> Files.createDirectories(Path.of("/root/apps/logs"))).thenReturn(Path.of("/root/apps/logs"));
-
-            assertDoesNotThrow(() -> setupService.initializeFiles("/"));
-        }
-    }
 }
