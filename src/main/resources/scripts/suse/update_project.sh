@@ -20,7 +20,6 @@ function fail() {
   STATUS="FAILURE"
   MESSAGE="$2"
   DATA="[]"
-  OUTPUT="$3"
   finish
 }
 
@@ -44,35 +43,32 @@ function finish() {
 }
 
 if [ -z "$GIT_URL" ] || [ -z "$BRANCH" ] || [ -z "$CLONE_DIR" ] || [ -z "$DEPLOY_TYPE" ]; then
-  fail 1 "Missing required arguments: <GIT_URL> <BRANCH> <CLONE_DIR> <DEPLOY_TYPE>" ""
+  fail 1 "Missing required arguments: <GIT_URL> <BRANCH> <CLONE_DIR> <DEPLOY_TYPE>"
 fi
 
 rm -rf "$CLONE_DIR" 2>&1 || true
-mkdir -p "$CLONE_DIR" 2>&1 || fail 1 "Failed to create directory $CLONE_DIR" ""
+mkdir -p "$CLONE_DIR" 2>&1 || fail 1 "Failed to create directory $CLONE_DIR"
 
-if ! OUTPUT=$(git clone --verbose --single-branch -b "$BRANCH" "$GIT_URL" "$CLONE_DIR" 2>&1); then
-  fail 1 "Git clone failed" "$OUTPUT"
-fi
+OUT=$(git clone --verbose --single-branch -b "$BRANCH" "$GIT_URL" "$CLONE_DIR" 2>&1) || fail 1 "Git clone failed"
+OUTPUT="${OUTPUT}${OUT}\n"
 
-cd "$CLONE_DIR" || fail 1 "Failed to cd into $CLONE_DIR" "$OUTPUT"
+cd "$CLONE_DIR" || fail 1 "Failed to cd into $CLONE_DIR"
 
 if [ "$DEPLOY_TYPE" = "CLASSIC" ]; then
   DEPLOY_BRANCH="deploy/$TIMESTAMP"
-  if ! OUTPUT=$(git checkout -b "$DEPLOY_BRANCH" 2>&1); then
-    fail 1 "Failed to create deploy branch $DEPLOY_BRANCH" "$OUTPUT"
-  fi
 
-  if ! OUTPUT=$(git push origin "$DEPLOY_BRANCH" 2>&1); then
-    fail 1 "Failed to push deploy branch $DEPLOY_BRANCH" "$OUTPUT"
-  fi
+  OUT=$(git checkout -b "$DEPLOY_BRANCH" 2>&1) || fail 1 "Failed to create deploy branch $DEPLOY_BRANCH"
+  OUTPUT="${OUTPUT}${OUT}\n"
+
+  OUT=$(git push origin "$DEPLOY_BRANCH" 2>&1) || fail 1 "Failed to push deploy branch $DEPLOY_BRANCH"
+  OUTPUT="${OUTPUT}${OUT}\n"
 
   MESSAGE="Cloned and created deploy branch $DEPLOY_BRANCH"
   DATA="[\"$DEPLOY_BRANCH\"]"
 else
   DEPLOY_BRANCH="$BRANCH"
-  if ! OUTPUT=$(git checkout "$DEPLOY_BRANCH" 2>&1); then
-    fail 1 "Failed to checkout existing branch $DEPLOY_BRANCH" "$OUTPUT"
-  fi
+  OUT=$(git checkout "$DEPLOY_BRANCH" 2>&1) || fail 1 "Failed to checkout existing branch $DEPLOY_BRANCH"
+  OUTPUT="${OUTPUT}${OUT}\n"
   MESSAGE="Cloned and reused branch $DEPLOY_BRANCH for rollback"
   DATA="[\"$DEPLOY_BRANCH\"]"
 fi
