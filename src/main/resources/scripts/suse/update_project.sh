@@ -25,6 +25,7 @@ function fail() {
 }
 
 function finish() {
+  set +e
   JSON=$(jq -n \
     --arg output "$OUTPUT" \
     --arg status "$STATUS" \
@@ -38,7 +39,7 @@ function finish() {
       message: $message,
       data: $data
     }')
-  printf 'springops-result=%s\n' "$JSON"
+  echo "springops-result=${JSON}"
   exit "$EXIT_CODE"
 }
 
