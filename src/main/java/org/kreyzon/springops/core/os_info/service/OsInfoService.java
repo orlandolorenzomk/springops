@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.PumpStreamHandler;
+import org.kreyzon.springops.common.exception.SpringOpsException;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -50,6 +51,13 @@ public class OsInfoService {
         return osInfoMap;
     }
 
+    /**
+     * Executes a shell script to retrieve OS information.
+     *
+     * @param scriptName The name of the script to execute.
+     * @return The output of the script execution as a string.
+     * @throws IOException If an error occurs while executing the script or reading its output.
+     */
     private String executeScript(String scriptName) throws IOException {
         InputStream scriptStream = getClass().getClassLoader().getResourceAsStream("scripts/" + scriptName);
         if (scriptStream == null) {
@@ -79,6 +87,12 @@ public class OsInfoService {
         return outputStream.toString();
     }
 
+    /**
+     * Parses the output of the OS information script into a map.
+     *
+     * @param scriptOutput The output string from the script execution.
+     * @return A map containing OS information with keys as property names and values as property values.
+     */
     private Map<String, String> parseScriptOutput(String scriptOutput) {
         Map<String, String> osInfoMap = new HashMap<>();
 
@@ -91,5 +105,29 @@ public class OsInfoService {
         }
 
         return osInfoMap;
+    }
+
+    /**
+     * Determines the OS type based on the retrieved OS information.
+     *
+     * @return The OS type as a string, either "debian", "suse", or "Error" if an error occurs.
+     */
+    public String determineOsType() {
+        try {
+            Map<String, String> osInfo = getOsInfo();
+            String osName = osInfo.getOrDefault("operatingSystem", "").toLowerCase();
+
+            if (osName.contains("debian") || osName.contains("mac")) {
+                return "debian";
+            } else if (osName.contains("suse")) {
+                return "suse";
+            } else {
+                throw new SpringOpsException("Unsupported OS type: " + osName,
+                        org.springframework.http.HttpStatus.BAD_REQUEST);
+            }
+        } catch (IOException e) {
+            log.error("Failed to determine OS type", e);
+            return "Error";
+        }
     }
 }

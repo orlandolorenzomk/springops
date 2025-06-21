@@ -20,6 +20,7 @@ import org.kreyzon.springops.core.application.entity.Application;
 import org.kreyzon.springops.core.application.service.ApplicationLookupService;
 import org.kreyzon.springops.core.application_env.service.ApplicationEnvService;
 import org.kreyzon.springops.core.deployment.entity.Deployment;
+import org.kreyzon.springops.core.os_info.service.OsInfoService;
 import org.kreyzon.springops.setup.domain.Setup;
 import org.kreyzon.springops.setup.service.SetupService;
 import org.springframework.http.HttpStatus;
@@ -54,6 +55,7 @@ public class DeploymentManagerService {
     private final SetupService setupService;
     private final ApplicationEnvService applicationEnvService;
     private final DeploymentService deploymentService;
+    private final OsInfoService osInfoService;
 
     /**
      * Retrieves the deployment status of the latest deployment for a given application.
@@ -534,7 +536,9 @@ public class DeploymentManagerService {
     private CommandResultDto executeCommand(DeploymentContextDto context, String scriptName, String... args) throws IOException, InterruptedException {
         log.info("Executing script: {} with {} arguments", scriptName, args.length);
 
-        InputStream scriptStream = getClass().getClassLoader().getResourceAsStream("scripts/" + scriptName);
+        String os = osInfoService.determineOsType();
+
+        InputStream scriptStream = getClass().getClassLoader().getResourceAsStream("scripts/" + os + "/" + scriptName);
         if (scriptStream == null) {
             throw new IOException("Script not found in resources/scripts/: " + scriptName);
         }
