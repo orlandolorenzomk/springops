@@ -39,6 +39,7 @@ function finish() {
   exit "$EXIT_CODE"
 }
 
+
 if [ -z "$JAVA_BIN_PATH" ] || [ -z "$MAVEN_BIN_PATH" ] || [ -z "$PROJECT_DIR" ] || [ -z "$JAVA_VERSION" ]; then
   fail 1 "Usage: $0 <JAVA_BIN_PATH> <MAVEN_BIN_PATH> <PROJECT_DIR> <JAVA_VERSION>" ""
 fi
@@ -47,22 +48,20 @@ cd "$PROJECT_DIR" || fail 1 "Failed to enter project directory: $PROJECT_DIR" ""
 
 JAVA_HOME="${JAVA_BIN_PATH%/bin}"
 
-BUILD_OUTPUT=$("$MAVEN_BIN_PATH/mvn" clean install --no-transfer-progress -Dmaven.compiler.release="$JAVA_VERSION" -DskipTests -Djava.compilerExecutable="$JAVA_BIN_PATH/javac" 2>&1)
+BUILD_OUTPUT=$(JAVA_HOME="$JAVA_HOME" "$MAVEN_BIN_PATH/mvn" clean install --no-transfer-progress -Dmaven.compiler.release="$JAVA_VERSION" -DskipTests 2>&1)
 STATUS_CODE=$?
 
 if [ $STATUS_CODE -ne 0 ]; then
   fail $STATUS_CODE "Build failed" "$BUILD_OUTPUT"
 fi
 
-# Wait up to 250 seconds for JAR file
-for i in {1..250}; do
-  JAR_COUNT=$(find target -maxdepth 1 -type f -name "*.jar" ! -name "original*" | wc -l)
-  [ "$JAR_COUNT" -gt 0 ] && break
-  sleep 1
+# Collect artifacts
+JARS_ARRAY=()
+for f in target/*.jar; do
+  [ -e "$f" ] || continue
+  JARS_ARRAY+=("\"$(basename "$f")\"")
 done
 
-# Collect artifacts
-JARS=$(find target -maxdepth 1 -type f -name "*.jar" ! -name "original*" -exec basename {} \; | jq -R . | jq -s .)
-DATA="$JARS"
+DATA="[${JARS_ARRAY[*]}]"
 OUTPUT="$BUILD_OUTPUT"
 finish
