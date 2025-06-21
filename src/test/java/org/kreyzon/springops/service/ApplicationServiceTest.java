@@ -46,7 +46,7 @@ class ApplicationServiceTest {
     private ApplicationDto validDto() {
         return new ApplicationDto(
                 1, "MyApp", null, "desc", Instant.now(),
-                10, 11, "https://git", 8080,
+                10, 11, "https://git", "sshtest", 8080,
                 "512m", "1024m"
         );
     }
@@ -137,7 +137,7 @@ class ApplicationServiceTest {
 
         ApplicationDto dto = new ApplicationDto(
                 2, "OtherApp", "valid-path", "desc", Instant.now(),
-                10, 11, "https://git", 8080,
+                10, 11, "https://git", "testssh", 8080,
                 "512m", "1024m"
         );
 
@@ -242,6 +242,7 @@ class ApplicationServiceTest {
                 1,
                 1,
                 "https://github.com/test/app",
+                "ssh@gittest",
                 8080,
                 "512m",
                 "1024m"
