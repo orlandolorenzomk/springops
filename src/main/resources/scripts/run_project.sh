@@ -71,8 +71,12 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   echo "Exported: $line" >> "$LOG_FILE"
 done < "$ENV_FILE"
 
-COMMAND="\"$JAVA_PATH/java\" -Xms$JAVA_MIN -Xmx$JAVA_MAX -jar \"$JAR_PATH\" --server.port=$PORT"
-echo "Executing command: $COMMAND" >> "$LOG_FILE"
+COMMAND=""
+for var in "${ENV_VARS[@]}"; do
+  COMMAND+="export $var && "
+done
+COMMAND+="\"$JAVA_PATH/java\" -Xms$JAVA_MIN -Xmx$JAVA_MAX -jar \"$JAR_PATH\" --server.port=$PORT"
+echo "Executing command: $COMMAND" >> "$LOG_FILE" # TODO: Remove
 
 nohup bash -c "exec $COMMAND" >> "$LOG_FILE" 2>&1 &
 PID=$!
