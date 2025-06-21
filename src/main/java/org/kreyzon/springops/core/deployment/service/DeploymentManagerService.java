@@ -32,7 +32,6 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -285,8 +284,14 @@ public class DeploymentManagerService {
         Setup setup = setupService.getSetup();
         String gitToken = validateAndGetGitToken();
 
-        String repositoryUrl = application.getGitProjectHttpsUrl();
-        String authenticatedUrl = repositoryUrl.replace("https://", "https://" + gitToken + "@");
+        String repositoryUrl;
+        if (application.getGitProjectSshUrl() != null && !application.getGitProjectSshUrl().isBlank()) {
+            repositoryUrl = application.getGitProjectSshUrl(); // use SSH
+        } else {
+            repositoryUrl = application.getGitProjectHttpsUrl().replace("https://", "https://" + gitToken + "@"); // fallback to HTTPS
+        }
+
+        log.info("Using repository URL: {}", repositoryUrl);
 
         String sourcePath = Paths.get(
                 setup.getFilesRoot(),
@@ -297,7 +302,7 @@ public class DeploymentManagerService {
         ).toString();
 
         return new DeploymentContextDto(
-                authenticatedUrl,
+                repositoryUrl,
                 sourcePath,
                 application.getJavaSystemVersion(),
                 application.getMvnSystemVersion(),

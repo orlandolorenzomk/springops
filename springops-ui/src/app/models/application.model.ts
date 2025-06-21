@@ -7,6 +7,7 @@ export interface Application {
   mvnSystemVersionId: number | null;
   javaSystemVersionId: number | null;
   gitProjectHttpsUrl: string;
+  gitProjectSshUrl: string;
 }
 
 export interface ApplicationDto {
@@ -18,6 +19,7 @@ export interface ApplicationDto {
   mvnSystemVersionId: number | null;
   javaSystemVersionId: number | null;
   gitProjectHttpsUrl: string;
+  gitProjectSshUrl: string;
   port: number;
   javaMinimumMemory?: string;
   javaMaximumMemory?: string;

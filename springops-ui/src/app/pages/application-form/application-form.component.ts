@@ -46,6 +46,7 @@ export class ApplicationFormComponent implements OnInit {
       port: [null, Validators.required],
       description: [''],
       gitProjectHttpsUrl: ['', Validators.required],
+      gitProjectSshUrl: ['', Validators.required],
       javaSystemVersionId: [null, Validators.required],
       mvnSystemVersionId: [null, Validators.required],
       javaMinimumMemory: ['', Validators.pattern(memoryPattern)],

@@ -56,6 +56,9 @@ public class Application {
     @Column(name = "git_project_https_url")
     private String gitProjectHttpsUrl;
 
+    @Column(name = "git_project_ssh_url")
+    private String gitProjectSshUrl;
+
     @Column(name = "port")
     private Integer port;
 

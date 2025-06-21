@@ -109,10 +109,18 @@
         </mat-error>
       </mat-form-field>
     </div>
-
     <div class="form-row">
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Git Repository URL</mat-label>
+        <mat-label>Git Repository SSH URL</mat-label>
+        <input matInput formControlName="gitProjectSshUrl"
+               placeholder="https://github.com/your-org/your-repo">
+        <mat-icon matSuffix>link</mat-icon>
+        <mat-hint>Must be a valid GitHub/GitLab SSH(s) URL</mat-hint>
+      </mat-form-field>
+    </div>
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Git Repository HTTP(s) URL</mat-label>
         <input matInput formControlName="gitProjectHttpsUrl"
                placeholder="https://github.com/your-org/your-repo">
         <mat-icon matSuffix>link</mat-icon>

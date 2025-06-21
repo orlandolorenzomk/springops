@@ -24,6 +24,7 @@ public class ApplicationDto implements Serializable {
     Integer mvnSystemVersionId;
     Integer javaSystemVersionId;
     String gitProjectHttpsUrl;
+    String gitProjectSshUrl;
     Integer port;
     String javaMinimumMemory;
     String javaMaximumMemory;
@@ -45,6 +46,7 @@ public class ApplicationDto implements Serializable {
                 application.getMvnSystemVersion() != null ? application.getMvnSystemVersion().getId() : null,
                 application.getJavaSystemVersion() != null ? application.getJavaSystemVersion().getId() : null,
                 application.getGitProjectHttpsUrl(),
+                application.getGitProjectSshUrl(),
                 application.getPort() != null ? application.getPort() : 0,
                 application.getJavaMinimumMemory() != null ? application.getJavaMinimumMemory() : "512m",
                 application.getJavaMaximumMemory() != null ? application.getJavaMaximumMemory() : "1024m"
@@ -65,6 +67,7 @@ public class ApplicationDto implements Serializable {
                 .description(applicationDto.getDescription())
                 .createdAt(applicationDto.getCreatedAt())
                 .gitProjectHttpsUrl(applicationDto.getGitProjectHttpsUrl())
+                .gitProjectSshUrl(applicationDto.getGitProjectSshUrl())
                 .port(applicationDto.getPort())
                 .javaMinimumMemory(applicationDto.getJavaMinimumMemory())
                 .javaMaximumMemory(applicationDto.getJavaMaximumMemory())
