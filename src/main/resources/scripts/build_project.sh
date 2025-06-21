@@ -47,7 +47,7 @@ cd "$PROJECT_DIR" || fail 1 "Failed to enter project directory: $PROJECT_DIR" ""
 
 JAVA_HOME="${JAVA_BIN_PATH%/bin}"
 
-BUILD_OUTPUT=$(JAVA_HOME="$JAVA_HOME" "$MAVEN_BIN_PATH/mvn" clean install --no-transfer-progress -Dmaven.compiler.release="$JAVA_VERSION" -DskipTests 2>&1)
+BUILD_OUTPUT=$("$MAVEN_BIN_PATH/mvn" clean install --no-transfer-progress -Dmaven.compiler.release="$JAVA_VERSION" -DskipTests -Djava.compilerExecutable="$JAVA_BIN_PATH/javac" 2>&1)
 STATUS_CODE=$?
 
 if [ $STATUS_CODE -ne 0 ]; then
