@@ -21,7 +21,7 @@ function fail() {
 }
 
 function finish() {
-  ESCAPED_OUTPUT=$(echo "$OUTPUT" | sed 's/"/\\"/g')
+  ESCAPED_OUTPUT=$(echo "$OUTPUT" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/\n/\\n/g')
   echo "springops-result={\"exitCode\":$EXIT_CODE,\"output\":\"$ESCAPED_OUTPUT\",\"status\":\"$STATUS\",\"message\":\"$MESSAGE\",\"data\":$DATA}"
   exit "$EXIT_CODE"
 }
