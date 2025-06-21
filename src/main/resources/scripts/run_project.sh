@@ -8,7 +8,6 @@ JAVA_MAX=$6
 shift 6
 ENV_VARS=("$@")
 
-# Default values if not provided
 JAVA_MIN=${JAVA_MIN:-512m}
 JAVA_MAX=${JAVA_MAX:-1024m}
 
@@ -39,7 +38,6 @@ function finish() {
   exit "$EXIT_CODE"
 }
 
-# Validate required args
 if [[ -z "$JAVA_PATH" || -z "$SOURCE_DIR" || -z "$JAR_NAME" || -z "$PORT" ]]; then
   fail 1 "Missing arguments: JAVA_PATH, SOURCE_DIR, JAR_NAME, PORT" ""
 fi
@@ -49,36 +47,25 @@ cd "$SOURCE_DIR" || fail 1 "Failed to cd into $SOURCE_DIR" ""
 JAR_PATH=$(find "$SOURCE_DIR" -name "$JAR_NAME" | head -n 1)
 [[ ! -f "$JAR_PATH" ]] && fail 1 "Jar file $JAR_NAME not found in $SOURCE_DIR" ""
 
-# Ensure logs directory
 LOGS_BASE_DIR="$SOURCE_DIR/../logs"
 mkdir -p "$LOGS_BASE_DIR"
 
 ENV_FILE="$(dirname "$JAR_PATH")/.env"
 LOG_FILE="$LOGS_BASE_DIR/app.log"
 
-# Reset env and logs
 > "$ENV_FILE"
 echo "---- Starting application ----" > "$LOG_FILE"
 echo "Using Xms=$JAVA_MIN, Xmx=$JAVA_MAX" >> "$LOG_FILE"
 
 for var in "${ENV_VARS[@]}"; do
-  echo "$var" >> "$ENV_FILE"
+  echo "export $var" >> "$ENV_FILE"
 done
 
-while IFS= read -r line || [[ -n "$line" ]]; do
-  [[ "$line" =~ ^# || -z "$line" ]] && continue
-  export "$line"
-  echo "Exported: $line" >> "$LOG_FILE"
-done < "$ENV_FILE"
+# Build run command
+CMD_LINE=$(cat "$ENV_FILE"; echo "\"$JAVA_PATH/java\" -Xms$JAVA_MIN -Xmx$JAVA_MAX -jar \"$JAR_PATH\" --server.port=$PORT")
+echo "Executing: $CMD_LINE" >> "$LOG_FILE"
 
-COMMAND=""
-for var in "${ENV_VARS[@]}"; do
-  COMMAND+="export $var && "
-done
-COMMAND+="\"$JAVA_PATH/java\" -Xms$JAVA_MIN -Xmx$JAVA_MAX -jar \"$JAR_PATH\" --server.port=$PORT"
-echo "Executing command: $COMMAND" >> "$LOG_FILE" # TODO: Remove
-
-nohup bash -c "exec $COMMAND" >> "$LOG_FILE" 2>&1 &
+nohup bash -c "$CMD_LINE" >> "$LOG_FILE" 2>&1 &
 PID=$!
 sleep 2
 
