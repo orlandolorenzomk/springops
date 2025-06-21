@@ -41,7 +41,7 @@ public class DeploymentUtils {
      * @param pid the process ID
      * @return ports as string or empty string if none found
      */
-    public String getListeningPorts(Integer pid) {
+    public String getListeningPorts(String os, Integer pid) {
         if (pid == null) return "";
         StringBuilder ports = new StringBuilder();
         try {
@@ -49,18 +49,21 @@ public class DeploymentUtils {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    // lsof output format: COMMAND PID USER FD TYPE DEVICE SIZE/OFF NODE NAME
-                    // We want the last field (NAME) which looks like *:8082 (IPv4) or [::]:8082 (IPv6)
-                    String[] parts = line.split("\\s+");
-                    if (parts.length > 8) {
-                        String name = parts[8];
-                        // Extract port number after colon
-                        int colonIndex = name.lastIndexOf(':');
-                        if (colonIndex != -1 && colonIndex + 1 < name.length()) {
-                            String port = name.substring(colonIndex + 1);
-                            if (!ports.isEmpty()) ports.append(",");
-                            ports.append(port);
-                        }
+                    String name;
+                    if (os.toLowerCase().contains("suse")) {
+                        int idx = line.lastIndexOf(' ');
+                        if (idx == -1 || idx + 1 >= line.length()) continue;
+                        name = line.substring(idx + 1);
+                    } else {
+                        String[] parts = line.split("\\s+");
+                        if (parts.length <= 8) continue;
+                        name = parts[8];
+                    }
+                    int colonIndex = name.lastIndexOf(':');
+                    if (colonIndex != -1 && colonIndex + 1 < name.length()) {
+                        String port = name.substring(colonIndex + 1);
+                        if (!ports.isEmpty()) ports.append(",");
+                        ports.append(port);
                     }
                 }
             }

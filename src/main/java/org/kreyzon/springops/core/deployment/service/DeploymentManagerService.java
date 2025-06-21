@@ -64,7 +64,6 @@ public class DeploymentManagerService {
      * @return a DeploymentStatusDto containing the status and port information
      */
     public DeploymentStatusDto getDeploymentStatus(Integer applicationId) {
-        // Check if the application exists
         applicationLookupService.findEntityById(applicationId);
 
         DeploymentStatusDto statusDto = new DeploymentStatusDto();
@@ -86,7 +85,7 @@ public class DeploymentManagerService {
 
         statusDto.setIsRunning(isRunning);
         if (isRunning) {
-            String ports = DeploymentUtils.getListeningPorts(pid);
+            String ports = DeploymentUtils.getListeningPorts(osInfoService.determineOsType(), pid);
             statusDto.setPort(ports);
             statusDto.setPid(pid.toString());
         } else {
