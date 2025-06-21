@@ -56,12 +56,7 @@ if [ $STATUS_CODE -ne 0 ]; then
 fi
 
 # Collect artifacts
-JARS_ARRAY=()
-for f in target/*.jar; do
-  [ -e "$f" ] || continue
-  JARS_ARRAY+=("\"$(basename "$f")\"")
-done
-
-DATA="[${JARS_ARRAY[*]}]"
+JARS=$(find target -maxdepth 1 -type f -name "*.jar" ! -name "original*" -exec basename {} \; | jq -R . | jq -s .)
+DATA="$JARS"
 OUTPUT="$BUILD_OUTPUT"
 finish
