@@ -537,6 +537,7 @@ public class DeploymentManagerService {
         log.info("Executing script: {} with {} arguments", scriptName, args.length);
 
         String os = osInfoService.determineOsType();
+        log.info("Detected OS type: {}", os);
 
         InputStream scriptStream = getClass().getClassLoader().getResourceAsStream("scripts/" + os + "/" + scriptName);
         if (scriptStream == null) {
