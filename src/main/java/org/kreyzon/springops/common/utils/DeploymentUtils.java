@@ -38,6 +38,7 @@ public class DeploymentUtils {
      * Get the port(s) on which the process with given PID is listening.
      * Returns a comma-separated string of ports or empty string if none found.
      *
+     * @param os  the operating system name
      * @param pid the process ID
      * @return ports as string or empty string if none found
      */
@@ -51,10 +52,17 @@ public class DeploymentUtils {
                 while ((line = reader.readLine()) != null) {
                     String name;
                     if (os.toLowerCase().contains("suse")) {
+                        // SUSE-specific parsing logic
                         int idx = line.lastIndexOf(' ');
                         if (idx == -1 || idx + 1 >= line.length()) continue;
                         name = line.substring(idx + 1);
+                    } else if (os.toLowerCase().contains("debian")) {
+                        // Debian-specific parsing logic
+                        String[] parts = line.split("\\s+");
+                        if (parts.length <= 9) continue; // Adjusted index for Debian
+                        name = parts[9];
                     } else {
+                        // Default parsing logic
                         String[] parts = line.split("\\s+");
                         if (parts.length <= 8) continue;
                         name = parts[8];
