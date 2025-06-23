@@ -50,23 +50,10 @@ public class DeploymentUtils {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    String name;
-                    if (os.toLowerCase().contains("suse")) {
-                        // SUSE-specific parsing logic
-                        int idx = line.lastIndexOf(' ');
-                        if (idx == -1 || idx + 1 >= line.length()) continue;
-                        name = line.substring(idx + 1);
-                    } else if (os.toLowerCase().contains("debian")) {
-                        // Debian-specific parsing logic
-                        String[] parts = line.split("\\s+");
-                        if (parts.length <= 9) continue; // Adjusted index for Debian
-                        name = parts[9];
-                    } else {
-                        // Default parsing logic
-                        String[] parts = line.split("\\s+");
-                        if (parts.length <= 8) continue;
-                        name = parts[8];
-                    }
+                    if (!line.contains(":")) continue;
+                    String[] parts = line.trim().split("\\s+");
+                    if (parts.length < 9) continue;
+                    String name = parts[8];
                     int colonIndex = name.lastIndexOf(':');
                     if (colonIndex != -1 && colonIndex + 1 < name.length()) {
                         String port = name.substring(colonIndex + 1);
