@@ -19,10 +19,11 @@ import org.kreyzon.springops.setup.service.SetupService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -92,7 +93,7 @@ public class ApplicationService {
             throw new SpringOpsException("Application with name '" + applicationDto.getName() + "' already exists", HttpStatus.CONFLICT);
         }
 
-        Application application = ApplicationDto.toEntity(applicationDto);
+        Application application = ApplicationDto.toEntity(applicationDto, true);
         application.setMvnSystemVersion(systemVersion);
         application.setJavaSystemVersion(javaVersion);
         application.setCreatedAt(java.time.Instant.now());
@@ -137,22 +138,27 @@ public class ApplicationService {
             log.warn("Application {} with ID '{}' is currently running and cannot be updated", applicationDto.getName(), id);
             throw new SpringOpsException("Application " + applicationDto.getName() + " with ID '" + id + "' is currently running and cannot be updated", HttpStatus.CONFLICT);
         }
+//        Note: isn't ID checked when retrieving the existing application?
+//        if (!applicationRepository.existsById(id)) {
+//            log.warn("Application with ID '{}' does not exist", id);
+//            throw new SpringOpsException("Application with ID '" + id + "' does not exist", HttpStatus.NOT_FOUND);
+//        }
 
-        if (applicationRepository.existsByName(applicationDto.getName()) && !existingApplication.getName().equals(applicationDto.getName())) {
-            log.warn("Application with name '{}' already exists", applicationDto.getName());
-            throw new SpringOpsException("Application with name '" + applicationDto.getName() + "' already exists", HttpStatus.CONFLICT);
-        }
+//          Note: No point to keep it anymore, name won't be updated
 
-        if (!applicationRepository.existsById(id)) {
-            log.warn("Application with ID '{}' does not exist", id);
-            throw new SpringOpsException("Application with ID '" + id + "' does not exist", HttpStatus.NOT_FOUND);
-        }
-        if (applicationRepository.existsByName(applicationDto.getName()) && !applicationDto.getId().equals(id)) {
-            log.warn("Application with name '{}' already exists", applicationDto.getName());
-            throw new SpringOpsException("Application with name '" + applicationDto.getName() + "' already exists", HttpStatus.CONFLICT);
-        }
-        Application application = ApplicationDto.toEntity(applicationDto);
+//        if (applicationRepository.existsByName(applicationDto.getName()) && !existingApplication.getName().equals(applicationDto.getName())) {
+//            log.warn("Application with name '{}' already exists", applicationDto.getName());
+//            throw new SpringOpsException("Application with name '" + applicationDto.getName() + "' already exists", HttpStatus.CONFLICT);
+//        }
+
+//        if (applicationRepository.existsByName(applicationDto.getName()) && !applicationDto.getId().equals(id)) {
+//            log.warn("Application with name '{}' already exists", applicationDto.getName());
+//            throw new SpringOpsException("Application with name '" + applicationDto.getName() + "' already exists", HttpStatus.CONFLICT);
+//        }
+
+        Application application = ApplicationDto.toEntity(applicationDto, false);
         application.setId(id);
+        application.setName(existingApplication.getName()); // Keep the original name
         application.setMvnSystemVersion(systemVersion);
         application.setJavaSystemVersion(javaVersion);
         application.setFolderRoot(existingApplication.getFolderRoot());
@@ -178,10 +184,8 @@ public class ApplicationService {
      */
     @Audit
     public void deleteById(Integer id) {
-        if (!applicationRepository.existsById(id)) {
-            log.warn("Application with ID '{}' does not exist", id);
-            throw new SpringOpsException("Application with ID '" + id + "' does not exist", HttpStatus.NOT_FOUND);
-        }
+        Application application = applicationRepository.findById(id)
+            .orElseThrow(() -> new SpringOpsException("Application with ID '" + id + "' does not exist", HttpStatus.NOT_FOUND));
 
         DeploymentStatusDto deploymentStatus = deploymentManagerService.getDeploymentStatus(id);
         if (Boolean.TRUE.equals(deploymentStatus.getIsRunning())) {
@@ -190,7 +194,43 @@ public class ApplicationService {
         }
 
         applicationRepository.deleteById(id);
+        deleteApplicationFolders(application.getName());
         log.info("Application with ID '{}' deleted successfully", id);
+    }
+
+    /**
+     * Deletes the application folders for a given application name.
+     * This method will remove the application's root directory and all its contents.
+     *
+     * @param applicationName the name of the application whose folders are to be deleted
+     * @author Domenico Ferraro
+     */
+    private void deleteApplicationFolders(String applicationName) {
+        applicationName = applicationName.trim().toLowerCase(Locale.ROOT).replaceAll("\\s+", "-");
+        String rootDirectory = setupService.getSetup().getFilesRoot() + "/" +
+                applicationConfig.getRootDirectoryName() + "/" +
+                applicationConfig.getDirectoryApplications() + "/" +
+                applicationName;
+
+        Path rootPath = Paths.get(rootDirectory);
+        if (Files.exists(rootPath)) {
+            try {
+                Files.walk(rootPath)
+                        .sorted(Comparator.reverseOrder())
+                        .forEach(path -> {
+                            try {
+                                Files.delete(path);
+                                log.info("Deleted: {}", path);
+                            } catch (IOException e) {
+                                log.error("Failed to delete: {}", path, e);
+                            }
+                        });
+            } catch (IOException e) {
+                log.error("Error while deleting application folders for '{}'", applicationName, e);
+            }
+        } else {
+            log.info("Directory '{}' does not exist, nothing to delete.", rootDirectory);
+        }
     }
 
     /**

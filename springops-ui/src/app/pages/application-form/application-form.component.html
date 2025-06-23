@@ -8,7 +8,7 @@
     <div class="form-row">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Application Name</mat-label>
-        <input matInput formControlName="name" required>
+        <input matInput formControlName="name" [readonly]="mode === 'edit'" required>
         <mat-icon matSuffix>code</mat-icon>
         <mat-error *ngIf="form.get('name')?.hasError('required')">
           Application name is required

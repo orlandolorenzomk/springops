@@ -42,7 +42,7 @@ export class ApplicationFormComponent implements OnInit {
 
     this.form = this.fb.group({
       id: [null],
-      name: ['', Validators.required],
+      name: [{value: '', disabled: this.mode === 'edit'}, Validators.required, ],
       port: [null, Validators.required],
       description: [''],
       gitProjectHttpsUrl: ['', Validators.required],
@@ -80,17 +80,14 @@ export class ApplicationFormComponent implements OnInit {
       return;
     }
 
-    if (this.mode === 'create') {
-      this.applicationService.save(dto).subscribe(
-        () => this.dialogRef.close(true),
-        error => console.error()
-      );
-    } else {
-      this.applicationService.update(dto.id, dto).subscribe(
-        () => this.dialogRef.close(true),
-        error => console.error()
-      );
-    }
+    const request$ = this.mode === 'create'
+      ? this.applicationService.save(dto)
+      : this.applicationService.update(dto.id, dto);
+
+    request$.subscribe(
+      () => this.dialogRef.close(true),
+      error => console.error()
+    );
   }
 
   onCancel(): void {

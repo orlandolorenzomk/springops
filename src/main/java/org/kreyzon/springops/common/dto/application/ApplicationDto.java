@@ -59,10 +59,10 @@ public class ApplicationDto implements Serializable {
      * @param applicationDto the application DTO to convert
      * @return the converted Application entity
      */
-    public static Application toEntity(ApplicationDto applicationDto) {
+    public static Application toEntity(ApplicationDto applicationDto, boolean updateName) {
         return Application.builder()
                 .id(applicationDto.getId())
-                .name(applicationDto.getName())
+                .name(updateName ? applicationDto.getName() : null)
                 .folderRoot(applicationDto.getFolderRoot())
                 .description(applicationDto.getDescription())
                 .createdAt(applicationDto.getCreatedAt())
