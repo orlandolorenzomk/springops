@@ -1,0 +1,226 @@
+- Building...
+
+Browser bundles        
+Initial chunk files     | Names               |  Raw size | Estimated transfer size
+main.js                 | main                | 202.22 kB |                27.74 kB
+styles.css              | styles              |  85.46 kB |                 8.11 kB
+polyfills.js            | polyfills           |  33.71 kB |                11.02 kB
+
+                        | Initial total       | 321.39 kB |                46.88 kB
+
+
+Server bundles         
+Initial chunk files     | Names               |  Raw size
+main.server.mjs         | main.server         |   1.19 MB |                        
+chunk-H3QYQ2DQ.mjs      | -                   | 272.58 kB |                        
+chunk-Y5ACQEN6.mjs      | -                   | 262.68 kB |                        
+polyfills.server.mjs    | polyfills.server    | 262.30 kB |                        
+chunk-E2BLHLQE.mjs      | -                   |   1.53 kB |                        
+render-utils.server.mjs | render-utils.server | 292 bytes |                        
+
+Lazy chunk files        | Names               |  Raw size
+chunk-LY26BQYB.mjs      | xhr2                |  11.79 kB |                        
+chunk-WJPFYLCC.mjs      | browser             | 927 bytes |                        
+
+Application bundle generation complete. [12.929 seconds]
+
+▲ [WARNING] NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. [plugin angular-compiler]
+
+    src/app/dialogs/deploy-dialog/deploy-dialog.component.ts:36:33:
+      36 │         [disabled]="!branchName?.trim() || isLoading"
+         ╵                                  ~~~~
+
+
+▲ [WARNING] NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. [plugin angular-compiler]
+
+    src/app/pages/application-list/application-list.component.html:59:69:
+      59 │ ...container [ngSwitch]="applicationStatuses[element.id]?.isRunning">
+         ╵                                                           ~~~~~~~~~
+
+  Error occurs in the template of component ApplicationListComponent.
+
+    src/app/pages/application-list/application-list.component.ts:22:15:
+      22 │   templateUrl: './application-list.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+▲ [WARNING] NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. [plugin angular-compiler]
+
+    src/app/pages/application-list/application-list.component.html:65:57:
+      65 │                 PID: {{ applicationStatuses[element.id]?.pid }} |
+         ╵                                                          ~~~
+
+  Error occurs in the template of component ApplicationListComponent.
+
+    src/app/pages/application-list/application-list.component.ts:22:15:
+      22 │   templateUrl: './application-list.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+▲ [WARNING] NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. [plugin angular-compiler]
+
+    src/app/pages/application-list/application-list.component.html:66:58:
+      66 │                 Port: {{ applicationStatuses[element.id]?.port }}
+         ╵                                                           ~~~~
+
+  Error occurs in the template of component ApplicationListComponent.
+
+    src/app/pages/application-list/application-list.component.ts:22:15:
+      22 │   templateUrl: './application-list.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+▲ [WARNING] NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. [plugin angular-compiler]
+
+    src/app/pages/deployments-list/deployments-list.component.html:88:44:
+      88 │           PID: {{ deploymentStatuses[d.id]?.pid }} |
+         ╵                                             ~~~
+
+  Error occurs in the template of component DeploymentsListComponent.
+
+    src/app/pages/deployments-list/deployments-list.component.ts:13:15:
+      13 │   templateUrl: './deployments-list.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+▲ [WARNING] NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. [plugin angular-compiler]
+
+    src/app/pages/deployments-list/deployments-list.component.html:89:45:
+      89 │           Port: {{ deploymentStatuses[d.id]?.port }}
+         ╵                                              ~~~~
+
+  Error occurs in the template of component DeploymentsListComponent.
+
+    src/app/pages/deployments-list/deployments-list.component.ts:13:15:
+      13 │   templateUrl: './deployments-list.component.html',
+         ╵                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+▲ [WARNING] Module 'file-saver' used by 'src/app/dialogs/view-logs-dialog/view-logs-dialog.component.ts' is not ESM
+
+  CommonJS or AMD dependencies can cause optimization bailouts.
+  For more information see: https://angular.io/guide/build#configuring-commonjs-dependencies
+
+
+Watch mode enabled. Watching for file changes...
+  ➜  Local:   http://localhost:4201/
+AuthGuard: Authentication status: Not Authenticated
+AuthGuard: Authentication status: Not Authenticated
+AuthGuard: Authentication status: Not Authenticated
+AuthGuard: Authentication status: Not Authenticated
+AuthGuard: Authentication status: Not Authenticated
+AuthGuard: Authentication status: Not Authenticated
+AuthGuard: Authentication status: Not Authenticated
+AuthGuard: Authentication status: Not Authenticated
+ERROR un {
+  headers: t {
+    normalizedNames: Map(0) {},
+    lazyUpdate: null,
+    lazyInit: [Function (anonymous)]
+  },
+  status: 403,
+  statusText: 'Forbidden',
+  url: 'http://10.50.20.64:51300/kreyzon/springops/api/info',
+  ok: false,
+  name: 'HttpErrorResponse',
+  message: 'Http failure response for http://10.50.20.64:51300/kreyzon/springops/api/info: 403 Forbidden',
+  error: null
+}
+ERROR un {
+  headers: t {
+    normalizedNames: Map(0) {},
+    lazyUpdate: null,
+    lazyInit: [Function (anonymous)]
+  },
+  status: 403,
+  statusText: 'Forbidden',
+  url: 'http://10.50.20.64:51300/kreyzon/springops/api/info',
+  ok: false,
+  name: 'HttpErrorResponse',
+  message: 'Http failure response for http://10.50.20.64:51300/kreyzon/springops/api/info: 403 Forbidden',
+  error: null
+}
+ERROR un {
+  headers: t {
+    normalizedNames: Map(0) {},
+    lazyUpdate: null,
+    lazyInit: [Function (anonymous)]
+  },
+  status: 403,
+  statusText: 'Forbidden',
+  url: 'http://10.50.20.64:51300/kreyzon/springops/api/info',
+  ok: false,
+  name: 'HttpErrorResponse',
+  message: 'Http failure response for http://10.50.20.64:51300/kreyzon/springops/api/info: 403 Forbidden',
+  error: null
+}
+ERROR un {
+  headers: t {
+    normalizedNames: Map(0) {},
+    lazyUpdate: null,
+    lazyInit: [Function (anonymous)]
+  },
+  status: 403,
+  statusText: 'Forbidden',
+  url: 'http://10.50.20.64:51300/kreyzon/springops/api/info',
+  ok: false,
+  name: 'HttpErrorResponse',
+  message: 'Http failure response for http://10.50.20.64:51300/kreyzon/springops/api/info: 403 Forbidden',
+  error: null
+}
+ERROR un {
+  headers: t {
+    normalizedNames: Map(0) {},
+    lazyUpdate: null,
+    lazyInit: [Function (anonymous)]
+  },
+  status: 403,
+  statusText: 'Forbidden',
+  url: 'http://10.50.20.64:51300/kreyzon/springops/api/info',
+  ok: false,
+  name: 'HttpErrorResponse',
+  message: 'Http failure response for http://10.50.20.64:51300/kreyzon/springops/api/info: 403 Forbidden',
+  error: null
+}
+ERROR un {
+  headers: t {
+    normalizedNames: Map(0) {},
+    lazyUpdate: null,
+    lazyInit: [Function (anonymous)]
+  },
+  status: 403,
+  statusText: 'Forbidden',
+  url: 'http://10.50.20.64:51300/kreyzon/springops/api/info',
+  ok: false,
+  name: 'HttpErrorResponse',
+  message: 'Http failure response for http://10.50.20.64:51300/kreyzon/springops/api/info: 403 Forbidden',
+  error: null
+}
+ERROR un {
+  headers: t {
+    normalizedNames: Map(0) {},
+    lazyUpdate: null,
+    lazyInit: [Function (anonymous)]
+  },
+  status: 403,
+  statusText: 'Forbidden',
+  url: 'http://10.50.20.64:51300/kreyzon/springops/api/info',
+  ok: false,
+  name: 'HttpErrorResponse',
+  message: 'Http failure response for http://10.50.20.64:51300/kreyzon/springops/api/info: 403 Forbidden',
+  error: null
+}
+ERROR un {
+  headers: t {
+    normalizedNames: Map(0) {},
+    lazyUpdate: null,
+    lazyInit: [Function (anonymous)]
+  },
+  status: 403,
+  statusText: 'Forbidden',
+  url: 'http://10.50.20.64:51300/kreyzon/springops/api/info',
+  ok: false,
+  name: 'HttpErrorResponse',
+  message: 'Http failure response for http://10.50.20.64:51300/kreyzon/springops/api/info: 403 Forbidden',
+  error: null
+}

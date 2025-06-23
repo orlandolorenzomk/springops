@@ -1,205 +1,74 @@
+# SpringOps Documentation
 
-![Java](https://img.shields.io/badge/Java-21-blue)
-![SpringBoot](https://img.shields.io/badge/SpringBoot-3.4.5-brightgreen)
-![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-informational)
-![License](https://img.shields.io/badge/license-MIT-green)
+## 🏗️ Architecture Overview
 
-# SpringOps – Deployment Management Platform
+SpringOps is a modular Spring Boot application designed for managing and deploying Spring Boot microservices. It includes modules for Git integration, SSH-based deployment, monitoring, audit logging, user authentication, and more.
 
-## Table of Contents
+### Main Modules
+- **core**: Main business logic for application management, deployment, logging, etc.
+- **auth**: User authentication and JWT handling
+- **email**: Notification system
+- **audits**: System audits and activity logging
+- **scheduled**: Background scheduled tasks
+- **setup**: System initialization and environment configuration
 
-- [Overview](#overview)
-- [Features](#features)
-- [Modules](#modules)
-- [Shell Scripts](#shell-scripts)
-- [Deployment Workflow](#deployment-workflow)
+---
 
-## Overview
+## 🚀 Setup & Deployment
 
-SpringOps is a backend platform for managing and deploying Java applications. It supports:
+### Prerequisites
+- Java 17+
+- Maven 3.8+
+- Docker
+- Git
 
-- Cloning Git repositories using personal access tokens
-- Building Java applications with Maven
-- Deploying applications using `java -jar`
-- Managing environment variables per application
-- Tracking deployment metadata and system configurations
-
-The project is built with **Spring Boot 3.4.5**, uses **PostgreSQL**, and handles database versioning through **Flyway**.
-
-SpringOps was built to help backend teams manage and deploy internal tools without using complex CI/CD platforms like Jenkins or GitLab CI. It’s focused, simple, and 100% shell+Spring Boot.
-
-## Features
-
-- JWT-based Authentication
-- Application CRUD with Environment Variables
-- Custom Maven and Java version management
-- Branch-based deployment tracking
-- Shell-based automation scripts
-- Role-based security
-- Startup bootstrap for first-time setup
-
-## Technology Stack
-
-- Java 21
-- Spring Boot 3.4.5
-- Spring Security
-- Spring Data JPA
-- PostgreSQL
-- Flyway
-- JWT (jjwt)
-- Lombok
-- Shell Scripting
-
-## Modules
-
-### Authentication
-
-Handles user authentication and JWT token issuance.
-
-**Key Components:**
-
-- `User`, `UserRepository`, `UserService`
-- `AuthenticationController`
-- `JwtAuthenticationFilter`, `JwtUtil`, `JwtConfig`
-- `SecurityConfig`, `PasswordEncoderConfig`
-
-### Application Management
-
-Each application has a Maven and Java system version, Git URL, and root folder.
-
-**Entities:**
-
-- `Application`
-- `ApplicationRepository`, `ApplicationService`, `ApplicationController`
-- `ApplicationEnv` (name-value pairs for environment config)
-
-**Endpoints:**
-
-- `/api/applications`
-- `/api/applications/env`
-
-### Environment Variables
-
-Stored in the `application_env` table and injected at runtime during deployment.
-
-```sql
-CREATE TABLE application_env (
-  id SERIAL PRIMARY KEY,
-  application_id INT NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
-  name VARCHAR(255) NOT NULL,
-  value TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### Deployment Management
-
-Handles application deployments via Git, Maven, and runtime configuration.
-
-**Entities:**
-
-- `Deployment`
-- `DeploymentRepository`, `DeploymentService`, `DeploymentController`
-- `DeploymentManagerService`, `DeploymentManagerController`
-
-**Endpoints:**
-
-- `/api/deployments`
-- `/api/deployments/manager`
-
-### Version Management
-
-Tracks installed Maven and Java versions on the host.
-
-```sql
-CREATE TABLE system_versions (
-    id SERIAL PRIMARY KEY,
-    type VARCHAR(20) NOT NULL,
-    version VARCHAR(50) NOT NULL,
-    path TEXT NOT NULL,
-    name VARCHAR(255) NOT NULL DEFAULT 'default',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### Setup & Bootstrap
-
-Handles server setup metadata and startup bootstrapping.
-
-**Entities:**
-
-- `Setup`, `StartupInitializer`
-- `SetupRepository`, `SetupService`, `SetupController`
-
-## Shell Scripts
-
-### `update_project.sh`
-
-Clones a specified Git branch into a target directory and creates a deployment branch.
+### Run Locally
 
 ```bash
-./update_project.sh <GIT_URL> <BRANCH> <CLONE_DIR>
+cp .env.example .env
+mvn spring-boot:run
 ```
 
-### `build_project.sh`
-
-Builds a project with a specified Maven and Java version.
+### Build for Production
 
 ```bash
-./build_project.sh <JAVA_BIN_PATH> <MAVEN_BIN_PATH> <PROJECT_DIR> <JAVA_VERSION>
+mvn clean package -DskipTests
 ```
 
-### `run_project.sh`
+---
 
-Runs a `.jar` file with exported environment variables.
+## 📡 API Reference
+
+See individual module files in `/docs/api/`.
+
+---
+
+## 🧠 Internal Documentation
+
+- See `/docs/modules/` for service, entity, and configuration breakdown.
+
+---
+
+## 🔧 Configuration
+
+- `.env`: environment variables
+- `application.yml`: Spring configurations (profile-based)
+- CORS: Global access via `@CrossOrigin`
+
+---
+
+## 🧪 Testing
 
 ```bash
-./run_project.sh <JAVA_PATH> <PROJECT_DIR> <JAR_NAME> VAR1=value1 VAR2=value2 ...
+mvn test
 ```
 
-## Configuration
+Unit and integration tests use Spring Boot Test with `@MockBean` for mocking service layers.
 
-### `application.yml`
+---
 
-Contains general Spring Boot configuration:
-- Server port
-- JWT secret
-- Database credentials
-- File path settings
+## 📁 Directory Structure
 
-### `pom.xml`
-
-Spring Boot 3.4.5 with dependencies for:
-- Web, Security, JPA, Flyway
-- PostgreSQL, JWT
-- Lombok, Hibernate Validator
-
-## Database Schema (Flyway Migrations)
-
-- V1__create_setup_table.sql
-- V2__create_user_table.sql
-- V3__create_system_versions_table.sql
-- V4__update_system_versions_table.sql
-- V5__create_applications_table.sql
-- V6__create_application_env_table.sql
-- V7__create_deployments_table.sql
-- V8__update_deployments_table.sql
-- V9__update_setup_table.sql
-
-## Deployment Workflow
-
-1. Configure Git access token and environment variables in DB.
-2. Pull specified Git branch using `update_project.sh`.
-3. Build project using `build_project.sh`.
-4. Run `.jar` with injected env variables via `run_project.sh`.
-5. Track PID and deployment info in `deployments` table.
-
-## Screenshots
-
-| Dashboard | Applications |
-|----------|--------------|
-| ![Dashboard](screenshots/dashboard.png) | ![Applications](screenshots/applications.png) |
-
-| Deployments | System Versions |
-|-------------|------------------|
-| ![Deployments](screenshots/deployments.png) | ![System Versions](screenshots/system_versions.png) |
+- `src/main/java/org/kreyzon/springops`: Core source code
+- `springops-ui`: Angular frontend
+- `deploy`: Git-based deploy system
