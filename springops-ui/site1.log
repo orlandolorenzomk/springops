@@ -22,7 +22,7 @@ Lazy chunk files        | Names               |  Raw size
 chunk-LY26BQYB.mjs      | xhr2                |  11.79 kB |                        
 chunk-WJPFYLCC.mjs      | browser             | 927 bytes |                        
 
-Application bundle generation complete. [12.929 seconds]
+Application bundle generation complete. [11.150 seconds]
 
 ▲ [WARNING] NG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator. [plugin angular-compiler]
 
@@ -103,8 +103,7 @@ Application bundle generation complete. [12.929 seconds]
 
 
 Watch mode enabled. Watching for file changes...
-  ➜  Local:   http://localhost:4200/
-AuthGuard: Authentication status: Not Authenticated
+  ➜  Local:   http://localhost:4202/
 ERROR un {
   headers: t {
     normalizedNames: Map(0) {},

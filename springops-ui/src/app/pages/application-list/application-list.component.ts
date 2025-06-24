@@ -14,8 +14,6 @@ import {StatsDialogComponent} from "../../dialogs/stats-dialog/stats-dialog.comp
 import {
   ManageDependenciesDialogComponent
 } from "../../dialogs/manage-dependencies-dialog/manage-dependencies-dialog.component";
-import {error} from "@angular/compiler-cli/src/transformers/util";
-import {forkJoin} from "rxjs";
 
 @Component({
   selector: 'app-application-list',

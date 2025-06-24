@@ -34,7 +34,8 @@ public class SecurityConfig {
         "/setup/initialize-git-ssh-key",
         "/authentication",
         "/users/create",
-        "/wiki/**"
+        "/wiki/**",
+        "/info"
     };
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;

@@ -33,7 +33,7 @@ import { GitService } from '../../services/git.service';
       <button
         mat-raised-button
         color="primary"
-        [disabled]="!branchName?.trim() || isLoading"
+        [disabled]="!branchName.trim() || isLoading"
         (click)="confirm()"
       >
         Deploy

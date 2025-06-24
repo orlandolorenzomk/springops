@@ -2,7 +2,6 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ApplicationLog } from '../../models/application-log.model';
 import {LogsService} from "../../services/logs.service";
-import { saveAs } from 'file-saver';
 @Component({
   selector: 'app-view-logs-dialog',
   templateUrl: './view-logs-dialog.component.html',
@@ -33,8 +32,16 @@ export class ViewLogsDialogComponent implements OnInit {
   }
 
   downloadLog(filename: string): void {
-    this.logsService.downloadLog(this.applicationId, filename).subscribe(blob => {
-      saveAs(blob, filename);
-    });
-  }
+  this.logsService.downloadLog(this.applicationId, filename).subscribe(blob => {
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.style.display = 'none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    window.URL.revokeObjectURL(url);
+  });
+}
 }
