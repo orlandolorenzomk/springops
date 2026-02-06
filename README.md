@@ -1,6 +1,6 @@
 # SpringOps Documentation
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 SpringOps is a modular Spring Boot application designed for managing and deploying Spring Boot microservices. It includes modules for Git integration, SSH-based deployment, monitoring, audit logging, user authentication, and more.
 
@@ -14,7 +14,7 @@ SpringOps is a modular Spring Boot application designed for managing and deployi
 
 ---
 
-## 🚀 Setup & Deployment
+## Setup & Deployment
 
 ### Prerequisites
 - Java 17+
@@ -37,19 +37,19 @@ mvn clean package -DskipTests
 
 ---
 
-## 📡 API Reference
+## API Reference
 
 See individual module files in `/docs/api/`.
 
 ---
 
-## 🧠 Internal Documentation
+## Internal Documentation
 
 - See `/docs/modules/` for service, entity, and configuration breakdown.
 
 ---
 
-## 🔧 Configuration
+## Configuration
 
 - `.env`: environment variables
 - `application.yml`: Spring configurations (profile-based)
@@ -57,7 +57,7 @@ See individual module files in `/docs/api/`.
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ```bash
 mvn test
@@ -67,7 +67,7 @@ Unit and integration tests use Spring Boot Test with `@MockBean` for mocking ser
 
 ---
 
-## 📁 Directory Structure
+## Directory Structure
 
 - `src/main/java/org/kreyzon/springops`: Core source code
 - `springops-ui`: Angular frontend
